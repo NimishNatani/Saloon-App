@@ -7,4 +7,10 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="sallon_color">#FF6f45ef</color>
+    <color name="sallon_color_light">#FF9f7cf1</color>
+    <color name="grey">#FF8C8C8C</color>
+    <color name="grey_light">#FFE5E5E5</color>
+    <color name="purple_grad1">#FF8E2DE2</color>
+    <color name="purple_grad2">#FF4A00E0</color>
 </resources>
