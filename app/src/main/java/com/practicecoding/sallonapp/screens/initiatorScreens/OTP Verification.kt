@@ -44,12 +44,6 @@ fun PhoneNumberScreen(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
         ) {
-        Text(
-            text = "Enter Phone Number",
-            modifier = Modifier.padding(16.dp),
-            fontSize = 15.sp,
-            fontFamily = FontFamily.SansSerif
-        )
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -111,12 +105,6 @@ fun OTPVerificationScreen(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Enter OTP sent to $phoneNumber",
-            modifier = Modifier.padding(16.dp),
-            fontSize = 15.sp,
-            fontFamily = FontFamily.SansSerif
-        )
         Box(
             modifier = Modifier
                 .fillMaxWidth()

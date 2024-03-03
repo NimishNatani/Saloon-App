@@ -1,5 +1,6 @@
 package com.practicecoding.sallonapp.screens
 
+import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -28,6 +29,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +44,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.screens.initiatorScreens.AdvancedSignUpScreen
 import com.practicecoding.sallonapp.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.screens.initiatorScreens.OnBoardingText
 import kotlinx.coroutines.launch
@@ -64,12 +69,14 @@ fun OnBoardingBottomTextCard(
 ){
     Card(
         modifier = Modifier
-            .fillMaxWidth().wrapContentHeight(),
+            .fillMaxWidth()
+            .wrapContentHeight(),
         shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth().wrapContentHeight()
+                .fillMaxWidth()
+                .wrapContentHeight()
                 .background(
                     color = Color.White,
                     shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp)
@@ -80,7 +87,9 @@ fun OnBoardingBottomTextCard(
             val scope = rememberCoroutineScope()
             HorizontalPager(
                 modifier = Modifier
-                    .fillMaxWidth().wrapContentHeight().align(Alignment.TopCenter),
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .align(Alignment.TopCenter),
                 state = pagerState
             ) {text ->
                 OnBoardingText(
@@ -92,7 +101,8 @@ fun OnBoardingBottomTextCard(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .wrapContentSize()
-                    .padding(16.dp).align(Alignment.BottomStart)
+                    .padding(16.dp)
+                    .align(Alignment.BottomStart)
             ) {
                 repeat(3) { index ->
                     DotIndicator(selected = index == pagerState.currentPage)
@@ -103,7 +113,8 @@ fun OnBoardingBottomTextCard(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(bottom = 32.dp, end = 32.dp, start = 32.dp)
-                    .wrapContentSize(align = Alignment.BottomEnd).clip(RoundedCornerShape(50.dp)),
+                    .wrapContentSize(align = Alignment.BottomEnd)
+                    .clip(RoundedCornerShape(50.dp)),
                 color = MaterialTheme.colorScheme.primary
             ) {
 
@@ -147,7 +158,7 @@ fun DotIndicator(selected: Boolean) {
     )
 }
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
 fun OnBoardingBottomTextCardPreview(){
     val onBoardingTextList = listOf(
@@ -170,4 +181,92 @@ fun OnBoardingBottomTextCardPreview(){
         onBoardingTextList = onBoardingTextList,
         onNextClick = {}
     )
+}
+
+@Composable
+fun DoubleCard(
+    title: String ,
+    body: String,
+    navController: NavController = rememberNavController(),
+    composable: @Composable () -> Unit
+){
+    val context = LocalContext.current
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = colorResource(id = R.color.grey_light)),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Surface(
+                shape = RoundedCornerShape(50),
+                modifier = Modifier
+                    .padding(20.dp)
+                    .wrapContentSize(align = Alignment.BottomEnd)
+                    .clip(RoundedCornerShape(50.dp)),
+                color = MaterialTheme.colorScheme.primary
+            ) {
+
+                IconButton(onClick ={
+                    navController.popBackStack()
+                    Toast.makeText(context, "Back", Toast.LENGTH_SHORT).show()
+                },
+                    modifier = Modifier.background(color =  Color.White)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Next",
+                        tint = Color.Black,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+            Text(
+                text = title,
+                modifier = Modifier
+                    .padding(20.dp)
+                    .align(Alignment.CenterVertically),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Card(
+            modifier = Modifier.fillMaxSize(),
+            shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
+            backgroundColor = colorResource(id = R.color.sallon_color)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 4.dp),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(text = body, modifier = Modifier.padding(20.dp),
+                    fontSize = 18.sp,
+                    color = Color.White,
+                )
+                Card(
+                    modifier = Modifier.fillMaxSize(),
+                    shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
+                    backgroundColor = colorResource(id = R.color.white)
+                ) {
+                   composable()
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DoubleCardPreview(){
+    val navController = rememberNavController()
+    DoubleCard("Sign up ", "sign up",navController = navController){
+          AdvancedSignUpScreen()
+    }
 }

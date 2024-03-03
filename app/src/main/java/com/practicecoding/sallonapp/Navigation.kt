@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.practicecoding.sallonapp.screens.DoubleCard
 import com.practicecoding.sallonapp.screens.initiatorScreens.AdvancedSignUpScreen
 import com.practicecoding.sallonapp.screens.initiatorScreens.LogoScreen
 import com.practicecoding.sallonapp.screens.initiatorScreens.OTPVerificationScreen
@@ -76,18 +77,24 @@ navController : NavHostController
             )
         }
         composable(Screens.PhoneNumberScreen.route) {
-            PhoneNumberScreen(
-                navigateToVerification = {phoneNumber ->
-                    navController.navigate(Screens.OTPVerification.route + "/$phoneNumber")
-                }
-            )
+            DoubleCard(title = "Phone Number", body = "Enter your phone number") {
+                PhoneNumberScreen(
+                    navigateToVerification = {phoneNumber ->
+                        navController.navigate(Screens.OTPVerification.route + "/$phoneNumber")
+                    }
+                )
+            }
         }
         composable(Screens.OTPVerification.route + "/{phoneNumber}") { backStackEntry ->
             val phoneNumber = backStackEntry.arguments?.getString("phoneNumber")?:"000"
-            OTPVerificationScreen(phoneNumber)
+            DoubleCard(title = "OTP verification", body = "Enter the OTP sent to $phoneNumber") {
+                OTPVerificationScreen(phoneNumber)
+            }
         }
         composable(Screens.SignUp.route){
-            AdvancedSignUpScreen()
+            DoubleCard(title = "Sign Up", body = "Enter your details") {
+                AdvancedSignUpScreen()
+            }
         }
     }
 }

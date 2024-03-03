@@ -3,22 +3,34 @@ package com.practicecoding.sallonapp.screens.initiatorScreens
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Icon
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,12 +49,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.ui.unit.sp
-import androidx.compose.material3.Button
+import androidx.compose.material.Button
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.constraintlayout.compose.Visibility
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.screens.DoubleCard
 import java.time.LocalDate
 
 
@@ -70,7 +89,7 @@ fun AdvancedSignUpScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(gradientBackground)
+            .background(Color.White, shape = RoundedCornerShape(16.dp))
             .padding(16.dp)
             .clickable( // Dismiss keyboard
                 interactionSource = remember { MutableInteractionSource() },
@@ -80,7 +99,9 @@ fun AdvancedSignUpScreen() {
             }
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(scrollState),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -105,9 +126,9 @@ fun AdvancedSignUpScreen() {
                 label = { Text("Name") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White.copy(alpha = 0.6f),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
-                    textColor = Color.White
+                    focusedBorderColor = Color.Red.copy(alpha = 0.6f),
+                    unfocusedBorderColor = Color.Black.copy(alpha = 0.3f),
+                    textColor = Color.Black
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
@@ -118,8 +139,8 @@ fun AdvancedSignUpScreen() {
                 onClick = {
                     dropdownExpanded = true
                 },
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = colorResource(id = R.color.sallon_color_light),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = colorResource(id = R.color.sallon_color_light),
                     contentColor = colorResource(id = R.color.black),
                 )
             ) {
@@ -200,9 +221,10 @@ fun AdvancedSignUpScreen() {
                 label = { Text("Birth Date") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White.copy(alpha = 0.6f),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
-                    textColor = Color.White
+                    focusedBorderColor = Color.Red.copy(alpha = 0.6f),
+                    unfocusedBorderColor = Color.Black.copy(alpha = 0.6f),
+
+                    textColor = Color.Black
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
@@ -222,9 +244,39 @@ fun AdvancedSignUpScreen() {
                 },
                 modifier = Modifier.wrapContentSize(),
                 shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                colors = ButtonDefaults.buttonColors(backgroundColor = colorResource(id = R.color.sallon_color))
             ) {
-                Text("Sign Up", color = Color(0xFF4A00E0)) // Purple
+                Text("Sign Up", color = Color.White) // Purple
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.icon_google),
+                    contentDescription = "Google",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            Toast
+                                .makeText(context, "Google", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                )
+                Spacer(modifier = Modifier.size(50.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.icon_facebook),
+                    contentDescription = "Facebook",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            Toast
+                                .makeText(context, "Facebook", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                )
             }
         }
     }
@@ -283,5 +335,7 @@ enum class Gender(val label: String) {
 @Preview
 @Composable
 fun AdvancedSignUpScreenPreview() {
-    AdvancedSignUpScreen()
+   DoubleCard(title = "Sign up ", body = " sign up for better experience" ) {
+       AdvancedSignUpScreen()
+   }
 }

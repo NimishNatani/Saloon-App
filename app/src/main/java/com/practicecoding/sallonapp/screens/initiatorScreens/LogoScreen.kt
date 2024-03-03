@@ -58,12 +58,9 @@ fun LogoScreen(
         modifier = Modifier.fillMaxSize(),
             ) {
         Box(
-            modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(
-                0.0f to colorResource(id = R.color.grey_light),
-                1.0f to colorResource(id = R.color.grey),
-                start = Offset(0f, 0f),
-                end = Offset(1000f, 1000f)
-            )),
+            modifier = Modifier.fillMaxSize().background(
+                color = colorResource(id = R.color.sallon_color)
+            ),
             contentAlignment = Alignment.Center
         ) {
             Image(
