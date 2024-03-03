@@ -51,6 +51,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
     //this is the code for navigation between screens
     val nav_version = "2.7.5"
 

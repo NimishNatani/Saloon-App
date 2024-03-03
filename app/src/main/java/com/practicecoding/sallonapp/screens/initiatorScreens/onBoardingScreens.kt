@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.Screens
 import com.practicecoding.sallonapp.screens.OnBoardingBottomTextCard
 import kotlinx.coroutines.launch
 
@@ -95,7 +97,7 @@ fun OnBoardingPageImage(
                 painter = painterResource(id = image),
                 contentDescription = "Onboarding Image",
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxWidth().size(600.dp)
                     .aspectRatio(0.909f),
             )
         }
@@ -142,6 +144,7 @@ fun OnBoardingScreen(
                 OnBoardingPageImage(
                     image = imageList[page],
                     onClickSkip = {
+                        navController.navigate(Screens.PhoneNumberScreen.route)
                     }
                 )
             }
@@ -151,10 +154,10 @@ fun OnBoardingScreen(
             onBoardingTextList = OnBoardingTextList,
             onNextClick = {
                 scope.launch {
-                    if(pagerState.currentPage < 3){
+                    if(pagerState.currentPage <= imageList.size - 2){
                         pagerState.animateScrollToPage(pagerState.currentPage + 1)
                     }else{
-                       // navController.navigate("home")
+                        navController.navigate(Screens.PhoneNumberScreen.route)
                     }
                 }
             }
@@ -185,9 +188,9 @@ fun OnBoardingScreenPreview() {
     OnBoardingScreen(
         navController = navController,
         imageList = listOf(
-            R.drawable.ic_launcher_foreground,
-            R.drawable.ic_launcher_foreground,
-            R.drawable.ic_launcher_foreground,
+            R.drawable.onboarding1,
+            R.drawable.onboarding2,
+            R.drawable.onboarding3
         ),
         OnBoardingTextList = onBoardingTextList
     )

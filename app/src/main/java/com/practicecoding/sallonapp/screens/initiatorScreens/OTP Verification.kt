@@ -147,6 +147,8 @@ fun OTPVerificationScreen(
         Button(
             onClick = {
                 /*TODO: Verify OTP and login system*/
+                      //if user already exists then navigate to home screen
+                        //else navigate to sign up screen
             },
             modifier = Modifier
                 .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 16.dp)

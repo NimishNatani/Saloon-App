@@ -34,19 +34,60 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.practicecoding.sallonapp.screens.initiatorScreens.AdvancedSignUpScreen
 import com.practicecoding.sallonapp.screens.initiatorScreens.LogoScreen
+import com.practicecoding.sallonapp.screens.initiatorScreens.OTPVerificationScreen
+import com.practicecoding.sallonapp.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.screens.initiatorScreens.OnBoardingScreen
+import com.practicecoding.sallonapp.screens.initiatorScreens.PhoneNumberScreen
 
 @Composable
 fun AppNavigation(
 navController : NavHostController
-){
- NavHost(navController = navController, startDestination = Screens.Logo.route){
-          composable(Screens.Logo.route){
-               LogoScreen(navController = navController)
-               }
-          composable(Screens.OnBoardingScreens.route){
-
+) {
+    NavHost(navController = navController, startDestination = Screens.Logo.route) {
+        composable(Screens.Logo.route) {
+            LogoScreen(navController = navController)
+        }
+        composable(Screens.OnBoardingScreens.route) {
+            val imageList = listOf(
+                R.drawable.onboarding1,
+                R.drawable.onboarding2,
+                R.drawable.onboarding3
+            )
+            val onBoardingTextList = listOf(
+                OnBoardingPageText(
+                    mainHeading = "Heading 1",
+                    bodyText = "Body 1"
+                ),
+                OnBoardingPageText(
+                    mainHeading = "Heading 2",
+                    bodyText = "Body 2"
+                ),
+                OnBoardingPageText(
+                    mainHeading = "Heading 3",
+                    bodyText = "Body 3"
+                ),
+            )
+            OnBoardingScreen(
+                navController = navController,
+                imageList = imageList,
+                OnBoardingTextList = onBoardingTextList
+            )
+        }
+        composable(Screens.PhoneNumberScreen.route) {
+            PhoneNumberScreen(
+                navigateToVerification = {phoneNumber ->
+                    navController.navigate(Screens.OTPVerification.route + "/$phoneNumber")
                 }
-          }
-       }
+            )
+        }
+        composable(Screens.OTPVerification.route + "/{phoneNumber}") { backStackEntry ->
+            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber")?:"000"
+            OTPVerificationScreen(phoneNumber)
+        }
+        composable(Screens.SignUp.route){
+            AdvancedSignUpScreen()
+        }
+    }
+}

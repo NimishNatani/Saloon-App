@@ -71,7 +71,7 @@ fun LogoScreen(
                 contentDescription = "logo",
                 modifier = Modifier
                     .aspectRatio(1.0f).wrapContentSize().clip(shape = CircleShape).clickable {
-                         navController.navigate(Screens.OnBoardingScreens.route)
+                        navController.navigate(Screens.OnBoardingScreens.route)
                     }
             )
         }

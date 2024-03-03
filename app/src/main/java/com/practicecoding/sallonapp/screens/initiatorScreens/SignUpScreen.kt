@@ -1,15 +1,23 @@
 package com.practicecoding.sallonapp.screens.initiatorScreens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,18 +32,33 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.Button
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.constraintlayout.compose.Visibility
 import com.practicecoding.sallonapp.R
+import java.time.LocalDate
 
-@OptIn(ExperimentalMaterialApi::class)
+
 @Composable
 fun AdvancedSignUpScreen() {
     // State variables
+    val context = LocalContext.current
     var name by remember { mutableStateOf("") }
+    var dropdownExpanded by remember { mutableStateOf(false) }
     var selectedGender by remember { mutableStateOf<Gender?>(null) }
     val focusManager = LocalFocusManager.current
+    var birthDate by remember { mutableStateOf("2024-02-2") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var isPasswordVisible by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
 
     // Gradient background
     val gradientBackground = Brush.linearGradient(
@@ -57,7 +80,7 @@ fun AdvancedSignUpScreen() {
             }
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -88,12 +111,114 @@ fun AdvancedSignUpScreen() {
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
-            //for gender selection, i wanted to add three buttons , working on it
-            //and other parameters too
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                onClick = {
+                    dropdownExpanded = true
+                },
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = colorResource(id = R.color.sallon_color_light),
+                    contentColor = colorResource(id = R.color.black),
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.img),
+                        contentDescription = "drop down",
+                        modifier = Modifier
+                            .size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.size(20.dp))
+                    Text(
+                        text = selectedGender?.label ?:"Male",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(),
+                        textAlign = TextAlign.Start
+                    )
+                    androidx.compose.material3.DropdownMenu(
+                        expanded = dropdownExpanded, onDismissRequest = {
+                            dropdownExpanded = false
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = "Male", style = MaterialTheme.typography.bodySmall,
+                                    textAlign = TextAlign.Center
+                                )
+                            },
+                            onClick = {
+                                selectedGender = Gender.MALE
+                                dropdownExpanded = false
+                            })
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = "Female",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    textAlign = TextAlign.Center
+                                )
+                            },
+                            onClick = {
+                                selectedGender = Gender.FEMALE
+                                dropdownExpanded = false
+                            }
+                        )
+                         DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = "Other",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    textAlign = TextAlign.Center
+                                )
+                            },
+                            onClick = {
+                                selectedGender = Gender.OTHER
+                                dropdownExpanded = false
+                            }
+                       )
+                    }
+                }
+            }
+           // out line text field for birth date
+            OutlinedTextField(
+                value = birthDate.toString(),
+                onValueChange = { birthDate = it },
+                label = { Text("Birth Date") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color.White.copy(alpha = 0.6f),
+                    unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
+                    textColor = Color.White
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+
+            PasswordFields()
 
             Button(
                 onClick = {
-                          /*TODO: Sign up and saving data of user*/
+
+                          if (name.isNotBlank() && selectedGender != null && birthDate.isNotBlank()
+                              && password.isNotBlank() && confirmPassword.isNotBlank()&&(password == confirmPassword)) {
+                              /*TODO: Sign up and saving data of user*/
+                          }else{
+                              Toast.makeText(context, "Either a field is empty or password and confirm password dont match",
+                                  Toast.LENGTH_SHORT).show()
+                          }
                 },
                 modifier = Modifier.wrapContentSize(),
                 shape = RoundedCornerShape(8.dp),
@@ -104,6 +229,49 @@ fun AdvancedSignUpScreen() {
         }
     }
 }
+
+@Composable
+fun PasswordFields() {
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var isPasswordVisible by remember { mutableStateOf(false) }
+
+    Column {
+        // Password Field
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
+            modifier = Modifier.fillMaxWidth(),
+            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                    Icon(
+                        imageVector = if (isPasswordVisible) Icons.Outlined.Lock else Icons.Filled.Lock,
+                        contentDescription = if (isPasswordVisible) "Hide password" else "Show password"
+                    )
+                }
+            }
+        )
+        // Confirm Password Field
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirm Password") },
+            modifier = Modifier.fillMaxWidth(),
+            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                    Icon(
+                        imageVector = if (isPasswordVisible) Icons.Outlined.Lock else Icons.Filled.Lock,
+                        contentDescription = if (isPasswordVisible) "Hide password" else "Show password"
+                    )
+                }
+            }
+        )
+    }
+}
+
 
 
 enum class Gender(val label: String) {
