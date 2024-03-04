@@ -3,6 +3,7 @@ package com.practicecoding.sallonapp.appui.screens
 import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,6 +32,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -70,12 +72,15 @@ fun OnBoardingBottomTextCard(
     navController: NavController,
     onBoardingTextList : List<OnBoardingPageText>,
     onNextClick: () -> Unit,
+    onBackClick: () -> Unit
 ){
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight(),
         shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
+        border = BorderStroke(0.7.dp, Color.Gray),
+        elevation = 8.dp
     ) {
         Box(
             modifier = Modifier
@@ -94,7 +99,8 @@ fun OnBoardingBottomTextCard(
                     .fillMaxWidth()
                     .wrapContentHeight()
                     .align(Alignment.TopCenter),
-                state = pagerState
+                state = pagerState,
+                userScrollEnabled = false
             ) {text ->
                 OnBoardingText(
                     mainHeading = onBoardingTextList[text].mainHeading,
@@ -112,39 +118,73 @@ fun OnBoardingBottomTextCard(
                     DotIndicator(selected = index == pagerState.currentPage)
                 }
             }
-            Surface(
-                shape = RoundedCornerShape(50),
+            Row(
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(bottom = 32.dp, end = 32.dp, start = 32.dp)
-                    .wrapContentSize(align = Alignment.BottomEnd)
-                    .clip(RoundedCornerShape(50.dp)),
-                color = MaterialTheme.colorScheme.primary
+                    .wrapContentHeight()
+                    .align(Alignment.BottomEnd),
             ) {
-
-                IconButton(onClick ={
-                    scope.launch {
-                        if(pagerState.currentPage < 3){
-                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                        }else{
-                            /*TODO*/
-                            //open the welcome screen
-                           // navController.navigate("welcome")
-                        }
-                    }
-                    onNextClick()
-                },
-                    modifier = Modifier.background(color =  Color(sallonColor.toArgb()))
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier
+                        .padding(bottom = 32.dp, start = 32.dp)
+                        .wrapContentSize(align = Alignment.BottomEnd)
+                        .clip(RoundedCornerShape(50.dp)),
+                    color = MaterialTheme.colorScheme.primary
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowRight,
-                        contentDescription = "Next",
-                        tint = Color.White,
-                        modifier = Modifier.size(45.dp)
-                    )
+
+                    IconButton(onClick ={
+                        scope.launch {
+                            if(pagerState.currentPage > 0){
+                                pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                            }else{
+                                /*TODO*/
+                                //open the welcome screen
+                            }
+                        }
+                        onBackClick()
+                    },
+                        modifier = Modifier.background(color =  Color(sallonColor.toArgb()))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowLeft,
+                            contentDescription = "Back",
+                            tint = Color.White,
+                            modifier = Modifier.size(45.dp)
+                        )
+                    }
+                }
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier
+                        .padding(bottom = 32.dp, end = 32.dp, start = 16.dp)
+                        .wrapContentSize(align = Alignment.BottomEnd)
+                        .clip(RoundedCornerShape(50.dp)),
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+
+                    IconButton(onClick ={
+                        scope.launch {
+                            if(pagerState.currentPage < 3){
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }else{
+                                /*TODO*/
+                                //open the welcome screen
+                                // navController.navigate("welcome")
+                            }
+                        }
+                        onNextClick()
+                    },
+                        modifier = Modifier.background(color =  Color(sallonColor.toArgb()))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowRight,
+                            contentDescription = "Next",
+                            tint = Color.White,
+                            modifier = Modifier.size(45.dp)
+                        )
+                    }
                 }
             }
-
         }
     }
 }
@@ -183,13 +223,15 @@ fun OnBoardingBottomTextCardPreview(){
     OnBoardingBottomTextCard(
         navController = navController,
         onBoardingTextList = onBoardingTextList,
-        onNextClick = {}
+        onNextClick = {},
+        onBackClick = {}
     )
 }
 
 @Composable
 fun DoubleCard(
     title: String ,
+    onBackClick: () -> Unit,
     body: @Composable () -> Unit,
     navController: NavController = rememberNavController(),
     composable: @Composable () -> Unit
@@ -217,8 +259,7 @@ fun DoubleCard(
             ) {
 
                 IconButton(onClick ={
-                    navController.popBackStack()
-                    Toast.makeText(context, "Back", Toast.LENGTH_SHORT).show()
+                    onBackClick()
                 },
                     modifier = Modifier.background(color =  Color.White)
                 ) {
@@ -273,7 +314,8 @@ fun HeadingText(
     bodyText: String
 ){
     Column(
-        modifier = Modifier.wrapContentSize()
+        modifier = Modifier
+            .wrapContentSize()
             .padding(16.dp),
     ) {
         Spacer(modifier = Modifier.height(20.dp))
@@ -285,14 +327,5 @@ fun HeadingText(
 @Preview(showBackground = true)
 @Composable
 fun DoubleCardPreview(){
-    val navController = rememberNavController()
-    DoubleCard("Sign up ", {
-                           Column {
-                               Spacer(modifier = Modifier.height(20.dp))
-                               Text(text = "Signup", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                                 Spacer(modifier = Modifier.height(20.dp))
-                           }
-                           },navController = navController){
-          AdvancedSignUpScreen()
-    }
+OnBoardingBottomTextCardPreview()
 }

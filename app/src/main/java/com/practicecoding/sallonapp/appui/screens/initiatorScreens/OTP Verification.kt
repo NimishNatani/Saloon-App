@@ -53,11 +53,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.practicecoding.sallonapp.R
-<<<<<<< HEAD
 import com.practicecoding.sallonapp.appui.screens.DoubleCard
-=======
 import com.practicecoding.sallonapp.appui.components.GeneralButton
->>>>>>> 0383fbe51bc4cfff57662e43139313a6a34b3b4c
 import com.practicecoding.sallonapp.ui.theme.Purple80
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
@@ -240,14 +237,5 @@ fun ClickableTextWithUnderline(text: String, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun PhoneNumberScreenPreview() {
-    DoubleCard(title = "Verfication",  {
-        Column {
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(text = "Signup", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(20.dp))
-        }
-    }) {
-        OTPVerificationScreen(phoneNumber = "1234567890")
-    }
 
 }

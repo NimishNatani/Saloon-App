@@ -335,13 +335,4 @@ enum class Gender(val label: String) {
 @Preview
 @Composable
 fun AdvancedSignUpScreenPreview() {
-   DoubleCard(title = "Sign up ", body =  {
-       Column {
-           Spacer(modifier = Modifier.height(20.dp))
-           Text(text = "Signup", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-           Spacer(modifier = Modifier.height(20.dp))
-       }
-   } ) {
-       AdvancedSignUpScreen()
-   }
 }

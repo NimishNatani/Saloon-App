@@ -50,7 +50,9 @@ navController : NavHostController
             )
         }
         composable(Screens.PhoneNumberScreen.route) {
-            DoubleCard(title = "Sign up", body = {
+            DoubleCard(title = "Sign up",{
+                                         navController.popBackStack()
+            }, body = {
                 HeadingText(bodyText = "Sign up to access all the feature of barber shop")
             }) {
                 PhoneNumberScreen(
@@ -62,7 +64,9 @@ navController : NavHostController
         }
         composable(Screens.OTPVerification.route + "/{phoneNumber}") { backStackEntry ->
             val phoneNumber = backStackEntry.arguments?.getString("phoneNumber")?:"000"
-            DoubleCard(title = "OTP verification", body =
+            DoubleCard(title = "OTP verification",{
+                navController.popBackStack()
+            }, body =
             {
                 HeadingText(bodyText = "We've send the code to your phone number $phoneNumber")
             }
@@ -71,7 +75,9 @@ navController : NavHostController
             }
         }
         composable(Screens.SignUp.route){
-            DoubleCard(title = "Sign Up", body = {
+            DoubleCard(title = "Sign Up",{
+                navController.popBackStack()
+            }, body = {
                 HeadingText(bodyText = "Sign up to access all the feature of barber shop")
             }) {
                 AdvancedSignUpScreen()
