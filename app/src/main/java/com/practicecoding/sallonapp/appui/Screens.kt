@@ -1,4 +1,4 @@
-package com.practicecoding.sallonapp
+package com.practicecoding.sallonapp.appui
 
 sealed class Screens(val route: String) {
     object OnBoardingScreens : Screens("onboarding_screens")

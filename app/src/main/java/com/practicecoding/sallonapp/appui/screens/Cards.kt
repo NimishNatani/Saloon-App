@@ -1,4 +1,4 @@
-package com.practicecoding.sallonapp.screens
+package com.practicecoding.sallonapp.appui.screens
 
 import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -55,9 +56,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.R
-import com.practicecoding.sallonapp.screens.initiatorScreens.AdvancedSignUpScreen
-import com.practicecoding.sallonapp.screens.initiatorScreens.OnBoardingPageText
-import com.practicecoding.sallonapp.screens.initiatorScreens.OnBoardingText
+import com.practicecoding.sallonapp.appui.screens.initiatorScreens.AdvancedSignUpScreen
+import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
+import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingText
+import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -130,12 +132,12 @@ fun OnBoardingBottomTextCard(
                     }
                     onNextClick()
                 },
-                    modifier = Modifier.background(color =  Color.Blue)
+                    modifier = Modifier.background(color =  Color(sallonColor.toArgb()))
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowRight,
                         contentDescription = "Next",
-                        tint = MaterialTheme.colorScheme.onPrimary,
+                        tint = Color.White,
                         modifier = Modifier.size(45.dp)
                     )
                 }
@@ -152,7 +154,7 @@ fun DotIndicator(selected: Boolean) {
             .padding(horizontal = 4.dp)
             .size(8.dp)
             .background(
-                color = if (selected) Color.Gray else Color.LightGray,
+                color = if (selected) Color(sallonColor.toArgb()) else Color(sallonColor.toArgb()),
                 shape = CircleShape
             )
     )
@@ -194,7 +196,7 @@ fun DoubleCard(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.grey_light)),
+            .background(color = colorResource(id = R.color.purple_200)),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -207,7 +209,8 @@ fun DoubleCard(
                 modifier = Modifier
                     .padding(20.dp)
                     .wrapContentSize(align = Alignment.BottomEnd)
-                    .clip(RoundedCornerShape(50.dp)),
+                    .clip(RoundedCornerShape(20.dp))
+                    .size(width = 40.dp, height = 40.dp),
                 color = MaterialTheme.colorScheme.primary
             ) {
 
@@ -228,14 +231,16 @@ fun DoubleCard(
             Text(
                 text = title,
                 modifier = Modifier
-                    .padding(20.dp)
-                    .align(Alignment.CenterVertically),
+                    .padding(40.dp,26.dp)
+                    .align(Alignment.CenterVertically)
+                ,
+                textAlign = TextAlign.Center,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
         }
         Card(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(top = 50.dp),
             shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
             backgroundColor = colorResource(id = R.color.sallon_color)
         ) {
@@ -247,6 +252,7 @@ fun DoubleCard(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(text = body, modifier = Modifier.padding(20.dp),
+                    textAlign = TextAlign.Center,
                     fontSize = 18.sp,
                     color = Color.White,
                 )

@@ -1,4 +1,4 @@
-package com.practicecoding.sallonapp.screens.initiatorScreens
+package com.practicecoding.sallonapp.appui.screens.initiatorScreens
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -59,9 +59,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.constraintlayout.compose.Visibility
 import com.practicecoding.sallonapp.R
-import com.practicecoding.sallonapp.screens.DoubleCard
+import com.practicecoding.sallonapp.appui.screens.DoubleCard
 import java.time.LocalDate
 
 

@@ -1,4 +1,4 @@
-package com.practicecoding.sallonapp.screens.initiatorScreens
+package com.practicecoding.sallonapp.appui.screens.initiatorScreens
 
 class OnBoardingPageImage(
     val image: Int
