@@ -1,9 +1,13 @@
 package com.practicecoding.sallonapp.appui.navigation
 
+import android.app.Activity
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.activity
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.practicecoding.sallonapp.BaseApplication
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.screens.DoubleCard
@@ -20,7 +24,7 @@ navController : NavHostController
 ) {
     NavHost(navController = navController, startDestination = Screens.Logo.route) {
         composable(Screens.Logo.route) {
-            LogoScreen(navController = navController)
+            LogoScreen(navController = navController )
         }
         composable(Screens.OnBoardingScreens.route) {
             val imageList = listOf(
@@ -51,6 +55,7 @@ navController : NavHostController
         composable(Screens.PhoneNumberScreen.route) {
             DoubleCard(title = "Sign up", body = "Sign up to access all the feature of barber shop") {
                 PhoneNumberScreen(
+                    Activity(),
                     navigateToVerification = {phoneNumber ->
                         navController.navigate(Screens.OTPVerification.route + "/$phoneNumber")
                     }

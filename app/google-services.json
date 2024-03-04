@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "62927274401",
+    "project_id": "sallon-app-6139e",
+    "storage_bucket": "sallon-app-6139e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:62927274401:android:56b1b9e0351edd0e858be0",
+        "android_client_info": {
+          "package_name": "com.practicecoding.sallonapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3GSPxhju-ncPaBX2CHfql4DI1vFjPJpI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

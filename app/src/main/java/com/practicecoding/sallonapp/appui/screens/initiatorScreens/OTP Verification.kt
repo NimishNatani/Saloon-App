@@ -1,5 +1,6 @@
 package com.practicecoding.sallonapp.appui.screens.initiatorScreens
 
+import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -25,6 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,27 +34,37 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.practicecoding.sallonapp.R
+import androidx.compose.runtime.*
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.practicecoding.sallonapp.appui.components.CommonDialog
 import com.practicecoding.sallonapp.appui.components.GeneralButton
+import com.practicecoding.sallonapp.appui.utils.showMsg
+import com.practicecoding.sallonapp.appui.viewmodel.AuthViewModel
+import com.practicecoding.sallonapp.data.Resource
 import com.practicecoding.sallonapp.ui.theme.Purple80
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun PhoneNumberScreen(
-    //viewModel: LoginViewModel
-    navigateToVerification: (String) -> Unit) {
+fun PhoneNumberScreen(activity:Activity,
+                      viewModel: AuthViewModel = hiltViewModel(),
+                      navigateToVerification: (String) -> Unit) {
     var phoneNumber by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var isDialog by remember{ mutableStateOf(false)}
+
     val focusManager = LocalFocusManager.current
+
+    if(isDialog)
+        CommonDialog()
 
     Column(modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Top,
@@ -90,8 +102,29 @@ fun PhoneNumberScreen(
             )
         }
         GeneralButton(text = "SignUp", width = 250, height = 50, modifier = Modifier) {
-            if (phoneNumber.isNotBlank()) {
+            if (phoneNumber.isNotBlank()&&phoneNumber.length!=10) {
+                scope.launch(Dispatchers.Main){
+                    viewModel.createUserWithPhone(
+                        phoneNumber,
+                        activity
+                    ).collect{
+                        when(it){
+                            is Resource.Success->{
+                                isDialog = false
+                                activity.showMsg(it.result)
+                            }
+                            is Resource.Failure->{
+                                isDialog = false
+                                activity.showMsg(it.exception.toString())
+                            }
+                            Resource.Loading->{
+                                isDialog = true
+                            }
+                        }
+                    }
                     navigateToVerification(phoneNumber)
+
+                }
                 } else {
                     Toast.makeText(context,"Please provide your phone number.", Toast.LENGTH_SHORT).show()
                 }
@@ -154,5 +187,5 @@ fun OTPVerificationScreen(
 @Composable
 fun PhoneNumberScreenPreview() {
 //    OTPVerificationScreen(phoneNumber = "1234567890")
-    PhoneNumberScreen(navigateToVerification = {})
+//    PhoneNumberScreen(navigateToVerification = {})
 }
