@@ -53,8 +53,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.practicecoding.sallonapp.R
+<<<<<<< HEAD
 import com.practicecoding.sallonapp.appui.screens.DoubleCard
+=======
+import com.practicecoding.sallonapp.appui.components.GeneralButton
+>>>>>>> 0383fbe51bc4cfff57662e43139313a6a34b3b4c
 import com.practicecoding.sallonapp.ui.theme.Purple80
+import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -90,38 +95,26 @@ fun PhoneNumberScreen(
                 label = { Text("Phone Number", color = Purple80) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                    .padding(horizontal = 16.dp, vertical = 40.dp),
 //                isError = phoneNumber.isBlank(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Phone,
                 ),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = Purple80, // Change the outline color when focused
-                    unfocusedBorderColor = Purple80, // Change the outline color when unfocused
-                    errorBorderColor = Purple80
+                    unfocusedBorderColor = purple_200, // Change the outline color when unfocused
+                    errorBorderColor = purple_200
                 ),
             )
         }
-        Button(
-            onClick = {
-                if (phoneNumber.isNotBlank()) {
+        GeneralButton(text = "SignUp", width = 250, height = 50, modifier = Modifier) {
+            if (phoneNumber.isNotBlank()) {
                     navigateToVerification(phoneNumber)
                 } else {
                     Toast.makeText(context,"Please provide your phone number.", Toast.LENGTH_SHORT).show()
                 }
-            },
-            modifier = Modifier
-                .wrapContentSize()
-                .padding(vertical = 16.dp, horizontal = 16.dp)
-//                .background(color = sallonColor)
-                ,
-            colors = ButtonDefaults.buttonColors(
-                backgroundColor = sallonColor,
-                contentColor = Color.White
-            )
-        ) {
-            Text(text="Next")
         }
+
     }
 }
 

@@ -60,6 +60,7 @@ import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.AdvancedSignUpScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingText
+import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.launch
 
@@ -155,7 +156,7 @@ fun DotIndicator(selected: Boolean) {
             .padding(horizontal = 4.dp)
             .size(8.dp)
             .background(
-                color = if (selected) Color(sallonColor.toArgb()) else Color(sallonColor.toArgb()),
+                color = if (selected) Color(sallonColor.toArgb()) else Color(purple_200.toArgb()),
                 shape = CircleShape
             )
     )
