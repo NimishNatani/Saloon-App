@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -188,7 +189,7 @@ fun OnBoardingBottomTextCardPreview(){
 @Composable
 fun DoubleCard(
     title: String ,
-    body: String,
+    body: @Composable () -> Unit,
     navController: NavController = rememberNavController(),
     composable: @Composable () -> Unit
 ){
@@ -231,7 +232,7 @@ fun DoubleCard(
             Text(
                 text = title,
                 modifier = Modifier
-                    .padding(40.dp,26.dp)
+                    .padding(40.dp, 26.dp)
                     .align(Alignment.CenterVertically)
                 ,
                 textAlign = TextAlign.Center,
@@ -240,7 +241,9 @@ fun DoubleCard(
             )
         }
         Card(
-            modifier = Modifier.fillMaxSize().padding(top = 50.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 50.dp),
             shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
             backgroundColor = colorResource(id = R.color.sallon_color)
         ) {
@@ -251,11 +254,7 @@ fun DoubleCard(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = body, modifier = Modifier.padding(20.dp),
-                    textAlign = TextAlign.Center,
-                    fontSize = 18.sp,
-                    color = Color.White,
-                )
+                body()
                 Card(
                     modifier = Modifier.fillMaxSize(),
                     shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
@@ -268,11 +267,31 @@ fun DoubleCard(
     }
 }
 
+@Composable
+fun HeadingText(
+    bodyText: String
+){
+    Column(
+        modifier = Modifier.wrapContentSize()
+            .padding(16.dp),
+    ) {
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(text = bodyText, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun DoubleCardPreview(){
     val navController = rememberNavController()
-    DoubleCard("Sign up ", "sign up",navController = navController){
+    DoubleCard("Sign up ", {
+                           Column {
+                               Spacer(modifier = Modifier.height(20.dp))
+                               Text(text = "Signup", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                 Spacer(modifier = Modifier.height(20.dp))
+                           }
+                           },navController = navController){
           AdvancedSignUpScreen()
     }
 }

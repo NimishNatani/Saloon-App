@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.screens.DoubleCard
+import com.practicecoding.sallonapp.appui.screens.HeadingText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.AdvancedSignUpScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.LogoScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OTPVerificationScreen
@@ -49,7 +50,9 @@ navController : NavHostController
             )
         }
         composable(Screens.PhoneNumberScreen.route) {
-            DoubleCard(title = "Sign up", body = "Sign up to access all the feature of barber shop") {
+            DoubleCard(title = "Sign up", body = {
+                HeadingText(bodyText = "Sign up to access all the feature of barber shop")
+            }) {
                 PhoneNumberScreen(
                     navigateToVerification = {phoneNumber ->
                         navController.navigate(Screens.OTPVerification.route + "/$phoneNumber")
@@ -59,12 +62,18 @@ navController : NavHostController
         }
         composable(Screens.OTPVerification.route + "/{phoneNumber}") { backStackEntry ->
             val phoneNumber = backStackEntry.arguments?.getString("phoneNumber")?:"000"
-            DoubleCard(title = "OTP verification", body = "We've send the code to your phone number $phoneNumber") {
+            DoubleCard(title = "OTP verification", body =
+            {
+                HeadingText(bodyText = "We've send the code to your phone number $phoneNumber")
+            }
+            ) {
                 OTPVerificationScreen(phoneNumber)
             }
         }
         composable(Screens.SignUp.route){
-            DoubleCard(title = "Sign Up", body = "Enter your details") {
+            DoubleCard(title = "Sign Up", body = {
+                HeadingText(bodyText = "Sign up to access all the feature of barber shop")
+            }) {
                 AdvancedSignUpScreen()
             }
         }
