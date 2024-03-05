@@ -8,8 +8,7 @@ interface AuthRepository {
 
 
     fun createUserWithPhone(
-        phone:String,
-        activity: Activity
+        phone:String,activity: Activity
     ) : Flow<Resource<String>>
 
     fun signWithCredential(

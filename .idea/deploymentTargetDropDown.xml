@@ -2,21 +2,11 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="AdvancedSignUpScreenPreview">
+        <State />
+      </entry>
       <entry key="app">
-        <State>
-          <runningDeviceTargetSelectedWithDropDown>
-            <Target>
-              <type value="RUNNING_DEVICE_TARGET" />
-              <deviceKey>
-                <Key>
-                  <type value="SERIAL_NUMBER" />
-                  <value value="CAGQMFKBRWFQ5DNJ" />
-                </Key>
-              </deviceKey>
-            </Target>
-          </runningDeviceTargetSelectedWithDropDown>
-          <timeTargetWasSelectedWithDropDown value="2024-03-04T11:59:27.287580700Z" />
-        </State>
+        <State />
       </entry>
     </value>
   </component>

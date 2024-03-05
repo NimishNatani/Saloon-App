@@ -57,6 +57,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth:22.3.1")
     implementation("com.google.firebase:firebase-firestore:24.10.3")
     implementation("com.google.firebase:firebase-storage:20.3.0")
+    implementation("androidx.compose.material3:material3-android:1.2.0")
     //this is the code for navigation between screens
     val nav_version = "2.7.7"
 
@@ -71,6 +72,8 @@ dependencies {
     val composeVersion = "1.6.0-alpha06"
     implementation("androidx.compose.ui:ui:$composeVersion")
     implementation("androidx.compose.material:material:$composeVersion")
+    implementation("androidx.compose.material3:material3:1.2.0")
+
     implementation("androidx.compose.ui:ui-tooling-preview:$composeVersion")
 
 
@@ -137,11 +140,14 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
 
     //hilt
-    implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
 
     //dagger-hilt
-    implementation("com.google.dagger:hilt-android:2.44")
-    kapt("com.google.dagger:hilt-android-compiler:2.44")
+    implementation("com.google.dagger:hilt-android:2.48")
+    kapt("com.google.dagger:hilt-android-compiler:2.48")
+
+    //animation
+    implementation ("com.google.accompanist:accompanist-navigation-animation:0.35.0-alpha")
+
 }

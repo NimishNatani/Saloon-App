@@ -2,6 +2,7 @@ package com.practicecoding.sallonapp.appui.screens.initiatorScreens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +24,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,27 +36,26 @@ import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.screens.OnBoardingBottomTextCard
+import com.practicecoding.sallonapp.ui.theme.purple_200
 import kotlinx.coroutines.launch
-
 @Composable
 fun OnBoardingText(
     mainHeading: String,
     bodyText: String,
 ) {
-Box(
-    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-    contentAlignment = Alignment.TopCenter
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp, start = 18.dp, end = 18.dp, bottom = 16.dp)
-            .wrapContentHeight(),
-
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+    Box(
+        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+        contentAlignment = Alignment.TopCenter
     ) {
-          Text(
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, start = 18.dp, end = 18.dp, bottom = 16.dp)
+                .wrapContentHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Text(
                 text = mainHeading,
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold,
@@ -69,18 +71,17 @@ Box(
                 ),
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp)
             )
-        Spacer(modifier = Modifier.heightIn(120.dp))
+            Spacer(modifier = Modifier.heightIn(120.dp))
+        }
     }
 }
-}
-
 @Composable
 fun OnBoardingPageImage(
     image: Int,
     onClickSkip: () -> Unit
 ) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(Color(purple_200.toArgb())),
         contentAlignment = Alignment.TopCenter
     ){
 
@@ -91,7 +92,7 @@ fun OnBoardingPageImage(
                 painter = painterResource(id = image),
                 contentDescription = "Onboarding Image",
                 modifier = Modifier
-                    .fillMaxWidth().size(600.dp)
+                    .fillMaxWidth().size(500.dp)
                     .aspectRatio(0.909f),
             )
         }
@@ -113,7 +114,6 @@ fun OnBoardingPageImage(
         }
     }
 }
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnBoardingScreen(
@@ -127,13 +127,14 @@ fun OnBoardingScreen(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
     ) {
-          Box(
+        Box(
             modifier = Modifier.fillMaxSize().align(Alignment.TopCenter),
             contentAlignment = Alignment.TopCenter
-          ) {
+        ) {
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                userScrollEnabled = false
             ) { page ->
                 OnBoardingPageImage(
                     image = imageList[page],
@@ -142,7 +143,7 @@ fun OnBoardingScreen(
                     }
                 )
             }
-          }
+        }
         OnBoardingBottomTextCard(
             navController = navController,
             onBoardingTextList = OnBoardingTextList,
@@ -151,13 +152,25 @@ fun OnBoardingScreen(
                     if(pagerState.currentPage <= imageList.size - 2){
                         pagerState.animateScrollToPage(pagerState.currentPage + 1)
                     }else{
-                        navController.navigate(Screens.PhoneNumberScreen.route)
+                        navController.navigate(Screens.PhoneNumberScreen.route){
+                            popUpTo(Screens.OnBoardingScreens.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+            },
+            onBackClick = {
+                scope.launch {
+                    if(pagerState.currentPage > 0){
+                        pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                    }else{
+                        navController.navigate(Screens.Logo.route)
                     }
                 }
             }
         )
     }
-
 }
 
 @Preview(showBackground = true)
