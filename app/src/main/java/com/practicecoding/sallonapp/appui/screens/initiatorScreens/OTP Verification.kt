@@ -1,6 +1,7 @@
 package com.practicecoding.sallonapp.appui.screens.initiatorScreens
 
 import android.app.Activity
+import android.app.Application
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -13,16 +14,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,7 +41,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.CommonDialog
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.utils.showMsg
@@ -49,27 +60,33 @@ import com.practicecoding.sallonapp.ui.theme.Purple80
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 
 @Composable
-fun PhoneNumberScreen(activity:Activity,
-                      viewModel: AuthViewModel = hiltViewModel(),
-                      navigateToVerification: (String) -> Unit) {
+fun PhoneNumberScreen(
+    activity: Activity,
+    viewModel: AuthViewModel = hiltViewModel(),
+    navigateToVerification: (String) -> Unit
+) {
     var phoneNumber by remember { mutableStateOf("") }
+    var onVerificationCode by remember {
+        mutableStateOf("")
+    }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var isDialog by remember{ mutableStateOf(false)}
+    var isDialog by remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
 
-    if(isDialog)
+    if (isDialog)
         CommonDialog()
 
-    Column(modifier = Modifier.fillMaxSize(),
+    Column(
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -102,32 +119,39 @@ fun PhoneNumberScreen(activity:Activity,
             )
         }
         GeneralButton(text = "SignUp", width = 250, height = 50, modifier = Modifier) {
-            if (phoneNumber.isNotBlank()&&phoneNumber.length!=10) {
-                scope.launch(Dispatchers.Main){
+            if (phoneNumber.isNotBlank() && phoneNumber.length == 10) {
+                scope.launch(Dispatchers.Main) {
                     viewModel.createUserWithPhone(
-                        phoneNumber,
-                        activity
-                    ).collect{
-                        when(it){
-                            is Resource.Success->{
+                        phoneNumber, activity
+                    ).collect {
+                        when (it) {
+                            is Resource.Success -> {
                                 isDialog = false
                                 activity.showMsg(it.result)
+                                navigateToVerification(phoneNumber)
+
                             }
-                            is Resource.Failure->{
+
+                            is Resource.Failure -> {
                                 isDialog = false
                                 activity.showMsg(it.exception.toString())
                             }
-                            Resource.Loading->{
+
+                            Resource.Loading -> {
                                 isDialog = true
                             }
                         }
                     }
-                    navigateToVerification(phoneNumber)
 
                 }
-                } else {
-                    Toast.makeText(context,"Please provide your phone number.", Toast.LENGTH_SHORT).show()
-                }
+
+
+            } else {
+                navigateToVerification("6438654")
+
+                Toast.makeText(context, "Please provide valid phone number.", Toast.LENGTH_SHORT)
+                    .show()
+            }
         }
 
     }
@@ -136,18 +160,30 @@ fun PhoneNumberScreen(activity:Activity,
 
 @Composable
 fun OTPVerificationScreen(
-    //viewModel: LoginViewModel
-    phoneNumber: String) {
+    activity: Activity,
+    navController: NavController,
+    viewModel: AuthViewModel = hiltViewModel()
+) {
     var otpText by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val scrollState = rememberScrollState()
+    var isDialog by remember { mutableStateOf(false) }
+
+    if (isDialog)
+        CommonDialog()
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Row(
-            modifier = Modifier.padding(vertical = 16.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -156,7 +192,10 @@ fun OTPVerificationScreen(
                     value = otpText.getOrNull(index)?.toString() ?: "",
                     onValueChange = { newValue ->
                         if (newValue.length <= 1) {
-                            otpText = otpText.substring(0 until index) + newValue + otpText.substring((index + 1).coerceAtMost(otpText.length))
+                            otpText =
+                                otpText.substring(0 until index) + newValue + otpText.substring(
+                                    (index + 1).coerceAtMost(otpText.length)
+                                )
                             if (newValue.isNotEmpty() && index < 5) {
                                 focusManager.moveFocus(FocusDirection.Right)
                             }
@@ -178,8 +217,105 @@ fun OTPVerificationScreen(
                 )
             }
         }
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "We sent the OTP",
+                color = Color.Black,
+                fontFamily = FontFamily.Default,
+                fontSize = 16.sp
+            )
+            ClickableTextWithUnderline(
+                text = "Didn't get it? Resend",
+                onClick = {
+                    //viewModel.resendOtp(phoneNumber)
+                    Toast.makeText(context, "Resend OTP", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+        GeneralButton(text = "Verify", width = 350, height = 80, modifier = Modifier) {
+            navController.navigate(Screens.SignUp.route)
+            if (otpText.isNotEmpty()) {
+                scope.launch(Dispatchers.Main) {
+                    viewModel.signInWithCredential(
+                        otpText
+                    ).collect {
+                        when (it) {
+                            is Resource.Success -> {
+                                isDialog = false
+                                activity.showMsg(it.result)
+                                navController.navigate(Screens.SignUp.route)
+                            }
+
+                            is Resource.Failure -> {
+                                isDialog = false
+                                activity.showMsg(it.exception.toString())
+                            }
+
+                            Resource.Loading -> {
+                                isDialog = true
+                            }
+                        }
+                    }
+                }
+            } else {
+                navController.navigate(Screens.SignUp.route)
+
+            }
+        }
+
     }
 
+}
+
+@Composable
+fun ClickableTextWithUnderline(text: String, onClick: () -> Unit) {
+    val annotatedText = buildAnnotatedString {
+        withStyle(
+            style = SpanStyle(
+                color = contentColorFor(MaterialTheme.colors.background),
+                textDecoration = TextDecoration.Underline
+            )
+        ) {
+            append(text)
+        }
+        addStringAnnotation(
+            tag = "Clickable",
+            start = text.indexOf("Didn't get it?"),
+            end = text.indexOf("Didn't get it?") + "Didn't get it?".length,
+            annotation = "Clickable"
+        )
+        withStyle(
+            style = SpanStyle(
+                color = Color(sallonColor.toArgb()), // Set to the desired color (blue in this case)
+                textDecoration = TextDecoration.None
+            )
+        ) {
+            addStringAnnotation(
+                tag = "Clickable",
+                start = text.indexOf("Didn't get it?"),
+                end = text.indexOf("Didn't get it?") + "Didn't get it?".length,
+                annotation = "Clickable"
+            )
+        }
+    }
+
+    ClickableText(
+        text = annotatedText,
+        onClick = { offset ->
+            annotatedText.getStringAnnotations(
+                tag = "Clickable",
+                start = offset,
+                end = offset
+            ).firstOrNull()?.let {
+                onClick()
+            }
+        },
+        modifier = Modifier.padding(end = 16.dp)
+    )
 }
 
 

@@ -13,8 +13,7 @@ class AuthViewModel @Inject constructor(
 
 
     fun createUserWithPhone(
-        mobile:String,
-        activity: Activity
+        mobile:String,activity:Activity
     ) = repo.createUserWithPhone(mobile,activity)
 
     fun signInWithCredential(
