@@ -100,7 +100,7 @@ fun AppNavigation(
             }, body = {
                 HeadingText(bodyText = "Enter your details to access all the feature of barber shop")
             }) {
-                AdvancedSignUpScreen(phoneNumber = phoneNumber)
+                AdvancedSignUpScreen(phoneNumber = phoneNumber,activity = context as Activity)
             }
         }
     }

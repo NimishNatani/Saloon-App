@@ -1,12 +1,12 @@
 package com.practicecoding.sallonapp.appui.screens.initiatorScreens
 
+import android.app.Activity
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -30,8 +30,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,47 +41,48 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.practicecoding.sallonapp.R
-import com.practicecoding.sallonapp.ui.theme.Purple40
+import com.practicecoding.sallonapp.appui.components.GeneralButton
+import com.practicecoding.sallonapp.appui.viewmodel.UserDataViewModel
+import com.practicecoding.sallonapp.data.model.UserModel
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 
 @Composable
 fun AdvancedSignUpScreen(
     phoneNumber: String? = null,
+    activity: Activity,
+    viewModel: UserDataViewModel = hiltViewModel()
 ) {
     val phone = phoneNumber ?: "1234567890"
     // State variables
@@ -94,13 +93,12 @@ fun AdvancedSignUpScreen(
     var expanded by remember { mutableStateOf(false) }
     var selectedGender by remember { mutableStateOf<Gender?>(null) }
     var birthDate by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var isPasswordVisible by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     var selectedImageUri by remember {
         mutableStateOf<Uri?>(Uri.parse("android.resource://${context.packageName}/${R.drawable.salon_app_logo}"))
     }
+    val scope = rememberCoroutineScope()
+
     val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri -> selectedImageUri = uri }
@@ -179,9 +177,11 @@ fun AdvancedSignUpScreen(
                     focusedTextColor = Color.Black,
                     cursorColor = Color(
                         sallonColor.toArgb()
-                    ), focusedLabelColor = Color(
+                    ),
+                    focusedLabelColor = Color(
                         sallonColor.toArgb()
-                    ), unfocusedTextColor = Color.Black,
+                    ),
+                    unfocusedTextColor = Color.Black,
 
                     ),
                 leadingIcon = {
@@ -211,11 +211,13 @@ fun AdvancedSignUpScreen(
                     focusedTextColor = Color.Black,
                     cursorColor = Color(
                         sallonColor.toArgb()
-                    ), focusedLabelColor = Color(
+                    ),
+                    focusedLabelColor = Color(
                         sallonColor.toArgb()
-                    ), unfocusedTextColor = Color.Black,
+                    ),
+                    unfocusedTextColor = Color.Black,
 
-                ),
+                    ),
                 leadingIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.img),
@@ -228,7 +230,8 @@ fun AdvancedSignUpScreen(
                 trailingIcon = {
                     if (name.isNotEmpty()) {
                         IconButton(onClick = { name = "" }) {
-                            Icon(Icons.Filled.Clear,
+                            Icon(
+                                Icons.Filled.Clear,
                                 contentDescription = "Clear",
                                 modifier = Modifier.size(16.dp),
                                 tint = Color.Black,
@@ -271,7 +274,7 @@ fun AdvancedSignUpScreen(
                     )
                     Spacer(modifier = Modifier.size(20.dp))
                     Text(
-                        text = selectedGender?.label ?:"Male",
+                        text = selectedGender?.label ?: "Male",
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -346,9 +349,11 @@ fun AdvancedSignUpScreen(
                     focusedTextColor = Color.Black,
                     cursorColor = Color(
                         sallonColor.toArgb()
-                    ), focusedLabelColor = Color(
+                    ),
+                    focusedLabelColor = Color(
                         sallonColor.toArgb()
-                    ), unfocusedTextColor = Color.Black,
+                    ),
+                    unfocusedTextColor = Color.Black,
 
                     ),
                 leadingIcon = {
@@ -361,76 +366,30 @@ fun AdvancedSignUpScreen(
                     )
                 },
 
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next)
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                )
             )
-            Button(
-                onClick = {
+            GeneralButton(text = "Sign In", width = 350, height = 80, modifier = Modifier) {
+                if (name.isNotBlank() && selectedGender != null && birthDate.isNotBlank()
+                ) {
+                    val userModel = UserModel(name, phoneNumber,birthDate,selectedGender.toString(),selectedImageUri.toString())
+                    scope.launch(Dispatchers.Main){
+                    viewModel.addUserData(userModel,activity)
+                        }
 
-                    if (name.isNotBlank() && selectedGender != null && birthDate.isNotBlank()
-                        && password.isNotBlank() && confirmPassword.isNotBlank() && (password == confirmPassword)
-                    ) {
-                        /*TODO: Sign up and saving data of user*/
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Either a field is empty or password and confirm password dont match",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                },
-                modifier = Modifier.wrapContentSize(),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.sallon_color))
-            ) {
-                Text("Sign Up", color = Color.White) // Purple
+                } else {
+                    Toast.makeText(
+                        context,
+                        "Either a field is empty or password and confirm password dont match",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
 }
-
-
-@Composable
-fun PasswordFields() {
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var isPasswordVisible by remember { mutableStateOf(false) }
-
-    Column {
-        // Password Field
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                    Icon(
-                        imageVector = if (isPasswordVisible) Icons.Outlined.Lock else Icons.Filled.Lock,
-                        contentDescription = if (isPasswordVisible) "Hide password" else "Show password"
-                    )
-                }
-            }
-        )
-        // Confirm Password Field
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text("Confirm Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                    Icon(
-                        imageVector = if (isPasswordVisible) Icons.Outlined.Lock else Icons.Filled.Lock,
-                        contentDescription = if (isPasswordVisible) "Hide password" else "Show password"
-                    )
-                }
-            }
-        )
-    }
-}
-
 
 enum class Gender(val label: String) {
     MALE("Male"),
@@ -441,6 +400,6 @@ enum class Gender(val label: String) {
 @Preview(showBackground = true)
 @Composable
 fun AdvancedSignUpScreenPreview() {
-          AdvancedSignUpScreen("1234567890")
+//    AdvancedSignUpScreen("1234567890")
 
 }
