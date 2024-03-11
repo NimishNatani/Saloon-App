@@ -333,11 +333,13 @@ fun HeadingText(
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun DoubleCardPreview(){
-//    val navController = rememberNavController()
-//    DoubleCard("Sign up ", "sign up",navController = navController){
-//          AdvancedSignUpScreen()
-//    }
-//}
+@Preview(showBackground = true)
+@Composable
+fun DoubleCardPreview(){
+    val navController = rememberNavController()
+    DoubleCard(title = "Title", onBackClick = {}, body = {
+          HeadingText(bodyText = "Body")
+    },navController,{
+        //AdvancedSignUpScreen("999999")
+    })
+}
