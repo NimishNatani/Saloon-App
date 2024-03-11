@@ -1,8 +1,5 @@
-package com.practicecoding.sallonapp.appui.screens
+package com.practicecoding.sallonapp.appui.components
 
-import android.widget.Toast
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -10,11 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,18 +25,17 @@ import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,8 +52,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.R
-import com.practicecoding.sallonapp.appui.screens.initiatorScreens.AdvancedSignUpScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingText
 import com.practicecoding.sallonapp.ui.theme.purple_200
@@ -233,10 +227,10 @@ fun OnBoardingBottomTextCardPreview(){
 fun DoubleCard(
     title: String,
     onBackClick: () -> Unit,
-
-    body: @Composable () -> Unit,
+    midCarBody: @Composable () -> Unit,
     navController: NavController = rememberNavController(),
-    composable: @Composable () -> Unit
+    mainScreen: @Composable () -> Unit,
+    topAppBar: @Composable () -> Unit = {}
 ) {
     val context = LocalContext.current
     Column(
@@ -246,44 +240,7 @@ fun DoubleCard(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Surface(
-                shape = RoundedCornerShape(50),
-                modifier = Modifier
-                    .padding(20.dp)
-                    .wrapContentSize(align = Alignment.BottomEnd)
-                    .clip(RoundedCornerShape(20.dp))
-                    .size(width = 40.dp, height = 40.dp),
-                color = MaterialTheme.colorScheme.primary
-            ) {
-
-                IconButton(
-                    onClick = {
-                        onBackClick()
-
-                    },
-                    modifier = Modifier.background(color = Color.White)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Next",
-                        tint = Color.Black,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-            Text(
-                text = title,
-                modifier = Modifier
-                    .padding(40.dp, 26.dp),
-                textAlign = TextAlign.Center,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        topAppBar()
         Card(
             modifier = Modifier
                 .fillMaxSize()
@@ -298,14 +255,14 @@ fun DoubleCard(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                body()
+                midCarBody()
 
                 Card(
                     modifier = Modifier.fillMaxSize(),
                     shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
                     backgroundColor = colorResource(id = R.color.white)
                 ) {
-                    composable()
+                    mainScreen()
                 }
             }
         }
@@ -333,13 +290,114 @@ fun HeadingText(
     }
 }
 
+@Composable
+fun ProfilePictureAndInfo(
+profilePictureUrl: String,
+userName: String,
+userAddress: String,
+onNotificationClick: () -> Unit
+){
+     Surface(
+    modifier = Modifier
+        .padding(16.dp)
+        .fillMaxWidth()
+        .wrapContentHeight()
+        ,
+    color = Color((purple_200.toArgb()))
+           ){
+               Row(
+                   modifier = Modifier.padding(16.dp)
+                       .fillMaxWidth()
+                       .wrapContentHeight(),
+                   horizontalArrangement = Arrangement.SpaceEvenly,
+                   verticalAlignment = Alignment.CenterVertically
+                   ) {
+                   ProfilePictureCirecle(
+                       profilePictureUrl = profilePictureUrl,
+                       onClick = {
+                           /*TODO : adding code when user clicks on the profile pic*/
+                       }
+                   )
+                   Column(
+                       modifier = Modifier
+                           .wrapContentSize()
+                           .padding(16.dp),
+                       verticalArrangement = Arrangement.Center
+                   ) {
+                       Text(
+                           text = userName,
+                           fontSize = 20.sp,
+                           fontWeight = FontWeight.Bold,
+                           color = Color.White
+                       )
+                       TextField(
+                           value = userAddress,
+                           onValueChange = {},
+                           enabled = false,
+                           leadingIcon = {
+                               Icon(
+                                   painter = painterResource(id = R.drawable.green_locationicon),
+                                   contentDescription = "Back",
+                                   tint = Color.White,
+                                   modifier = Modifier.size(24.dp)
+                               )
+                           },
+                           colors = TextFieldDefaults.textFieldColors(
+                               backgroundColor = Color.Transparent,
+                               focusedIndicatorColor = Color.Transparent,
+                               unfocusedIndicatorColor = Color.Transparent,
+                               disabledIndicatorColor = Color.Transparent
+                           ),
+                       )
+                   }
+
+                   Icon(
+                       imageVector = Icons.Default.Notifications,
+                       contentDescription = "Next",
+                       tint = Color.Red,
+                       modifier = Modifier.size(20.dp).clickable(onClick = onNotificationClick).padding(6.dp)
+                   )
+
+               }
+            }
+}
+
+@Composable
+fun ProfilePictureCirecle(
+    profilePictureUrl: String,
+    onClick: () -> Unit
+){
+    Box(
+        modifier = Modifier
+            .size(50.dp)
+            .clip(CircleShape)
+            .background(Color.Gray)
+            .clickable(onClick = onClick)
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(profilePictureUrl),
+            contentDescription = "Profile Picture",
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape)
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun DoubleCardPreview(){
     val navController = rememberNavController()
-    DoubleCard(title = "Title", onBackClick = {}, body = {
-          HeadingText(bodyText = "Body")
-    },navController,{
-        //AdvancedSignUpScreen("999999")
-    })
+//    DoubleCard(title = "Title", onBackClick = {}, midCarBody = {
+//          HeadingText(bodyText = "Body")
+//    },navController,{
+//        //AdvancedSignUpScreen("999999")
+//    },{BackButtonTopAppBar(onBackClick = {}, title = "Title")}
+//        )
+    ProfilePictureAndInfo(
+        profilePictureUrl = "",
+        userName = "User Name",
+        userAddress = "User Address",
+        onNotificationClick = {}
+    )
 }

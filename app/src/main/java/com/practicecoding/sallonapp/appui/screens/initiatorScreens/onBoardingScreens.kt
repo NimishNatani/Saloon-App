@@ -35,7 +35,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
-import com.practicecoding.sallonapp.appui.screens.OnBoardingBottomTextCard
+import com.practicecoding.sallonapp.appui.components.OnBoardingBottomTextCard
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import kotlinx.coroutines.launch
 @Composable

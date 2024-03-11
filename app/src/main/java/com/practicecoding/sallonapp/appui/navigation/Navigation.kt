@@ -1,18 +1,16 @@
 package com.practicecoding.sallonapp.appui.navigation
 
 import android.app.Activity
-import android.app.Application
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.practicecoding.sallonapp.BaseApplication
 import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.activity
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
-import com.practicecoding.sallonapp.appui.screens.DoubleCard
-import com.practicecoding.sallonapp.appui.screens.HeadingText
+import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
+import com.practicecoding.sallonapp.appui.components.DoubleCard
+import com.practicecoding.sallonapp.appui.components.HeadingText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.AdvancedSignUpScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.LogoScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OTPVerificationScreen
@@ -57,17 +55,23 @@ fun AppNavigation(
             )
         }
         composable(Screens.PhoneNumberScreen.route) {
-            DoubleCard(title = "Sign up",{
-                navController.popBackStack()
-            }, body = {
-                HeadingText(bodyText = "Sign up to access all the feature of barber shop")
-            }) {
-                PhoneNumberScreen(activity =context as Activity,
-                    navigateToVerification = {phoneNumber ->
-                        navController.navigate(Screens.OTPVerification.route + "/$phoneNumber")
-                    }
+            DoubleCard(title = "Sign up",
+                onBackClick ={ navController.popBackStack() },
+                midCarBody = { HeadingText(bodyText = "Sign up to access all the feature of barber shop") },
+                mainScreen = {
+                    PhoneNumberScreen(activity =context as Activity,
+                        navigateToVerification = {phoneNumber ->
+                            navController.navigate(Screens.OTPVerification.route + "/$phoneNumber")
+                        }
+                    )
+                },
+                topAppBar = {
+                    BackButtonTopAppBar(
+                        onBackClick = { navController.popBackStack() },
+                        title = "Sign up"
+                    )
+                }
                 )
-            }
 //            DoubleCard(title = "Sign up", body = {
 //                HeadingText(bodyText = "Sign up to access all the feature of barber shop")
 //            }) {
@@ -80,28 +84,38 @@ fun AppNavigation(
         }
         composable(Screens.OTPVerification.route + "/{phoneNumber}") { backStackEntry ->
             val phoneNumber = backStackEntry.arguments?.getString("phoneNumber")?:"000"
-            DoubleCard(title = "OTP verification",{
-                navController.popBackStack()
-            }, body =
-            {
-                HeadingText(bodyText = "We've send the code to your phone number $phoneNumber")
-            }
-            ) {
-                OTPVerificationScreen(phoneNumber= phoneNumber,activity = context as Activity,
-                    navController
-
+            DoubleCard(title = "OTP Verification",
+                onBackClick ={ navController.popBackStack() },
+                midCarBody = { HeadingText(bodyText = "We have sent an otp to $phoneNumber") },
+                mainScreen = {
+                    OTPVerificationScreen(
+                        phoneNumber = phoneNumber,
+                        activity = context as Activity,
+                        navController = navController,
                     )
-            }
+                },
+                topAppBar = {
+                    BackButtonTopAppBar(
+                        onBackClick = { navController.popBackStack() },
+                        title = "OTP Verification"
+                    )
+                }
+            )
         }
         composable(Screens.SignUp.route + "/{phoneNumber}") { backStackEntry ->
             val phoneNumber = backStackEntry.arguments?.getString("phoneNumber")?:"000"
-            DoubleCard(title = "Sign Up",{
-                navController.popBackStack()
-            }, body = {
-                HeadingText(bodyText = "Enter your details to access all the feature of barber shop")
-            }) {
-                AdvancedSignUpScreen(phoneNumber = phoneNumber,activity = context as Activity)
-            }
+            DoubleCard(
+                title = "Sign Up",
+                onBackClick ={ navController.popBackStack() },
+                midCarBody = { HeadingText(bodyText = "Enter your details to access all the feature of barber shop") },
+                mainScreen = { AdvancedSignUpScreen(phoneNumber = phoneNumber,activity = context as Activity) },
+                topAppBar = {
+                    BackButtonTopAppBar(
+                        onBackClick = { navController.popBackStack() },
+                        title = "Sign Up"
+                    )
+                }
+                )
         }
     }
 }
