@@ -25,7 +25,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+<<<<<<< HEAD
 import androidx.compose.ui.graphics.toArgb
+=======
+>>>>>>> 46861e5c328fbfe1a927cf03e862ad792bd551cd
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -81,7 +84,11 @@ fun OnBoardingPageImage(
     onClickSkip: () -> Unit
 ) {
     Box(
+<<<<<<< HEAD
         modifier = Modifier.fillMaxSize().background(Color(purple_200.toArgb())),
+=======
+        modifier = Modifier.fillMaxSize().background(Color.White),
+>>>>>>> 46861e5c328fbfe1a927cf03e862ad792bd551cd
         contentAlignment = Alignment.TopCenter
     ){
 
@@ -133,7 +140,11 @@ fun OnBoardingScreen(
         ) {
             HorizontalPager(
                 state = pagerState,
+<<<<<<< HEAD
                         modifier = Modifier.fillMaxSize(),
+=======
+                modifier = Modifier.fillMaxSize(),
+>>>>>>> 46861e5c328fbfe1a927cf03e862ad792bd551cd
                 userScrollEnabled = false
             ) { page ->
                 OnBoardingPageImage(
@@ -157,6 +168,15 @@ fun OnBoardingScreen(
                                 inclusive = true
                             }
                         }
+                    }
+                }
+            },
+            onBackClick = {
+                scope.launch {
+                    if(pagerState.currentPage > 0){
+                        pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                    }else{
+                        navController.navigate(Screens.Logo.route)
                     }
                 }
             },

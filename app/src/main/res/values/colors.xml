@@ -13,4 +13,5 @@
     <color name="grey_light">#FFF5F5F5</color>
     <color name="purple_grad1">#FF8E2DE2</color>
     <color name="purple_grad2">#FF4A00E0</color>
+    <color name="blue_grad1">#FF00B0FF</color>
 </resources>

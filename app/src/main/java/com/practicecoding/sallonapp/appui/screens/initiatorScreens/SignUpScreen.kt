@@ -400,6 +400,9 @@ enum class Gender(val label: String) {
 @Preview(showBackground = true)
 @Composable
 fun AdvancedSignUpScreenPreview() {
+<<<<<<< HEAD
 //    AdvancedSignUpScreen("1234567890")
 
+=======
+>>>>>>> 46861e5c328fbfe1a927cf03e862ad792bd551cd
 }
