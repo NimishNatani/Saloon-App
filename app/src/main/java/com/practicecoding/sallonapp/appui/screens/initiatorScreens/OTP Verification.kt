@@ -2,6 +2,7 @@ package com.practicecoding.sallonapp.appui.screens.initiatorScreens
 
 import android.app.Activity
 import android.app.Application
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -144,6 +145,7 @@ fun PhoneNumberScreen(
                             is Resource.Failure -> {
                                 isDialog = false
                                 activity.showMsg(it.exception.toString())
+                                Log.d("phone number error", "PhoneNumberScreen: ${it.exception}")
                             }
 
                             Resource.Loading -> {

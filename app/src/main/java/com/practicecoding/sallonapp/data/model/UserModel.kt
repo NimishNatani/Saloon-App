@@ -8,5 +8,5 @@ data class UserModel(
     val PhoneNumber:String?="",
     val DateofBirth:String?="",
     val Gender: String? ="",
-    val ImageUri: String? =""
+    var ImageUri: String? =""
 )

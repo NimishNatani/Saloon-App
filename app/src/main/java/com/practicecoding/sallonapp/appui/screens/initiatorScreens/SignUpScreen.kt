@@ -49,7 +49,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -68,10 +68,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.appui.components.CommonDialog
 import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.GeneralButton
+import com.practicecoding.sallonapp.appui.utils.showMsg
 import com.practicecoding.sallonapp.appui.viewmodel.UserDataViewModel
+import com.practicecoding.sallonapp.data.Resource
 import com.practicecoding.sallonapp.data.model.UserModel
+import com.practicecoding.sallonapp.ui.theme.Purple80
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
@@ -97,18 +101,22 @@ fun AdvancedSignUpScreen(
     var selectedImageUri by remember {
         mutableStateOf<Uri?>(Uri.parse("android.resource://${context.packageName}/${R.drawable.salon_app_logo}"))
     }
+    var isDialogVisible by remember { mutableStateOf(false) }
+
+    var imageUri by remember {
+        mutableStateOf<Uri?>(Uri.parse("android.resource://${context.packageName}/${R.drawable.salon_app_logo}"))
+    }
     val scope = rememberCoroutineScope()
 
-    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri -> selectedImageUri = uri }
-    )
-    var textfieldSize by remember { mutableStateOf(Size.Zero) }
+    val imagePickerLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
+            imageUri = uri
+            selectedImageUri = imageUri
+        }
 
-    val icon = if (expanded)
-        Icons.Filled.KeyboardArrowUp //it requires androidx.compose.material:material-icons-extended
-    else
-        Icons.Filled.ArrowDropDown
+    if (isDialogVisible) {
+        CommonDialog()
+    }
 
 
     Box(
@@ -137,13 +145,14 @@ fun AdvancedSignUpScreen(
             ) {
                 // Background image
                 AsyncImage(
-                    model = selectedImageUri,
+                    model = imageUri,
 
                     contentDescription = "Avatar Image",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .aspectRatio(1.0f)
-                        .wrapContentSize()
+                        .width(150.dp)
+                        .height(150.dp)
                         .clip(shape = CircleShape)
                 )
                 // Icon for adding photo
@@ -153,9 +162,7 @@ fun AdvancedSignUpScreen(
                     modifier = Modifier
                         .size(24.dp)
                         .clickable {
-                            singlePhotoPickerLauncher.launch(
-                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                            )
+                            imagePickerLauncher.launch("image/*")
                         }
                         .align(Alignment.BottomEnd),
                     tint = Color.Black
@@ -167,23 +174,11 @@ fun AdvancedSignUpScreen(
                 onValueChange = { },
                 label = { Text("Phone Number") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color(
-                        sallonColor.toArgb()
-                    ).copy(alpha = 0.6f),
-                    unfocusedBorderColor = Color(
-                        purple_200.toArgb()
-                    ).copy(alpha = 0.3f),
-                    focusedTextColor = Color.Black,
-                    cursorColor = Color(
-                        sallonColor.toArgb()
-                    ),
-                    focusedLabelColor = Color(
-                        sallonColor.toArgb()
-                    ),
-                    unfocusedTextColor = Color.Black,
-
-                    ),
+                colors = androidx.compose.material.TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Purple80, // Change the outline color when focused
+                    unfocusedBorderColor = purple_200, // Change the outline color when unfocused
+                    errorBorderColor = purple_200
+                ),
                 leadingIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.icons8_phone_50),
@@ -201,23 +196,11 @@ fun AdvancedSignUpScreen(
                 onValueChange = { name = it },
                 label = { Text("Name") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color(
-                        sallonColor.toArgb()
-                    ).copy(alpha = 0.6f),
-                    unfocusedBorderColor = Color(
-                        purple_200.toArgb()
-                    ).copy(alpha = 0.3f),
-                    focusedTextColor = Color.Black,
-                    cursorColor = Color(
-                        sallonColor.toArgb()
-                    ),
-                    focusedLabelColor = Color(
-                        sallonColor.toArgb()
-                    ),
-                    unfocusedTextColor = Color.Black,
-
-                    ),
+                colors = androidx.compose.material.TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Purple80, // Change the outline color when focused
+                    unfocusedBorderColor = purple_200, // Change the outline color when unfocused
+                    errorBorderColor = purple_200
+                ),
                 leadingIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.img),
@@ -339,23 +322,11 @@ fun AdvancedSignUpScreen(
                 onValueChange = { birthDate = it },
                 label = { Text("Birth Date") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color(
-                        sallonColor.toArgb()
-                    ).copy(alpha = 0.6f),
-                    unfocusedBorderColor = Color(
-                        purple_200.toArgb()
-                    ).copy(alpha = 0.3f),
-                    focusedTextColor = Color.Black,
-                    cursorColor = Color(
-                        sallonColor.toArgb()
-                    ),
-                    focusedLabelColor = Color(
-                        sallonColor.toArgb()
-                    ),
-                    unfocusedTextColor = Color.Black,
-
-                    ),
+                colors = androidx.compose.material.TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Purple80, // Change the outline color when focused
+                    unfocusedBorderColor = purple_200, // Change the outline color when unfocused
+                    errorBorderColor = purple_200
+                ),
                 leadingIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.birthdaycake),
@@ -376,13 +347,29 @@ fun AdvancedSignUpScreen(
                 ) {
                     val userModel = UserModel(name, phoneNumber,birthDate,selectedGender.toString(),selectedImageUri.toString())
                     scope.launch(Dispatchers.Main){
-                    viewModel.addUserData(userModel,activity)
+                    viewModel.addUserData(userModel,selectedImageUri,activity).collect {
+                        when (it) {
+                            is Resource.Success -> {
+                                isDialogVisible = false
+                                activity.showMsg(it.result)
+                            }
+
+                            is Resource.Failure -> {
+                                isDialogVisible = false
+                                activity.showMsg(it.exception.toString())
+                            }
+
+                            Resource.Loading -> {
+                                isDialogVisible = true
+                            }
                         }
+                    }
+                    }
 
                 } else {
                     Toast.makeText(
                         context,
-                        "Either a field is empty or password and confirm password dont match",
+                        "A field is empty",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -400,7 +387,6 @@ enum class Gender(val label: String) {
 @Preview(showBackground = true)
 @Composable
 fun AdvancedSignUpScreenPreview() {
-DoubleCard(title = "SignUp", onBackClick = { /*TODO*/ }, midCarBody = { /*TODO*/ }, mainScreen = {
-AdvancedSignUpScreen(phoneNumber = "98999898",activity = Activity())
-}, topAppBar = {})
+    val context = LocalContext.current
+AdvancedSignUpScreen(phoneNumber = "1234567890",activity = context as Activity)
 }

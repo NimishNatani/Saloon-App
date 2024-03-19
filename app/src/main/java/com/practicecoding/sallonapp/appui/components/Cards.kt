@@ -140,7 +140,8 @@ fun OnBoardingBottomTextCard(
                             .clip(RoundedCornerShape(50.dp)),
                         color = MaterialTheme.colorScheme.primary
                     ) {
-                        IconButton(onClick ={
+                        IconButton(
+                            onClick ={
                             scope.launch {
                                 if(pagerState.currentPage > 0){
                                     pagerState.animateScrollToPage(pagerState.currentPage - 1)
@@ -169,14 +170,14 @@ fun OnBoardingBottomTextCard(
                             .clip(RoundedCornerShape(50.dp)),
                         color = MaterialTheme.colorScheme.primary
                     ) {
-                        IconButton(onClick ={
+                        IconButton(
+                            onClick ={
                             scope.launch {
                                 if(pagerState.currentPage < 3){
                                     pagerState.animateScrollToPage(pagerState.currentPage + 1)
                                 }else{
                                     /*TODO*/
                                     //open the welcome screen
-                                    // navController.navigate("welcome")
                                 }
                             }
                             onNextClick()
@@ -192,7 +193,6 @@ fun OnBoardingBottomTextCard(
                         }
                     }
                 }
-
             }
     }
 }
@@ -238,8 +238,8 @@ fun OnBoardingBottomTextCardPreview(){
 
 @Composable
 fun DoubleCard(
-    title: String,
-    onBackClick: () -> Unit,
+//    title: String, *Instead using topApp bar composable to add any thing at top
+//    onBackClick: () -> Unit,
     midCarBody: @Composable () -> Unit,
     navController: NavController = rememberNavController(),
     mainScreen: @Composable () -> Unit,

@@ -55,8 +55,7 @@ fun AppNavigation(
             )
         }
         composable(Screens.PhoneNumberScreen.route) {
-            DoubleCard(title = "Sign up",
-                onBackClick ={ navController.popBackStack() },
+            DoubleCard(
                 midCarBody = { HeadingText(bodyText = "Sign up to access all the feature of barber shop") },
                 mainScreen = {
                     PhoneNumberScreen(activity =context as Activity,
@@ -76,8 +75,7 @@ fun AppNavigation(
         }
         composable(Screens.OTPVerification.route + "/{phoneNumber}") { backStackEntry ->
             val phoneNumber = backStackEntry.arguments?.getString("phoneNumber")?:"000"
-            DoubleCard(title = "OTP Verification",
-                onBackClick ={ navController.popBackStack() },
+            DoubleCard(
                 midCarBody = { HeadingText(bodyText = "We have sent an otp to $phoneNumber") },
                 mainScreen = {
                     OTPVerificationScreen(
@@ -97,8 +95,6 @@ fun AppNavigation(
         composable(Screens.SignUp.route + "/{phoneNumber}") { backStackEntry ->
             val phoneNumber = backStackEntry.arguments?.getString("phoneNumber")?:"000"
             DoubleCard(
-                title = "Sign Up",
-                onBackClick ={ navController.popBackStack() },
                 midCarBody = { HeadingText(bodyText = "Enter your details to access all the feature of barber shop") },
                 mainScreen = { AdvancedSignUpScreen(phoneNumber = phoneNumber,activity = context as Activity) },
                 topAppBar = {
@@ -111,8 +107,6 @@ fun AppNavigation(
         }
         composable(Screens.SignUp.route){
             DoubleCard(
-                title = "Sign Up",
-                onBackClick ={ navController.popBackStack() },
                 midCarBody = { HeadingText(bodyText = "Enter your details to access all the feature of barber shop") },
                 mainScreen = { AdvancedSignUpScreen(phoneNumber = "000",activity = context as Activity) },
                 topAppBar = {
