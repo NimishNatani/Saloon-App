@@ -57,7 +57,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth:22.3.1")
     implementation("com.google.firebase:firebase-firestore:24.10.3")
     implementation("com.google.firebase:firebase-storage:20.3.0")
-    implementation("androidx.compose.material3:material3-android:1.2.0")
+    implementation("androidx.compose.material3:material3-android:1.2.1")
     //this is the code for navigation between screens
     val nav_version = "2.7.7"
 
@@ -149,5 +149,13 @@ dependencies {
 
     //animation
     implementation ("com.google.accompanist:accompanist-navigation-animation:0.35.0-alpha")
+
+//photo picker
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    //For rememberLauncherForActivityResult()
+    implementation ("androidx.activity:activity-compose:1.8.2")
+
+//For PickVisualMedia contract
+    implementation("androidx.activity:activity-ktx:1.8.2")
 
 }

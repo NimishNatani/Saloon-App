@@ -68,6 +68,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.viewmodel.UserDataViewModel
 import com.practicecoding.sallonapp.data.model.UserModel
@@ -400,9 +401,7 @@ enum class Gender(val label: String) {
 @Preview(showBackground = true)
 @Composable
 fun AdvancedSignUpScreenPreview() {
-<<<<<<< HEAD
-//    AdvancedSignUpScreen("1234567890")
-
-=======
->>>>>>> 46861e5c328fbfe1a927cf03e862ad792bd551cd
+DoubleCard(title = "SignUp", onBackClick = { /*TODO*/ }, midCarBody = { /*TODO*/ }, mainScreen = {
+AdvancedSignUpScreen(phoneNumber = "98999898",activity = Activity())
+}, topAppBar = {})
 }

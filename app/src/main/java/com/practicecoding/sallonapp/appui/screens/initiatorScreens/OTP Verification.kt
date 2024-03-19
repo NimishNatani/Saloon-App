@@ -21,13 +21,9 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-<<<<<<< HEAD
-import androidx.compose.material.MaterialTheme
-=======
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
->>>>>>> 46861e5c328fbfe1a927cf03e862ad792bd551cd
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
@@ -44,8 +40,6 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-<<<<<<< HEAD
-=======
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.AnnotatedString
@@ -53,7 +47,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
->>>>>>> 46861e5c328fbfe1a927cf03e862ad792bd551cd
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
@@ -62,21 +55,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
-<<<<<<< HEAD
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.CommonDialog
-=======
 import com.practicecoding.sallonapp.R
-import com.practicecoding.sallonapp.appui.screens.DoubleCard
->>>>>>> 46861e5c328fbfe1a927cf03e862ad792bd551cd
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.utils.showMsg
 import com.practicecoding.sallonapp.appui.viewmodel.AuthViewModel
@@ -193,7 +177,6 @@ fun OTPVerificationScreen(
     var otpText by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
-<<<<<<< HEAD
     val scope = rememberCoroutineScope()
 
     val scrollState = rememberScrollState()
@@ -201,17 +184,8 @@ fun OTPVerificationScreen(
 
     if (isDialog)
         CommonDialog()
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState),
-=======
-    val scrollState = rememberScrollState()
-
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(scrollState),
->>>>>>> 46861e5c328fbfe1a927cf03e862ad792bd551cd
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -251,15 +225,9 @@ fun OTPVerificationScreen(
             }
         }
         Row(
-<<<<<<< HEAD
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
-=======
-              modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
->>>>>>> 46861e5c328fbfe1a927cf03e862ad792bd551cd
         ) {
             Text(
                 text = "We sent the OTP",
@@ -268,7 +236,6 @@ fun OTPVerificationScreen(
                 fontSize = 16.sp
             )
             ClickableTextWithUnderline(
-<<<<<<< HEAD
                 text = "Didn't get it? Resend",
                 onClick = {
                     //viewModel.resendOtp(phoneNumber)
@@ -303,73 +270,18 @@ fun OTPVerificationScreen(
             } else {
                 navController.navigate(Screens.SignUp.route + "/$phoneNumber")
             }
-=======
-            text = "Didn't get it? Resend",
-            onClick = {
-                //viewModel.resendOtp(phoneNumber)
-                Toast.makeText(context,"Resend OTP", Toast.LENGTH_SHORT).show()
-            }
-        )
->>>>>>> 46861e5c328fbfe1a927cf03e862ad792bd551cd
         }
 
     }
 
 }
+
 @Composable
 fun ClickableTextWithUnderline(text: String, onClick: () -> Unit) {
     val annotatedText = buildAnnotatedString {
         withStyle(
             style = SpanStyle(
                 color = contentColorFor(MaterialTheme.colorScheme.background),
-                textDecoration = TextDecoration.Underline
-            )
-        ) {
-            append(text)
-        }
-        addStringAnnotation(
-            tag = "Clickable",
-            start = text.indexOf("Didn't get it?"),
-            end = text.indexOf("Didn't get it?") + "Didn't get it?".length,
-            annotation = "Clickable"
-        )
-        withStyle(
-            style = SpanStyle(
-                color = colorResource(id = R.color.blue_grad1), // Set to the desired color (blue in this case)
-                textDecoration = TextDecoration.None
-            )
-        ) {
-            addStringAnnotation(
-                tag = "Clickable",
-                start = text.indexOf("Didn't get it?"),
-                end = text.indexOf("Didn't get it?") + "Didn't get it?".length,
-                annotation = "Clickable"
-            )
-        }
-    }
-
-    ClickableText(
-        text = annotatedText,
-        onClick = { offset ->
-            annotatedText.getStringAnnotations(
-                tag = "Clickable",
-                start = offset,
-                end = offset
-            ).firstOrNull()?.let {
-                onClick()
-            }
-        },
-        modifier = Modifier.padding(end = 16.dp)
-    )
-}
-
-
-@Composable
-fun ClickableTextWithUnderline(text: String, onClick: () -> Unit) {
-    val annotatedText = buildAnnotatedString {
-        withStyle(
-            style = SpanStyle(
-                color = contentColorFor(MaterialTheme.colors.background),
                 textDecoration = TextDecoration.Underline
             )
         ) {
@@ -415,10 +327,4 @@ fun ClickableTextWithUnderline(text: String, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun PhoneNumberScreenPreview() {
-<<<<<<< HEAD
-//    OTPVerificationScreen(phoneNumber = "1234567890")
-//    PhoneNumberScreen(navigateToVerification = {})
-=======
-
->>>>>>> 46861e5c328fbfe1a927cf03e862ad792bd551cd
 }
