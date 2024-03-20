@@ -69,6 +69,10 @@ import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.launch
 import androidx.compose.material3.Button
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -306,8 +310,8 @@ fun HeadingText(
 //#1 ProfileWithNotification Card
 @Composable
 fun ProfileWithNotification(
-    name: String,
-    address: String,
+    name: MutableState<String>,
+    address: MutableState<String>,
     onProfileClick: () -> Unit,
     onNotificationClick: () -> Unit
 ) {
@@ -339,14 +343,22 @@ fun ProfileWithNotification(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
+                LaunchedEffect(name.value) {
+                    // Observe changes to the name value
+                    name.value = name.value // Trigger recomposition
+                }
+                LaunchedEffect(address.value) {
+                    // Observe changes to the address value
+                    address.value = address.value // Trigger recomposition
+                }
                 Text(
-                    text = name,
+                    text = name.value,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = address,
+                    text = address.value,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -863,12 +875,14 @@ enum class BottomNavItems {
 @Preview(showBackground = false)
 @Composable
 fun CardsPreview() {
-    BottomAppNavigationBar(
-        currentScreen = BottomNavItems.Profile,
-        onHomeClick = {},
-        onLocationClick = {},
-        onBookClick = {},
-        onMessageClick = {},
-        onProfileClick = {}
-    )
+    Column {
+        val name = remember { mutableStateOf("Name") }
+        OutlinedTextField(value = name.value, onValueChange = { name.value = it })
+        ProfileWithNotification(
+            name = name,
+            address = remember { mutableStateOf("Address") },
+            onProfileClick = {},
+            onNotificationClick = {}
+        )
+    }
 }
