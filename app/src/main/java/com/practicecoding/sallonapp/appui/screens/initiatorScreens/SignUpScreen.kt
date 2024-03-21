@@ -4,7 +4,6 @@ import android.app.Activity
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -23,7 +22,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,9 +37,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -51,33 +47,30 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.CommonDialog
-import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.utils.showMsg
-import com.practicecoding.sallonapp.appui.viewmodel.UserDataViewModel
+import com.practicecoding.sallonapp.appui.viewmodel.AddUserDataViewModel
 import com.practicecoding.sallonapp.data.Resource
 import com.practicecoding.sallonapp.data.model.UserModel
 import com.practicecoding.sallonapp.ui.theme.Purple80
 import com.practicecoding.sallonapp.ui.theme.purple_200
-import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -86,8 +79,10 @@ import kotlinx.coroutines.launch
 fun AdvancedSignUpScreen(
     phoneNumber: String? = null,
     activity: Activity,
-    viewModel: UserDataViewModel = hiltViewModel()
-) {
+    viewModel: AddUserDataViewModel = hiltViewModel(),
+    navController: NavController,
+
+    ) {
     val phone = phoneNumber ?: "1234567890"
     // State variables
     val context = LocalContext.current
@@ -134,7 +129,8 @@ fun AdvancedSignUpScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState),
+//                .verticalScroll(scrollState)
+            ,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -352,6 +348,7 @@ fun AdvancedSignUpScreen(
                             is Resource.Success -> {
                                 isDialogVisible = false
                                 activity.showMsg(it.result)
+                                navController.navigate(Screens.MainScreen.route)
                             }
 
                             is Resource.Failure -> {
@@ -384,9 +381,9 @@ enum class Gender(val label: String) {
     OTHER("Other"),
 }
 
-@Preview(showBackground = true)
-@Composable
-fun AdvancedSignUpScreenPreview() {
-    val context = LocalContext.current
-AdvancedSignUpScreen(phoneNumber = "1234567890",activity = context as Activity)
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun AdvancedSignUpScreenPreview() {
+//    val context = LocalContext.current
+//AdvancedSignUpScreen(phoneNumber = "1234567890",activity = context as Activity)
+//}

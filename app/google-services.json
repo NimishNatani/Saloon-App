@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:62927274401:android:718471be02b37a67858be0",
+        "android_client_info": {
+          "package_name": "com.example.sallonappbarbar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3GSPxhju-ncPaBX2CHfql4DI1vFjPJpI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:62927274401:android:56b1b9e0351edd0e858be0",
         "android_client_info": {
           "package_name": "com.practicecoding.sallonapp"
