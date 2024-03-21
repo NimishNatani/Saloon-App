@@ -93,9 +93,6 @@ locationViewModel.startLocationUpdates()
         val scope = rememberCoroutineScope()
         var barberPopularModel by initializeBarberPopularModel()
     var barberNearbyModel by initializeBarberPopularModel()
-
-
-
         LaunchedEffect(key1 = true) {
             scope.launch(Dispatchers.Main) {
                 isDialog=true
