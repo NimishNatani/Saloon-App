@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -867,6 +868,80 @@ private fun CurvyTriangleWithCircle(
         }
     }
 }
+//
+//Customer review card from customers
+@Composable
+fun CustomerReviewCard(
+    customerName: String,
+    reviewText: String,
+    rating: Float,
+    imageUrl: String,
+    time: String = "2 days ago"
+){
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White,
+        tonalElevation = 8.dp
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = Color.LightGray,
+                    modifier = Modifier
+                        .size(50.dp)
+                ) {
+                    /*TODO profile picture*/
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Row {
+                        Text(
+                            text = customerName,
+                            fontSize = 18.sp,
+                            maxLines = 1
+                        )
+                        Spacer(modifier = Modifier.weight(0.5f))
+                        Text(
+                            text = time,
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row {
+                        repeat(rating.toInt()) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = "Star Icon",
+                                tint = Color.Yellow,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+            }
+            Text(
+                text = reviewText,
+                fontSize = 16.sp,
+                maxLines = 3,
+                modifier = Modifier
+                    .padding(top = 8.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+                    .fillMaxWidth()
+            )
+        }
+
+    }
+}
 
 enum class BottomNavItems {
     Home, Location, Book, Message, Profile
@@ -875,14 +950,10 @@ enum class BottomNavItems {
 @Preview(showBackground = false)
 @Composable
 fun CardsPreview() {
-    Column {
-        val name = remember { mutableStateOf("Name") }
-        OutlinedTextField(value = name.value, onValueChange = { name.value = it })
-        ProfileWithNotification(
-            name = name,
-            address = remember { mutableStateOf("Address") },
-            onProfileClick = {},
-            onNotificationClick = {}
-        )
-    }
+    CustomerReviewCard(
+        customerName = "John Doe",
+        reviewText = "This is a very good salon. I would recommend it to anyone",
+        rating = 4.5f,
+        imageUrl = ""
+    )
 }
