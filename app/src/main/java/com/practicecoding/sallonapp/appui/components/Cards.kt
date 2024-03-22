@@ -331,21 +331,14 @@ fun ProfileWithNotification(
         mutableStateOf("https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636")
     }
     val scope = rememberCoroutineScope()
-    var isDialog by remember {
-        mutableStateOf(false)
-    }
-    if (isDialog) {
-        CircularProgress()
-    }
+
     LaunchedEffect(key1 = true) {
         scope.launch(Dispatchers.Main) {
-            isDialog = true
             val userModel = viewModel.getUser()
-            delay(300)
+            delay(500)
             name = userModel?.name.toString()
             phoneNo = userModel?.phoneNumber.toString()
             imageUri = userModel?.imageUri.toString()
-            isDialog = false
 
         }.join()
     }

@@ -1,10 +1,11 @@
 package com.practicecoding.sallonapp.appui.components
 
 import android.net.Uri
-import android.widget.ImageButton
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,6 +15,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,8 +26,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Card
@@ -60,22 +66,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.ui.theme.Purple40
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
+import kotlinx.coroutines.delay
 
 @Composable
 fun CommonDialog() {
@@ -119,7 +130,7 @@ fun CommonDialog() {
 }
 
 @Composable
-fun CircularProgress(){
+fun CircularProgress() {
     Dialog(onDismissRequest = { /*TODO*/ }) {
         CircularProgressIndicator()
     }
@@ -193,6 +204,82 @@ fun IconButtonWithTriangle(
             tint = if (isSelected) colorResource(id = R.color.sallon_color) else Color.Gray,
             modifier = Modifier.size(34.dp)
         )
+    }
+}
+
+@Composable
+fun LoadingAnimation(
+    modifier: Modifier = Modifier,
+    circleSize: Dp = 25.dp,
+    circleColor: Color = sallonColor,
+    spaceBetween: Dp = 10.dp,
+    travelDistance: Dp = 20.dp
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Color.White, shape = RoundedCornerShape(16.dp)),
+        color = Color.White,
+        tonalElevation = 20.dp,
+        shape = RoundedCornerShape(16.dp)
+    ) {
+
+        Column(
+            modifier = Modifier,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+
+            val circles = listOf(
+                remember { Animatable(initialValue = 0f) },
+                remember { Animatable(initialValue = 0f) },
+                remember { Animatable(initialValue = 0f) }
+            )
+
+            circles.forEachIndexed { index, animatable ->
+
+                LaunchedEffect(key1 = animatable) {
+                    delay(index * 100L)
+                    animatable.animateTo(
+                        targetValue = 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = keyframes {
+                                durationMillis = 1200
+                                0.0f at 0 with LinearOutSlowInEasing
+                                1.0f at 300 with LinearOutSlowInEasing
+                                0.0f at 600 with LinearOutSlowInEasing
+                                0.0f at 1200 with LinearOutSlowInEasing
+                            },
+                            repeatMode = RepeatMode.Restart
+                        )
+                    )
+                }
+            }
+
+            val circleValues = circles.map { it.value }
+            val distance = with(LocalDensity.current) { travelDistance.toPx() }
+
+            Row(
+                modifier = modifier,
+                horizontalArrangement = Arrangement.spacedBy(spaceBetween)
+            ) {
+                circleValues.forEach { value ->
+                    Box(
+                        modifier = Modifier
+                            .size(circleSize)
+                            .graphicsLayer {
+                                translationY = -value * distance
+                            }
+                            .background(
+                                color = circleColor,
+                                shape = CircleShape
+                            )
+                    )
+                }
+            }
+        }
+
     }
 }
 
@@ -354,14 +441,14 @@ fun Categories(image: Int, categories: String) {
                 .size(48.dp)
                 .clickable { /* Your click action */ }
         )
-            Text(
+        Text(
             text = categories,
             color = Color.Black,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
 
 
-        )
+            )
     }
 }
 
@@ -378,6 +465,6 @@ fun LaunchPhotoPicker(singlePhotoPickerLauncher: ManagedActivityResultLauncher<P
 @Composable
 fun Preview() {
     val context = LocalContext.current
-    SearchBar()
+    LoadingAnimation()
 }
 
