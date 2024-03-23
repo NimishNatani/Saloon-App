@@ -9,10 +9,15 @@ import androidx.compose.ui.platform.LocalContext
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
+import com.practicecoding.sallonapp.appui.components.BottomAppNavigationBar
+import com.practicecoding.sallonapp.appui.components.BottomNavItems
 import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.HeadingText
+import com.practicecoding.sallonapp.appui.components.ProfileWithNotification
+import com.practicecoding.sallonapp.appui.components.SearchBar
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.AdvancedSignUpScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.LogoScreen
+import com.practicecoding.sallonapp.appui.screens.initiatorScreens.MainScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OTPVerificationScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingScreen
@@ -20,15 +25,16 @@ import com.practicecoding.sallonapp.appui.screens.initiatorScreens.PhoneNumberSc
 
 @Composable
 fun AppNavigation(
-    navController : NavHostController
+    navController: NavHostController
 ) {
     val context = LocalContext.current
     NavHost(navController = navController, startDestination = Screens.Logo.route) {
         composable(Screens.Logo.route) {
             LogoScreen(navController = navController)
         }
-        composable(Screens.OnBoardingScreens.route,
-            ) {
+        composable(
+            Screens.OnBoardingScreens.route,
+        ) {
             val imageList = listOf(
                 R.drawable.onboarding1,
                 R.drawable.onboarding2,
@@ -58,8 +64,8 @@ fun AppNavigation(
             DoubleCard(
                 midCarBody = { HeadingText(bodyText = "Sign up to access all the feature of barber shop") },
                 mainScreen = {
-                    PhoneNumberScreen(activity =context as Activity,
-                        navigateToVerification = {phoneNumber ->
+                    PhoneNumberScreen(activity = context as Activity,
+                        navigateToVerification = { phoneNumber ->
                             navController.navigate(Screens.OTPVerification.route + "/$phoneNumber")
                         }
                     )
@@ -71,10 +77,10 @@ fun AppNavigation(
                     )
                 }
 
-                )
+            )
         }
         composable(Screens.OTPVerification.route + "/{phoneNumber}") { backStackEntry ->
-            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber")?:"000"
+            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber") ?: "000"
             DoubleCard(
                 midCarBody = { HeadingText(bodyText = "We have sent an otp to $phoneNumber") },
                 mainScreen = {
@@ -93,22 +99,16 @@ fun AppNavigation(
             )
         }
         composable(Screens.SignUp.route + "/{phoneNumber}") { backStackEntry ->
-            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber")?:"000"
+            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber") ?: "000"
             DoubleCard(
                 midCarBody = { HeadingText(bodyText = "Enter your details to access all the feature of barber shop") },
-                mainScreen = { AdvancedSignUpScreen(phoneNumber = phoneNumber,activity = context as Activity) },
-                topAppBar = {
-                    BackButtonTopAppBar(
-                        onBackClick = { navController.popBackStack() },
-                        title = "Sign Up"
+                mainScreen = {
+                    AdvancedSignUpScreen(
+                        phoneNumber = phoneNumber,
+                        activity = context as Activity,
+                        navController=navController
                     )
-                }
-                )
-        }
-        composable(Screens.SignUp.route){
-            DoubleCard(
-                midCarBody = { HeadingText(bodyText = "Enter your details to access all the feature of barber shop") },
-                mainScreen = { AdvancedSignUpScreen(phoneNumber = "000",activity = context as Activity) },
+                },
                 topAppBar = {
                     BackButtonTopAppBar(
                         onBackClick = { navController.popBackStack() },
@@ -116,6 +116,46 @@ fun AppNavigation(
                     )
                 }
             )
+        }
+        composable(Screens.SignUp.route) {
+            DoubleCard(
+                midCarBody = { HeadingText(bodyText = "Enter your details to access all the feature of barber shop") },
+                mainScreen = {
+                    AdvancedSignUpScreen(
+                        phoneNumber = "000",
+                        activity = context as Activity,
+                        navController = navController
+                    )
+                },
+                topAppBar = {
+                    BackButtonTopAppBar(
+                        onBackClick = { navController.popBackStack() },
+                        title = "Sign Up"
+                    )
+                }
+            )
+        }
+        composable(Screens.MainScreen.route) {
+            DoubleCard(midCarBody = { SearchBar() },
+                mainScreen = {
+                             MainScreen()
+                },
+                topAppBar = {
+                    ProfileWithNotification(
+
+                        onProfileClick = { /*TODO*/ },
+                        onNotificationClick = { /*TODO*/ })
+                },
+                bottomAppBar = {
+                    BottomAppNavigationBar(
+                        currentScreen = BottomNavItems.Home,
+                        onHomeClick = { /*TODO*/ },
+                        onLocationClick = { /*TODO*/ },
+                        onBookClick = { /*TODO*/ },
+                        onMessageClick = { /*TODO*/ },
+                        onProfileClick = { /*TODO*/ })
+                }
+                )
         }
     }
 }

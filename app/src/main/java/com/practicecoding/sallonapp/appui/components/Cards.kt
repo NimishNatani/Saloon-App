@@ -2,7 +2,6 @@ package com.practicecoding.sallonapp.appui.components
 
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,10 +11,10 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,10 +23,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -77,7 +79,6 @@ import kotlinx.coroutines.launch
 import androidx.compose.material3.Button
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,6 +93,14 @@ import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
 import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
 import com.exyte.animatednavbar.utils.noRippleClickable
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
+import com.practicecoding.sallonapp.ui.theme.purple_400
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -109,111 +118,107 @@ fun OnBoardingBottomTextCard(
         shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
         border = BorderStroke(0.7.dp, Color.Gray),
         elevation = 8.dp
-    ){
+    ) {
 
-            Box(
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .background(
+                    color = Color.White,
+                    shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp)
+                )
+                .padding(top = 16.dp, start = 18.dp, end = 18.dp, bottom = 16.dp),
+        ) {
+            val pagerState = rememberPagerState(0, 0f) { onBoardingTextList.size }
+            val scope = rememberCoroutineScope()
+            HorizontalPager(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    .background(
-                        color = Color.White,
-                        shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp)
-                    )
-                    .padding(top = 16.dp, start = 18.dp, end = 18.dp, bottom = 16.dp),
-            ) {
-                val pagerState = rememberPagerState(0,0f) {onBoardingTextList.size }
-                val scope = rememberCoroutineScope()
-                HorizontalPager(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .align(Alignment.TopCenter),
+                    .align(Alignment.TopCenter),
                 state = pagerState,
-                    userScrollEnabled = false
-                ) {text ->
-                    OnBoardingText(
-                        mainHeading = onBoardingTextList[text].mainHeading,
-                        bodyText = onBoardingTextList[text].bodyText,
-                    )
+                userScrollEnabled = false
+            ) { text ->
+                OnBoardingText(
+                    mainHeading = onBoardingTextList[text].mainHeading,
+                    bodyText = onBoardingTextList[text].bodyText,
+                )
+            }
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(16.dp)
+                    .align(Alignment.BottomStart)
+            ) {
+                repeat(3) { index ->
+                    DotIndicator(selected = index == pagerState.currentPage)
                 }
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .wrapContentSize()
-                        .padding(16.dp)
-                        .align(Alignment.BottomStart)
-                ) {
-                    repeat(3) { index ->
-                        DotIndicator(selected = index == pagerState.currentPage)
-                    }
-                }
-                Row(
+            }
+            Row(
                 modifier = Modifier
                     .wrapContentHeight()
                     .align(Alignment.BottomEnd),
             ) {
-                    Surface(
-                        shape = RoundedCornerShape(50),
-                        modifier = Modifier
-                            .padding(bottom = 32.dp, start = 32.dp)
-                            .wrapContentSize(align = Alignment.BottomEnd)
-                            .clip(RoundedCornerShape(50.dp)),
-                        color = MaterialTheme.colorScheme.primary
-                    ) {
-                        IconButton(
-                            onClick ={
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier
+                        .padding(bottom = 32.dp, start = 32.dp)
+                        .wrapContentSize(align = Alignment.BottomEnd)
+                        .clip(RoundedCornerShape(50.dp)),
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    IconButton(
+                        onClick = {
                             scope.launch {
-                                if(pagerState.currentPage > 0){
+                                if (pagerState.currentPage > 0) {
                                     pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                                }else{
-                                    /*TODO*/
+                                } else {/*TODO*/
                                     //open the welcome screen
                                 }
                             }
                             onBackClick()
-                        },
-                            modifier = Modifier.background(color =  Color(sallonColor.toArgb()))
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowLeft,
-                                contentDescription = "Back",
-                                tint = Color.White,
-                                modifier = Modifier.size(45.dp)
-                            )
-                        }
-                    }
-                    Surface(
-                        shape = RoundedCornerShape(50),
-                        modifier = Modifier
-                            .padding(bottom = 32.dp, end = 32.dp, start = 16.dp)
-                            .wrapContentSize(align = Alignment.BottomEnd)
-                            .clip(RoundedCornerShape(50.dp)),
-                        color = MaterialTheme.colorScheme.primary
+                        }, modifier = Modifier.background(color = Color(sallonColor.toArgb()))
                     ) {
-                        IconButton(
-                            onClick ={
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowLeft,
+                            contentDescription = "Back",
+                            tint = Color.White,
+                            modifier = Modifier.size(45.dp)
+                        )
+                    }
+                }
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier
+                        .padding(bottom = 32.dp, end = 32.dp, start = 16.dp)
+                        .wrapContentSize(align = Alignment.BottomEnd)
+                        .clip(RoundedCornerShape(50.dp)),
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    IconButton(
+                        onClick = {
                             scope.launch {
-                                if(pagerState.currentPage < 3){
+                                if (pagerState.currentPage < 3) {
                                     pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                                }else{
-                                    /*TODO*/
+                                } else {/*TODO*/
                                     //open the welcome screen
                                 }
                             }
                             onNextClick()
-                        },
-                            modifier = Modifier.background(color =  Color(sallonColor.toArgb()))
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowRight,
-                                contentDescription = "Next",
-                                tint = Color.White,
-                                modifier = Modifier.size(45.dp)
-                            )
-                        }
+                        }, modifier = Modifier.background(color = Color(sallonColor.toArgb()))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowRight,
+                            contentDescription = "Next",
+                            tint = Color.White,
+                            modifier = Modifier.size(45.dp)
+                        )
                     }
                 }
             }
+        }
     }
 }
 
@@ -230,30 +235,26 @@ fun DotIndicator(selected: Boolean) {
             )
     )
 }
+
 //@Preview(showBackground = true)
 @Composable
-fun OnBoardingBottomTextCardPreview(){
+fun OnBoardingBottomTextCardPreview() {
     val onBoardingTextList = listOf(
         OnBoardingPageText(
-            mainHeading = "Heading 1",
-            bodyText = "Body 1"
+            mainHeading = "Heading 1", bodyText = "Body 1"
         ),
         OnBoardingPageText(
-            mainHeading = "Heading 2",
-            bodyText = "Body 2"
+            mainHeading = "Heading 2", bodyText = "Body 2"
         ),
         OnBoardingPageText(
-            mainHeading = "Heading 3",
-            bodyText = "Body 3"
+            mainHeading = "Heading 3", bodyText = "Body 3"
         ),
     )
     val navController = rememberNavController()
-    OnBoardingBottomTextCard(
-        navController = navController,
+    OnBoardingBottomTextCard(navController = navController,
         onBoardingTextList = onBoardingTextList,
         onNextClick = {},
-        onBackClick = {}
-    )
+        onBackClick = {})
 }
 
 @Composable
@@ -263,8 +264,11 @@ fun DoubleCard(
     midCarBody: @Composable () -> Unit,
     navController: NavController = rememberNavController(),
     mainScreen: @Composable () -> Unit,
-    topAppBar: @Composable () -> Unit = {}
+    topAppBar: @Composable () -> Unit = {},
+    bottomAppBar: @Composable ()-> Unit={}
 ) {
+    val scrollState = rememberScrollState()
+
     val context = LocalContext.current
     Column(
         modifier = Modifier
@@ -277,21 +281,25 @@ fun DoubleCard(
         Card(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 50.dp),
+                .padding(top = 40.dp),
             shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
             backgroundColor = colorResource(id = R.color.sallon_color)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 4.dp),
+                    .padding(top = 16.dp),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 midCarBody()
 
                 Card(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .fillMaxHeight()
+                        .padding(top = 20.dp)
+                        .verticalScroll(scrollState),
                     shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
                     backgroundColor = colorResource(id = R.color.white)
                 ) {
@@ -299,6 +307,7 @@ fun DoubleCard(
                 }
             }
         }
+        bottomAppBar()
     }
 }
 
@@ -326,55 +335,74 @@ fun HeadingText(
 //#1 ProfileWithNotification Card
 @Composable
 fun ProfileWithNotification(
-    name: MutableState<String>,
-    address: MutableState<String>,
     onProfileClick: () -> Unit,
-    onNotificationClick: () -> Unit
+    onNotificationClick: () -> Unit,
+    viewModel: GetUserDataViewModel = hiltViewModel()
+
 ) {
+    val context = LocalContext.current
+    var name by remember {
+        mutableStateOf("User")
+    }
+    var phoneNo by remember {
+        mutableStateOf("+91 111111111")
+    }
+    var imageUri by remember {
+        mutableStateOf("https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636")
+    }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(key1 = true) {
+        scope.launch(Dispatchers.Main) {
+            val userModel = viewModel.getUser()
+            delay(500)
+            name = userModel?.name.toString()
+            phoneNo = userModel?.phoneNumber.toString()
+            imageUri = userModel?.imageUri.toString()
+
+        }.join()
+    }
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 10.dp, vertical = 8.dp)
             .wrapContentHeight(),
-        shape = MaterialTheme.shapes.medium,
-        tonalElevation = 4.dp,
-        shadowElevation = 4.dp
+        color = purple_200,
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(vertical = 16.dp, horizontal = 8.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Surface(
-                shape = CircleShape,
+            Surface(shape = CircleShape,
                 color = Color.LightGray,
                 modifier = Modifier
-                    .size(50.dp)
-                    .clickable { onProfileClick() }
-            ) {
-                /*TODO profile picture*/
+                    .size(35.dp)
+                    .clickable { onProfileClick() }) {
+                Image(
+                    painter = rememberAsyncImagePainter(
+                        model = imageUri
+                    ),
+                    contentDescription = "User Profile Image",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
             }
 
             Spacer(modifier = Modifier.width(16.dp))
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                LaunchedEffect(name.value) {
-                    // Observe changes to the name value
-                    name.value = name.value // Trigger recomposition
-                }
-                LaunchedEffect(address.value) {
-                    // Observe changes to the address value
-                    address.value = address.value // Trigger recomposition
-                }
                 Text(
-                    text = name.value,
+                    text = name,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
+                    color = Color.Black,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = address.value,
+                    text = phoneNo,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -382,18 +410,17 @@ fun ProfileWithNotification(
             }
 
             Spacer(modifier = Modifier.width(16.dp))
-            Surface(
-                shape = CircleShape,
+            Surface(shape = CircleShape,
                 color = Color.Red,
                 modifier = Modifier
                     .size(24.dp)
-                    .clickable { onNotificationClick() }
-            ) {
+                    .clickable { onNotificationClick() }) {
                 /*TODO notification icon*/
             }
         }
     }
 }
+
 //Offer Card
 @Composable
 fun OfferCard(
@@ -405,7 +432,8 @@ fun OfferCard(
 ) {
     Surface(
         modifier = Modifier
-            .fillMaxWidth()
+            .width(300.dp)
+            .height(150.dp)
             .padding(16.dp),
         shape = RoundedCornerShape(8.dp),
         color = cardColor,
@@ -415,17 +443,17 @@ fun OfferCard(
         border = null
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(top = 5.dp, start = 8.dp, end = 8.dp, bottom = 5.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Bottom
+//            verticalAlignment = Alignment.Bottom
         ) {
             Column(
                 horizontalAlignment = Alignment.Start
-            ){
+            ) {
                 Row(
                     modifier = Modifier
                         .wrapContentSize()
-                        .padding(8.dp),
+                        .padding(bottom = 6.dp, top = 5.dp, start = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
@@ -434,7 +462,7 @@ fun OfferCard(
                         style = MaterialTheme.typography.bodyLarge,
                         color = Color.White,
                         modifier = Modifier.padding(bottom = 4.dp),
-                        fontSize = 30.sp
+                        fontSize = 18.sp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -444,21 +472,20 @@ fun OfferCard(
                     )
 
                 }
-                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = detailText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White,
+                    fontSize = 18.sp,
                     textAlign = TextAlign.Start,
                     maxLines = 3,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .width(250.dp)
+                    modifier = Modifier.padding(4.dp, bottom = 12.dp)
                 )
                 Button(
                     onClick = { onExploreClick() },
                     modifier = Modifier
-                        .padding(8.dp)
+                        .width(125.dp)
+                        .height(35.dp)
                         .clip(RoundedCornerShape(8.dp)),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
@@ -468,20 +495,20 @@ fun OfferCard(
                     Text(
                         text = "Explore",
                         color = colorResource(id = R.color.sallon_color),
-                        fontSize = 20.sp,
+                        fontSize = 14.sp,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(20.dp))
             Image(
                 painter = painterResource(id = iconImageId),
                 contentDescription = "Icon",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .width(500.dp),
+                    .fillMaxHeight(),
 
-            )
+                )
         }
     }
 }
@@ -491,142 +518,148 @@ fun OfferCard(
 fun BigSaloonPreviewCard(
     shopName: String,
     address: String,
-    rating: Float,
+    rating: Double,
     noOfReviews: Int,
     imageUrl: String,
     onBookNowClick: () -> Unit,
     onHeartClick: () -> Unit,
     isFavorite: Boolean = false,
-    modifier: Modifier = Modifier,
-    distance: Int
+    modifier: Modifier,
+    distance: Double
 ) {
+
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        tonalElevation = 8.dp,
+        modifier = modifier
+            .width(280.dp)
+            .height(260.dp)
+            .padding(end = 10.dp),
+        tonalElevation = 14.dp,
+        shadowElevation = 4.dp,
+        color = purple_400,
         shape = RoundedCornerShape(16.dp),
     ) {
-        Column {
+        Column(modifier = modifier.fillMaxSize()) {
             Box(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxWidth()
-                    .aspectRatio(1.5f)
+                    .height(150.dp)
                     .background(Color.White)
             ) {
+
                 Image(
-                    painter = painterResource(id = R.drawable.icon_facebook), // Placeholder image
+                    painter =  rememberAsyncImagePainter(
+                        imageUrl
+                    )
+                    , // Placeholder image
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.TopCenter),
+                    contentScale = ContentScale.FillBounds
                 )
                 IconButton(
                     onClick = onHeartClick,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(12.dp)
+                        .padding(6.dp)
                 ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = Color.White
-                    ) {
+//                    Surface(
+//                        shape = CircleShape, color = Color.White
+//                    ) {
                         Icon(
                             imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
                             contentDescription = "Star Icon",
                             tint = colorResource(id = R.color.sallon_color),
-                            modifier = Modifier
-                                .size(24.dp)
-                                .padding(4.dp)
+                            modifier = Modifier.size(36.dp)
                         )
-                    }
+                   // }
                 }
             }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .background(purple_400)
+                    .padding(vertical = 4.dp, horizontal = 16.dp),
+//                horizontalArrangement = Arrangement.SpaceBetween,
+//                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Row {
-                        Text(
-                            text = shopName,
-                            fontSize = 18.sp,
-                            maxLines = 1
-                        )
-                        Spacer(modifier = Modifier.weight(0.5f))
-                        Row {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Star Icon",
-                                tint = colorResource(id = R.color.sallon_color),
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowForward,
-                                contentDescription = "Star Icon",
-                                tint = colorResource(id = R.color.sallon_color),
-                                modifier = Modifier.size(18.dp)
-                            )
 
-                            Text(
-                                text = "${distance} Km",
-                                fontSize = 14.sp,
-                                color = colorResource(id = R.color.sallon_color)
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Star Icon",
-                            tint = Color.Green,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Text(
-                            text = address,
-                            fontSize = 14.sp,
-                            maxLines = 3,
-                            modifier = Modifier.width(300.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "$rating",
-                            fontSize = 14.sp
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            painter = painterResource(id = R.drawable.img),
-                            contentDescription = "Star Icon",
-                            tint = Color.Yellow,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Text(
-                            text = "(${noOfReviews})",
-                            fontSize = 14.sp,
-                            color = Color.Gray
-                        )
-                        Spacer(modifier = Modifier.weight(0.75f))
-                        Button(
-                            onClick = onBookNowClick,
-                            modifier = Modifier.padding(16.dp),
-                            shape = RoundedCornerShape(50),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(id = R.color.grey_light)
-                            )
-                        ) {
-                            Text(
-                                text = "Book Now",
-                                color = colorResource(id = R.color.sallon_color),
-                                )
-                        }
-                    }
+                Text(
+                    text = shopName, fontSize = 18.sp, maxLines = 1
+                )
+                Spacer(modifier = Modifier.weight(0.5f))
+                Row {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Star Icon",
+                        tint = colorResource(id = R.color.sallon_color),
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = "Star Icon",
+                        tint = colorResource(id = R.color.sallon_color),
+                        modifier = Modifier.size(18.dp)
+                    )
+
+                    Text(
+                        text = "$distance Km",
+                        fontSize = 14.sp,
+                        color = colorResource(id = R.color.sallon_color)
+                    )
+                }
+            }
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp, horizontal = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Star Icon",
+                    tint = Color.Green,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = address,
+                    fontSize = 14.sp,
+                    maxLines = 3,
+                    modifier = Modifier.width(300.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(modifier = modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 1.dp)) {
+                Text(
+                    text = "$rating",
+                    fontSize = 14.sp,
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.img),
+                    contentDescription = "Star Icon",
+                    tint = Color.Yellow,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = "(${noOfReviews})", fontSize = 14.sp, color = Color.Gray
+                )
+                Spacer(modifier = Modifier.weight(0.80f))
+                Button(
+                    onClick = onBookNowClick,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(id = R.color.purple_200)
+                    )
+                ) {
+                    Text(
+                        text = "Book Now",
+                        color = colorResource(id = R.color.sallon_color),
+                    )
                 }
             }
         }
+
     }
 }
 
@@ -634,20 +667,23 @@ fun BigSaloonPreviewCard(
 @Composable
 fun SmallSaloonPreviewCard(
     shopName: String,
-    imageUrl: String,
+    imageUri: String,
     address: String,
-    distance: Int,
+    distance: Double,
     numberOfReviews: Int,
-    rating: Float,
+    rating: Double,
     onBookClick: () -> Unit,
     isFavorite: Boolean = false,
     modifier: Modifier = Modifier
-){
+) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
+            .height(130.dp)
+            .padding(bottom = 16.dp)
             .background(Color.White),
         tonalElevation = 8.dp,
+        shadowElevation = 6.dp,
         shape = RoundedCornerShape(16)
     ) {
         Row(
@@ -657,13 +693,15 @@ fun SmallSaloonPreviewCard(
                 .wrapContentSize(),
         ) {
             Box(
-                modifier = Modifier.wrapContentSize(),
+                modifier = Modifier.width(100.dp),
             ) {
+
                 Image(
-                    painter = painterResource(id = R.drawable.salon_app_logo), // Placeholder image
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(140.dp),
+                    painter =  rememberAsyncImagePainter(
+                         imageUri
+                    ), // Placeholder image
+                    contentDescription = "barberImage",
+                    modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
                 IconButton(
@@ -674,8 +712,7 @@ fun SmallSaloonPreviewCard(
                         .align(Alignment.TopStart)
                 ) {
                     Surface(
-                        shape = CircleShape,
-                        color = Color.White
+                        shape = CircleShape, color = Color.White
                     ) {
                         Icon(
                             imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
@@ -924,71 +961,8 @@ fun CustomerReviewCard(
     imageUrl: String,
     time: String = "2 days ago"
 ){
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        shape = RoundedCornerShape(16.dp),
-        color = Color.Transparent,
-        tonalElevation = 8.dp
-    ) {
-        Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color.LightGray,
-                    modifier = Modifier
-                        .size(50.dp)
-                ) {
-                    /*TODO profile picture*/
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Row {
-                        Text(
-                            text = customerName,
-                            fontSize = 18.sp,
-                            maxLines = 1
-                        )
-                        Spacer(modifier = Modifier.weight(0.5f))
-                        Text(
-                            text = time,
-                            fontSize = 14.sp,
-                            color = Color.Gray
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row {
-                        repeat(rating.toInt()) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = "Star Icon",
-                                tint = Color.Yellow,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-            }
-            Text(
-                text = reviewText,
-                fontSize = 16.sp,
-                maxLines = 3,
-                modifier = Modifier
-                    .padding(top = 8.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
-                    .fillMaxWidth()
-            )
-        }
 
-    }
 }
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HorizontalPagerWithTabs() {
@@ -1034,6 +1008,117 @@ fun HorizontalPagerWithTabs() {
         }
     }
 }
+//@Composable
+//fun BottomAppNavigationBar(
+//    currentScreen: BottomNavItems,
+//    onHomeClick: () -> Unit,
+//    onLocationClick: () -> Unit,
+//    onBookClick: () -> Unit,
+//    onMessageClick: () -> Unit,
+//    onProfileClick: () -> Unit,
+//    modifier: Modifier = Modifier
+//){
+//    BottomAppBar(
+//        modifier = modifier.height(56.dp),
+//        contentPadding = PaddingValues(8.dp),
+//        containerColor = colorResource(id = R.color.white),
+//        tonalElevation = 8.dp,
+//    ) {
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(end = 16.dp, start = 16.dp, bottom = 2.dp)
+//                .clip(RoundedCornerShape(50)),
+//            horizontalArrangement = Arrangement.SpaceBetween
+//        ) {
+//            IconButtonWithTriangle(
+//                onClick = onHomeClick,
+//                enabled = currentScreen != BottomNavItems.Home,
+//                isSelected = currentScreen == BottomNavItems.Home,
+//                icon = Icons.Default.Home
+//            )
+//            IconButtonWithTriangle(
+//                onClick = onLocationClick,
+//                enabled = currentScreen != BottomNavItems.Location,
+//                isSelected = currentScreen == BottomNavItems.Location,
+//                icon = Icons.Default.LocationOn
+//            )
+//            IconButtonWithTriangle(
+//                onClick = onBookClick,
+//                enabled = currentScreen != BottomNavItems.Book,
+//                isSelected = currentScreen == BottomNavItems.Book,
+//                icon = Icons.Default.ShoppingCart
+//            )
+//            IconButtonWithTriangle(
+//                onClick = onMessageClick,
+//                enabled = currentScreen != BottomNavItems.Message,
+//                isSelected = currentScreen == BottomNavItems.Message,
+//                icon = Icons.Default.Send
+//            )
+//            IconButtonWithTriangle(
+//                onClick = onProfileClick,
+//                enabled = currentScreen != BottomNavItems.Profile,
+//                isSelected = currentScreen == BottomNavItems.Profile,
+//                icon = Icons.Default.Person
+//            )
+//        }
+//    }
+//}
+
+//@Composable
+//private fun IconButtonWithTriangle(
+//    onClick: () -> Unit,
+//    enabled: Boolean,
+//    isSelected: Boolean,
+//    icon: ImageVector
+//) {
+//    Column(
+//        modifier = Modifier.clickable(enabled = enabled) { onClick() },
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        CurvyTriangleWithCircle(
+//                color = if (isSelected) Color(sallonColor.toArgb()) else Color.Transparent,
+//                alignment = Alignment.TopStart
+//            )
+//
+//        Icon(
+//            imageVector = icon,
+//            contentDescription = null,
+//            tint = if (isSelected) colorResource(id = R.color.sallon_color) else Color.Gray,
+//            modifier = Modifier.size(34.dp)
+//        )
+//    }
+//}
+
+//@Composable
+//private fun CurvyTriangleWithCircle(
+//    color: Color,
+//    alignment: Alignment
+//) {
+//    Box(
+//        modifier = Modifier.size(16.dp),
+//        contentAlignment = alignment
+//    ) {
+//        Canvas(modifier = Modifier.size(16.dp)) {
+//            drawPath(
+//                path = Path().apply {
+//                    moveTo(0f, 0f)
+//                    lineTo(size.width, 0f)
+//                    lineTo(size.width / 2, size.height)
+//                    lineTo(0f, 0f)
+//                    close()
+//                },
+//                color = color
+//            )
+//        }
+//    }
+//}
+
+//enum class BottomNavItems {
+//    Home, Location, Book, Message, Profile
+//}
+
 
 @Composable
 fun AboutUsPage() {

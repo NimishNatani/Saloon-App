@@ -120,6 +120,7 @@ fun PhoneNumberScreen(
 //                isError = phoneNumber.isBlank(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Done
                 ),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = Purple80, // Change the outline color when focused
@@ -187,7 +188,7 @@ fun OTPVerificationScreen(
     if (isDialog)
         CommonDialog()
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(scrollState),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
