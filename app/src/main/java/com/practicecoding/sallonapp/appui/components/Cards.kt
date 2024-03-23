@@ -1,11 +1,14 @@
 package com.practicecoding.sallonapp.appui.components
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,8 +42,10 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -70,13 +75,23 @@ import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.launch
 import androidx.compose.material3.Button
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalMapOf
+import com.exyte.animatednavbar.AnimatedNavigationBar
+import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
+import com.exyte.animatednavbar.animation.indendshape.Height
+import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
+import com.exyte.animatednavbar.utils.noRippleClickable
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -761,113 +776,144 @@ fun SmallSaloonPreviewCard(
         }
     }
 }
+enum class NavigationItem(val icon: ImageVector,) {
+    Home(Icons.Default.Home),
+    Location(Icons.Default.LocationOn),
+    Book(Icons.Default.ShoppingCart),
+    Message(Icons.Default.Send),
+    Profile(Icons.Default.Person)
+}
+
+fun Modifier.noRippleClickable(onClick: () -> Unit) : Modifier = composed {
+    clickable(
+        indication = null,
+        interactionSource = remember { MutableInteractionSource() }
+    ) {
+        onClick()
+    }
+}
 
 @Composable
 fun BottomAppNavigationBar(
-    currentScreen: BottomNavItems,
     onHomeClick: () -> Unit,
     onLocationClick: () -> Unit,
     onBookClick: () -> Unit,
     onMessageClick: () -> Unit,
     onProfileClick: () -> Unit,
-    modifier: Modifier = Modifier
 ){
-    BottomAppBar(
-        modifier = modifier.height(56.dp),
-        contentPadding = PaddingValues(8.dp),
-        containerColor = colorResource(id = R.color.white),
-        tonalElevation = 8.dp,
+    val bottomBarItems = remember { NavigationItem.values() }
+    var selectedIndex by remember { mutableStateOf(0) }
+    AnimatedNavigationBar(
+        modifier = Modifier
+            .height(64.dp)
+            .fillMaxWidth(),
+        barColor = Color.White,
+        ballAnimation = Parabolic(tween(durationMillis = 200)),
+        ballColor = Color(sallonColor.toArgb()),
+        selectedIndex = selectedIndex,
+        cornerRadius = shapeCornerRadius(36.dp),
+        indentAnimation = Height(tween(durationMillis = 200)),
+    ) {
+         bottomBarItems.forEach {item->
+             Box(
+                 modifier = Modifier
+                     .fillMaxSize()
+                     .noRippleClickable { selectedIndex = item.ordinal },
+                    contentAlignment = Alignment.Center
+             ) {
+                 Icon(
+                     imageVector = item.icon,
+                     contentDescription = "Icon",
+                     modifier = Modifier.size(24.dp),
+                     tint = if (selectedIndex == item.ordinal) Color(sallonColor.toArgb()) else Color.Gray
+                 )
+             }
+         }
+    }
+}
+
+@Composable
+fun TransperentTopAppBar(
+    onBackClick: () -> Unit,
+    onLikeClick: () -> Unit,
+    onShareClick: () -> Unit,
+    isFavorite: Boolean,
+    modifier: Modifier = Modifier,
+){
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp),
+        color = Color.Transparent,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(end = 16.dp, start = 16.dp, bottom = 2.dp)
-                .clip(RoundedCornerShape(50)),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButtonWithTriangle(
-                onClick = onHomeClick,
-                enabled = currentScreen != BottomNavItems.Home,
-                isSelected = currentScreen == BottomNavItems.Home,
-                icon = Icons.Default.Home
-            )
-            IconButtonWithTriangle(
-                onClick = onLocationClick,
-                enabled = currentScreen != BottomNavItems.Location,
-                isSelected = currentScreen == BottomNavItems.Location,
-                icon = Icons.Default.LocationOn
-            )
-            IconButtonWithTriangle(
-                onClick = onBookClick,
-                enabled = currentScreen != BottomNavItems.Book,
-                isSelected = currentScreen == BottomNavItems.Book,
-                icon = Icons.Default.ShoppingCart
-            )
-            IconButtonWithTriangle(
-                onClick = onMessageClick,
-                enabled = currentScreen != BottomNavItems.Message,
-                isSelected = currentScreen == BottomNavItems.Message,
-                icon = Icons.Default.Send
-            )
-            IconButtonWithTriangle(
-                onClick = onProfileClick,
-                enabled = currentScreen != BottomNavItems.Profile,
-                isSelected = currentScreen == BottomNavItems.Profile,
-                icon = Icons.Default.Person
-            )
+            IconButton(
+                onClick = onBackClick,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = Color.White
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.Black,
+                        modifier = Modifier
+                            .size(30.dp)
+                            .padding(4.dp)
+                    )
+                }
+            }
+            Row {
+                IconButton(
+                    onClick = onLikeClick,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.White
+                    ) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = "Like",
+                            tint = Color(sallonColor.toArgb()),
+                            modifier = Modifier
+                                .size(30.dp)
+                                .padding(4.dp)
+                        )
+                    }
+                }
+                IconButton(
+                    onClick = onShareClick,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.White
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Share",
+                            tint = Color.Black,
+                            modifier = Modifier
+                                .size(30.dp)
+                                .padding(4.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
-@Composable
-private fun IconButtonWithTriangle(
-    onClick: () -> Unit,
-    enabled: Boolean,
-    isSelected: Boolean,
-    icon: ImageVector
-) {
-    Column(
-        modifier = Modifier.clickable(enabled = enabled) { onClick() },
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        CurvyTriangleWithCircle(
-                color = if (isSelected) Color(sallonColor.toArgb()) else Color.Transparent,
-                alignment = Alignment.TopStart
-            )
 
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = if (isSelected) colorResource(id = R.color.sallon_color) else Color.Gray,
-            modifier = Modifier.size(34.dp)
-        )
-    }
-}
-
-@Composable
-private fun CurvyTriangleWithCircle(
-    color: Color,
-    alignment: Alignment
-) {
-    Box(
-        modifier = Modifier.size(16.dp),
-        contentAlignment = alignment
-    ) {
-        Canvas(modifier = Modifier.size(16.dp)) {
-            drawPath(
-                path = Path().apply {
-                    moveTo(0f, 0f)
-                    lineTo(size.width, 0f)
-                    lineTo(size.width / 2, size.height)
-                    lineTo(0f, 0f)
-                    close()
-                },
-                color = color
-            )
-        }
-    }
-}
 //
 //Customer review card from customers
 @Composable
@@ -883,7 +929,7 @@ fun CustomerReviewCard(
             .fillMaxWidth()
             .padding(16.dp),
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
+        color = Color.Transparent,
         tonalElevation = 8.dp
     ) {
         Column {
@@ -943,17 +989,168 @@ fun CustomerReviewCard(
     }
 }
 
-enum class BottomNavItems {
-    Home, Location, Book, Message, Profile
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun HorizontalPagerWithTabs() {
+    val pagerState = rememberPagerState(pageCount = { 4 })
+
+    val titles = listOf("About Us", "Services", "Reviews", "Gallery")
+    val scope = rememberCoroutineScope()
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        TabRow(
+            selectedTabIndex = pagerState.currentPage,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
+                    color = Color.White
+                )
+            }
+        ) {
+            titles.forEachIndexed { index, title ->
+                Tab(
+                    text = { Text(text = title) },
+                    selected = pagerState.currentPage == index,
+                    onClick = {
+                        scope.launch {
+                            pagerState.animateScrollToPage(index)
+                        }
+                    }
+                )
+            }
+        }
+
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.weight(1f)
+        ) { page ->
+            when (page) {
+                0 -> AboutUsPage()
+                1 -> ServicesPage()
+                2 -> GalleryPage()
+                3 -> ReviewsPage()
+                else -> AboutUsPage() // Handle unexpected page index
+            }
+        }
+    }
 }
 
-@Preview(showBackground = false)
+@Composable
+fun AboutUsPage() {
+    Text(text = "About Us", modifier = Modifier.fillMaxSize(), textAlign = TextAlign.Center)
+}
+
+@Composable
+fun ServicesPage() {
+    Text(text = "Services", modifier = Modifier.fillMaxSize(), textAlign = TextAlign.Center)
+}
+
+@Composable
+fun ReviewsPage() {
+    Text(text = "Reviews", modifier = Modifier.fillMaxSize(), textAlign = TextAlign.Center)
+}
+
+@Composable
+fun GalleryPage() {
+    Text(text = "Gallery", modifier = Modifier.fillMaxSize(), textAlign = TextAlign.Center)
+}
+
+@Composable
+fun BookingScreenShopPreview(
+    shopName: String,
+    shopAddress: String,
+    ratings: Float,
+    numberOfReviews: Int,
+    onOpenClick: () -> Unit
+){
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .background(color = Color.White)
+            .clickable(onClick = { onOpenClick() })
+            .padding(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = shopName,
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            )
+            Button(
+                onClick = { onOpenClick() },
+                modifier = Modifier.align(Alignment.CenterVertically),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(purple_200.toArgb()),
+                    contentColor = Color(sallonColor.toArgb())
+                )
+            ) {
+                Text(
+                    text = "Open",
+                    color = Color(sallonColor.toArgb())
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.green_locationicon),
+                contentDescription = "Location Icon",
+                modifier = Modifier.size(18.dp),
+                tint = Color.Green
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = shopAddress,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.weight(1f),
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = "Star Icon",
+                tint = Color.Yellow,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = "$ratings ($numberOfReviews reviews)",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(
+                imageVector = Icons.Default.MailOutline,
+                contentDescription = "Directions Icon"
+            )
+            Text(
+                text = "Directions",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        }
+    }
+
+}
+
+
+
+@Preview(showBackground = false, backgroundColor = 0x000)
 @Composable
 fun CardsPreview() {
-    CustomerReviewCard(
-        customerName = "John Doe",
-        reviewText = "This is a very good salon. I would recommend it to anyone",
-        rating = 4.5f,
-        imageUrl = ""
-    )
+    HorizontalPagerWithTabs()
 }

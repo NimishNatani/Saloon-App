@@ -158,4 +158,6 @@ dependencies {
 //For PickVisualMedia contract
     implementation("androidx.activity:activity-ktx:1.8.2")
 
+    implementation("com.exyte:animated-navigation-bar:1.0.0")
+
 }
