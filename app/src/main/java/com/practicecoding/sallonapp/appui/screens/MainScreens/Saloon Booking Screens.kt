@@ -32,12 +32,14 @@ import androidx.compose.ui.unit.dp
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import androidx.compose.material3.Button
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.sp
 import com.exyte.animatednavbar.utils.noRippleClickable
 import com.practicecoding.sallonapp.appui.components.BookingScreenShopPreviewCard
 import com.practicecoding.sallonapp.appui.components.GenderSelectCard
+import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.components.HorizontalPagerWithTabs
 import com.practicecoding.sallonapp.appui.components.TransparentTopAppBar
 import com.practicecoding.sallonapp.data.model.BarberModel
@@ -121,17 +123,25 @@ fun BarberScreen(
                 elevation = 8.dp,
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             ) {
-                Button(
-                    onClick = { /*TODO*/ },
-                    modifier = Modifier
-                        .padding(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(sallonColor.toArgb()),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(text = "Book now",color = Color.White)
-                }
+//                Button(
+//                    onClick = { /*TODO*/ },
+//                    modifier = Modifier
+//                        .padding(16.dp),
+//                    colors = ButtonDefaults.buttonColors(
+//                        containerColor = Color(sallonColor.toArgb()),
+//                        contentColor = Color.White
+//                    )
+//                ) {
+//                    Text(text = "Book now",color = Color.White)
+//                }
+                GeneralButton(
+                    text = "Book now",
+                    width = 160,
+                    height = 80,
+                    modifier = Modifier.fillMaxWidth(),
+                    roundnessPercent = 45,
+                    onClick = {/*TODO*/}
+                )
             }
         }
     }
@@ -171,23 +181,31 @@ fun GenderSelectOnBook(
             contentColor = Color.Black,
             elevation = 8.dp
         ) {
-            Button(
-                onClick = { /*TODO*/ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 30.dp, start = 16.dp, end = 16.dp),
-                shape = RoundedCornerShape(45),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(id = R.color.sallon_color)
-                )
-            ) {
-                Text(
-                    text = "Next",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
+//            Button(
+//                onClick = { /*TODO*/ },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(top = 16.dp, bottom = 30.dp, start = 16.dp, end = 16.dp),
+//                shape = RoundedCornerShape(45),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = colorResource(id = R.color.sallon_color)
+//                )
+//            ) {
+//                Text(
+//                    text = "Next",
+//                    color = Color.White,
+//                    fontSize = 18.sp,
+//                    style = MaterialTheme.typography.bodyMedium
+//                )
+//            }
+            GeneralButton(
+                text = "Next",
+                width = 160,
+                height = 80,
+                modifier = Modifier.fillMaxWidth(),
+                roundnessPercent = 45,
+                onClick = {/*TODO*/ }
+            )
         }
     }
 }
@@ -259,4 +277,5 @@ fun BarberScreenPreview() {
             HorizontalPagerWithTabs(barberDetails, serviceCategories, previewImages)
         }
     )
+//    GenderSelectOnBook()
 }

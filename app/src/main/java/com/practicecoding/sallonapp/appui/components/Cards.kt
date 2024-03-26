@@ -69,6 +69,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
@@ -947,4 +948,10 @@ fun BookingScreenShopPreviewCard(
             )
         }
     }
+}
+
+@Preview
+@Composable
+fun PrviewFuncions(){
+
 }
