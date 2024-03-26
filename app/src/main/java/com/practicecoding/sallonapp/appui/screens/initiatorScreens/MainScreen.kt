@@ -31,12 +31,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.components.BigSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.components.Categories
-import com.practicecoding.sallonapp.appui.components.CircularProgress
 import com.practicecoding.sallonapp.appui.components.LoadingAnimation
 import com.practicecoding.sallonapp.appui.components.OfferCard
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
-import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.LocationViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.LocationModel
@@ -190,10 +188,10 @@ fun MainScreen(
                     BigSaloonPreviewCard(
                         shopName = barber.shopName.toString(),
                         imageUrl = barber.imageUri.toString(),
-                        address = barber.shopAddress.toString(),
+                        address = barber.shopStreetAddress.toString(),
                         distance = 5.5,
                         noOfReviews = 10,
-                        rating = barber.review,
+                        rating = 4.5,
                         onHeartClick = { },
                         onBookNowClick = {},
                         isFavorite = true,
@@ -226,10 +224,10 @@ fun MainScreen(
             for (barber in barberPopularModel) {
                 SmallSaloonPreviewCard(shopName = barber.shopName.toString(),
                     imageUri = barber.imageUri.toString(),
-                    address = barber.shopAddress.toString(),
+                    address = barber.shopStreetAddress.toString(),
                     distance = 5.5,
                     numberOfReviews = 10,
-                    rating = barber.review,
+                    rating = 4.5,
                     onBookClick = { })
             }
 
@@ -243,13 +241,14 @@ fun initializeBarberPopularModel(): MutableState<List<BarberModel>> {
         mutableStateOf(
             mutableListOf(
                 BarberModel(
-                    name = "",
-                    review = 0.0,
-                    shopName = "",
-                    imageUri = "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
-                    shopAddress = "",
-                    phoneNumber = "",
-                    city = ""
+                    shopName = "Salon 1",
+                    state = "Karnataka",
+                    city = "Bangalore",
+                    shopStreetAddress = "Shop No 1, 1st Floor, 1st Cross, 1st Main, 1st Block",
+                    imageUri = "",
+                    aboutUs = "We are the best salon in Bangalore",
+                    noOfReviews = "10",
+                    rating = 4.2
                 )
             )
         )

@@ -6,7 +6,10 @@ data class BarberModel(
     val phoneNumber: String? = "",
     val saloonType: String? = "",
     var imageUri: String? = "",
-    val shopAddress: String? = "",
-    val review:Double =0.0,
-    val city:String?=""
+    val shopStreetAddress: String? = "",
+    var city: String? = "",
+    var state: String? = "",
+    var aboutUs: String? = "",
+    var noOfReviews: String? = "",
+    var rating: Double = 0.0,
 )

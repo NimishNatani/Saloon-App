@@ -1,19 +1,15 @@
 package com.practicecoding.sallonapp.appui.components
 
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.indication
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,13 +19,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -42,13 +35,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
@@ -62,14 +50,11 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingText
@@ -77,26 +62,15 @@ import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.launch
 import androidx.compose.material3.Button
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.composed
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalMapOf
-import com.exyte.animatednavbar.AnimatedNavigationBar
-import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
-import com.exyte.animatednavbar.animation.indendshape.Height
-import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
-import com.exyte.animatednavbar.utils.noRippleClickable
+import androidx.compose.ui.text.font.FontStyle
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
 import com.practicecoding.sallonapp.ui.theme.purple_400
 import kotlinx.coroutines.Dispatchers
@@ -219,116 +193,6 @@ fun OnBoardingBottomTextCard(
                 }
             }
         }
-    }
-}
-
-
-@Composable
-fun DotIndicator(selected: Boolean) {
-    Box(
-        modifier = Modifier
-            .padding(horizontal = 4.dp)
-            .size(8.dp)
-            .background(
-                color = if (selected) Color(sallonColor.toArgb()) else Color(purple_200.toArgb()),
-                shape = CircleShape
-            )
-    )
-}
-
-//@Preview(showBackground = true)
-@Composable
-fun OnBoardingBottomTextCardPreview() {
-    val onBoardingTextList = listOf(
-        OnBoardingPageText(
-            mainHeading = "Heading 1", bodyText = "Body 1"
-        ),
-        OnBoardingPageText(
-            mainHeading = "Heading 2", bodyText = "Body 2"
-        ),
-        OnBoardingPageText(
-            mainHeading = "Heading 3", bodyText = "Body 3"
-        ),
-    )
-    val navController = rememberNavController()
-    OnBoardingBottomTextCard(navController = navController,
-        onBoardingTextList = onBoardingTextList,
-        onNextClick = {},
-        onBackClick = {})
-}
-
-@Composable
-fun DoubleCard(
-//    title: String, *Instead using topApp bar composable to add any thing at top
-//    onBackClick: () -> Unit,
-    midCarBody: @Composable () -> Unit,
-    navController: NavController = rememberNavController(),
-    mainScreen: @Composable () -> Unit,
-    topAppBar: @Composable () -> Unit = {},
-    bottomAppBar: @Composable ()-> Unit={}
-) {
-    val scrollState = rememberScrollState()
-
-    val context = LocalContext.current
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = colorResource(id = R.color.purple_200)),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        topAppBar()
-        Card(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 40.dp),
-            shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
-            backgroundColor = colorResource(id = R.color.sallon_color)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 16.dp),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                midCarBody()
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .fillMaxHeight()
-                        .padding(top = 20.dp)
-                        .verticalScroll(scrollState),
-                    shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
-                    backgroundColor = colorResource(id = R.color.white)
-                ) {
-                    mainScreen()
-                }
-            }
-        }
-        bottomAppBar()
-    }
-}
-
-@Composable
-fun HeadingText(
-    bodyText: String
-) {
-    Column(
-        modifier = Modifier
-            .wrapContentSize()
-            .padding(16.dp),
-    ) {
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = bodyText,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 
@@ -679,7 +543,7 @@ fun CustomerReviewCard(
             .padding(16.dp),
         shape = RoundedCornerShape(16.dp),
         color = Color.White,
-        tonalElevation = 8.dp
+        shadowElevation = 4.dp
     ) {
         Column {
             Row(
@@ -888,325 +752,114 @@ fun SmallSaloonPreviewCard(
         }
     }
 }
-enum class NavigationItem(val icon: ImageVector,) {
-    Home(Icons.Default.Home),
-    Location(Icons.Default.LocationOn),
-    Book(Icons.Default.ShoppingCart),
-    Message(Icons.Default.Send),
-    Profile(Icons.Default.Person)
-}
 
-fun Modifier.noRippleClickable(onClick: () -> Unit) : Modifier = composed {
-    clickable(
-        indication = null,
-        interactionSource = remember { MutableInteractionSource() }
+@Composable
+fun GenderSelectCard(
+    icon: String = "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
+    gender: String,
+){
+    var isSelect by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .padding(8.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White),
+        contentAlignment = Alignment.Center
     ) {
-        onClick()
+        Column {
+            Box {
+                Image(
+                    painter = rememberAsyncImagePainter(model =icon),
+                    contentDescription = "gender icon",
+                    modifier = Modifier.size(150.dp)
+                )
+                CircularCheckbox(
+                    isServiceSelected = isSelect,
+                    onClick = { /*TODO* Gender select code*/ },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp),
+                    size = 25.dp
+                )
+            }
+            Text(
+                text = gender,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(8.dp),
+                fontSize = 20.sp,
+                fontStyle = FontStyle.Italic
+            )
+        }
     }
 }
 
 @Composable
-fun BottomAppNavigationBar(
-    onHomeClick: () -> Unit,
-    onLocationClick: () -> Unit,
-    onBookClick: () -> Unit,
-    onMessageClick: () -> Unit,
-    onProfileClick: () -> Unit,
+fun ServiceNameAndPriceCard(
+    serviceName: String,
+    servicePrice: Double,
 ){
-    val bottomBarItems = remember { NavigationItem.values() }
-    var selectedIndex by remember { mutableStateOf(0) }
-    AnimatedNavigationBar(
-        modifier = Modifier
-            .height(64.dp)
-            .fillMaxWidth(),
-        barColor = Color.White,
-        ballAnimation = Parabolic(tween(durationMillis = 200)),
-        ballColor = Color(sallonColor.toArgb()),
-        selectedIndex = selectedIndex,
-        cornerRadius = shapeCornerRadius(36.dp),
-        indentAnimation = Height(tween(durationMillis = 200)),
-    ) {
-         bottomBarItems.forEach {item->
-             Box(
-                 modifier = Modifier
-                     .fillMaxSize()
-                     .noRippleClickable { selectedIndex = item.ordinal },
-                    contentAlignment = Alignment.Center
-             ) {
-                 Icon(
-                     imageVector = item.icon,
-                     contentDescription = "Icon",
-                     modifier = Modifier.size(24.dp),
-                     tint = if (selectedIndex == item.ordinal) Color(sallonColor.toArgb()) else Color.Gray
-                 )
-             }
-         }
-    }
-}
-
-@Composable
-fun TransperentTopAppBar(
-    onBackClick: () -> Unit,
-    onLikeClick: () -> Unit,
-    onShareClick: () -> Unit,
-    isFavorite: Boolean,
-    modifier: Modifier = Modifier,
-){
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp),
-        color = Color.Transparent,
-    ) {
-        Row(
+    Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = onBackClick,
-                modifier = Modifier.size(36.dp)
-            ) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color.White
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.Black,
-                        modifier = Modifier
-                            .size(30.dp)
-                            .padding(4.dp)
-                    )
-                }
-            }
-            Row {
-                IconButton(
-                    onClick = onLikeClick,
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = Color.White
-                    ) {
-                        Icon(
-                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = "Like",
-                            tint = Color(sallonColor.toArgb()),
-                            modifier = Modifier
-                                .size(30.dp)
-                                .padding(4.dp)
-                        )
-                    }
-                }
-                IconButton(
-                    onClick = onShareClick,
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = Color.White
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = "Share",
-                            tint = Color.Black,
-                            modifier = Modifier
-                                .size(30.dp)
-                                .padding(4.dp)
-                        )
-                    }
-                }
-            }
+            Text(
+                text = serviceName,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "Rs. $servicePrice",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(end = 8.dp)
+            )
         }
-    }
 }
 
-
-
-
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HorizontalPagerWithTabs() {
-    val pagerState = rememberPagerState(pageCount = { 4 })
-
-    val titles = listOf("About Us", "Services", "Reviews", "Gallery")
-    val scope = rememberCoroutineScope()
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        TabRow(
-            selectedTabIndex = pagerState.currentPage,
-            indicator = { tabPositions ->
-                TabRowDefaults.Indicator(
-                    Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
-                    color = Color.White
-                )
-            }
-        ) {
-            titles.forEachIndexed { index, title ->
-                Tab(
-                    text = { Text(text = title) },
-                    selected = pagerState.currentPage == index,
-                    onClick = {
-                        scope.launch {
-                            pagerState.animateScrollToPage(index)
-                        }
-                    }
-                )
-            }
-        }
-
-        HorizontalPager(
-            state = pagerState,
+fun ServiceAndPriceWithSelectCard(
+    isServiceSelected: Boolean,
+    serviceName: String,
+    servicePrice: Double,
+){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = serviceName,
+            style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f)
-        ) { page ->
-            when (page) {
-                0 -> AboutUsPage()
-                1 -> ServicesPage()
-                2 -> GalleryPage()
-                3 -> ReviewsPage()
-                else -> AboutUsPage() // Handle unexpected page index
-            }
+        )
+        Row(
+            modifier = Modifier.padding(end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Text(
+                text = "Rs. $servicePrice",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            CircularCheckbox(
+                isServiceSelected = isServiceSelected,
+                onClick = {/*TODO select the service*/},
+                modifier = Modifier
+                    .padding(end = 8.dp),
+                size = 25.dp
+            )
         }
     }
 }
-//@Composable
-//fun BottomAppNavigationBar(
-//    currentScreen: BottomNavItems,
-//    onHomeClick: () -> Unit,
-//    onLocationClick: () -> Unit,
-//    onBookClick: () -> Unit,
-//    onMessageClick: () -> Unit,
-//    onProfileClick: () -> Unit,
-//    modifier: Modifier = Modifier
-//){
-//    BottomAppBar(
-//        modifier = modifier.height(56.dp),
-//        contentPadding = PaddingValues(8.dp),
-//        containerColor = colorResource(id = R.color.white),
-//        tonalElevation = 8.dp,
-//    ) {
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(end = 16.dp, start = 16.dp, bottom = 2.dp)
-//                .clip(RoundedCornerShape(50)),
-//            horizontalArrangement = Arrangement.SpaceBetween
-//        ) {
-//            IconButtonWithTriangle(
-//                onClick = onHomeClick,
-//                enabled = currentScreen != BottomNavItems.Home,
-//                isSelected = currentScreen == BottomNavItems.Home,
-//                icon = Icons.Default.Home
-//            )
-//            IconButtonWithTriangle(
-//                onClick = onLocationClick,
-//                enabled = currentScreen != BottomNavItems.Location,
-//                isSelected = currentScreen == BottomNavItems.Location,
-//                icon = Icons.Default.LocationOn
-//            )
-//            IconButtonWithTriangle(
-//                onClick = onBookClick,
-//                enabled = currentScreen != BottomNavItems.Book,
-//                isSelected = currentScreen == BottomNavItems.Book,
-//                icon = Icons.Default.ShoppingCart
-//            )
-//            IconButtonWithTriangle(
-//                onClick = onMessageClick,
-//                enabled = currentScreen != BottomNavItems.Message,
-//                isSelected = currentScreen == BottomNavItems.Message,
-//                icon = Icons.Default.Send
-//            )
-//            IconButtonWithTriangle(
-//                onClick = onProfileClick,
-//                enabled = currentScreen != BottomNavItems.Profile,
-//                isSelected = currentScreen == BottomNavItems.Profile,
-//                icon = Icons.Default.Person
-//            )
-//        }
-//    }
-//}
-
-//@Composable
-//private fun IconButtonWithTriangle(
-//    onClick: () -> Unit,
-//    enabled: Boolean,
-//    isSelected: Boolean,
-//    icon: ImageVector
-//) {
-//    Column(
-//        modifier = Modifier.clickable(enabled = enabled) { onClick() },
-//        verticalArrangement = Arrangement.Center,
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ) {
-//        CurvyTriangleWithCircle(
-//                color = if (isSelected) Color(sallonColor.toArgb()) else Color.Transparent,
-//                alignment = Alignment.TopStart
-//            )
-//
-//        Icon(
-//            imageVector = icon,
-//            contentDescription = null,
-//            tint = if (isSelected) colorResource(id = R.color.sallon_color) else Color.Gray,
-//            modifier = Modifier.size(34.dp)
-//        )
-//    }
-//}
-
-//@Composable
-//private fun CurvyTriangleWithCircle(
-//    color: Color,
-//    alignment: Alignment
-//) {
-//    Box(
-//        modifier = Modifier.size(16.dp),
-//        contentAlignment = alignment
-//    ) {
-//        Canvas(modifier = Modifier.size(16.dp)) {
-//            drawPath(
-//                path = Path().apply {
-//                    moveTo(0f, 0f)
-//                    lineTo(size.width, 0f)
-//                    lineTo(size.width / 2, size.height)
-//                    lineTo(0f, 0f)
-//                    close()
-//                },
-//                color = color
-//            )
-//        }
-//    }
-//}
-
-//enum class BottomNavItems {
-//    Home, Location, Book, Message, Profile
-//}
-
 
 @Composable
-fun AboutUsPage() {
-    Text(text = "About Us", modifier = Modifier.fillMaxSize(), textAlign = TextAlign.Center)
-}
-
-@Composable
-fun ServicesPage() {
-    Text(text = "Services", modifier = Modifier.fillMaxSize(), textAlign = TextAlign.Center)
-}
-
-@Composable
-fun ReviewsPage() {
-    Text(text = "Reviews", modifier = Modifier.fillMaxSize(), textAlign = TextAlign.Center)
-}
-
-@Composable
-fun GalleryPage() {
-    Text(text = "Gallery", modifier = Modifier.fillMaxSize(), textAlign = TextAlign.Center)
-}
-
-@Composable
-fun BookingScreenShopPreview(
+fun BookingScreenShopPreviewCard(
     shopName: String,
     shopAddress: String,
     ratings: Float,
@@ -1215,7 +868,7 @@ fun BookingScreenShopPreview(
 ){
     Column(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(2.dp)
             .clip(MaterialTheme.shapes.medium)
             .background(color = Color.White)
             .clickable(onClick = { onOpenClick() })
@@ -1294,13 +947,4 @@ fun BookingScreenShopPreview(
             )
         }
     }
-
-}
-
-
-
-@Preview(showBackground = false, backgroundColor = 0x000)
-@Composable
-fun CardsPreview() {
-    HorizontalPagerWithTabs()
 }

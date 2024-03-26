@@ -47,6 +47,4 @@ object FirebaseModule {
     @Named("BarberData")
     fun provideBarberData():CollectionReference = Firebase.firestore.collection("barber")
 
-
-
 }

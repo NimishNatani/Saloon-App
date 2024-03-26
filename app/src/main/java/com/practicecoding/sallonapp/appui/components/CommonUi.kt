@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,6 +41,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
@@ -449,6 +452,86 @@ fun Categories(image: Int, categories: String) {
 
 
             )
+    }
+}
+
+@Composable
+fun DotIndicator(selected: Boolean) {
+    Box(
+        modifier = Modifier
+            .padding(horizontal = 4.dp)
+            .size(8.dp)
+            .background(
+                color = if (selected) Color(sallonColor.toArgb()) else Color(purple_200.toArgb()),
+                shape = CircleShape
+            )
+    )
+}
+
+@Composable
+fun HeadingText(
+    bodyText: String
+) {
+    Column(
+        modifier = Modifier
+            .wrapContentSize()
+            .padding(16.dp),
+    ) {
+        Spacer(modifier = Modifier.height(20.dp))
+        androidx.compose.material.Text(
+            text = bodyText,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+}
+
+@Composable
+fun CircularCheckbox(
+    isServiceSelected: Boolean,
+    onClick: (Boolean) -> Unit = {},
+    modifier: Modifier = Modifier,
+    color: Color = Color.Green,
+    size: Dp = 48.dp
+) {
+    var checked by remember { mutableStateOf(false) }
+    Box(
+        modifier = modifier
+            .size(size)
+            .clickable {
+                checked = !checked
+                onClick(isServiceSelected)
+            }
+    ) {
+        // Outer circle
+        Box(
+            modifier = Modifier
+                .size(size)
+                .background(
+                    color = if (checked) color else Color.White,
+                    shape = CircleShape
+                )
+                .border(
+                    width = 1.dp,
+                    color = Color.Black,
+                    shape = CircleShape
+                )
+        ){
+            // Inner circle (check mark)
+            if (checked) {
+                androidx.compose.material.Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(size * 0.6f)
+                        .align(Alignment.Center)
+                )
+            }
+        }
     }
 }
 

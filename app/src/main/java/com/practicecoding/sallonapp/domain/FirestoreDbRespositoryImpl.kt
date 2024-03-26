@@ -94,11 +94,11 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             val listBarberModel = querySnapshot.documents.map { document ->
                 BarberModel(
                     name = document.getString("name") ?: "",
-                    review = document.getDouble("review") ?: 0.0,
+                    rating = document.getDouble("review") ?: 0.0,
                     shopName = document.getString("shopName") ?: "",
                     imageUri = document.getString("imageUri")
                         ?: "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
-                    shopAddress = document.getString("shopAddress") ?: "",
+                    shopStreetAddress = document.getString("shopAddress") ?: "",
                     phoneNumber = document.getString("phoneNumber") ?: "",
 
 
@@ -120,11 +120,11 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             val listBarberModel = querySnapshot.documents.map { document ->
                 BarberModel(
                     name = document.getString("name") ?: "",
-                    review = document.getDouble("review") ?: 0.0,
+                    rating = document.getDouble("review") ?: 0.0,
                     shopName = document.getString("shopName") ?: "",
                     imageUri = document.getString("imageUri")
                         ?: "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
-                    shopAddress = document.getString("shopAddress") ?: "",
+                    shopStreetAddress = document.getString("shopAddress") ?: "",
                     phoneNumber = document.getString("phoneNumber") ?: "",
                     city = document.getString("city")?:""
 
