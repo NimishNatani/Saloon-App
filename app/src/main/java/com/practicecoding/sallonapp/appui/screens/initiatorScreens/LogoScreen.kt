@@ -1,8 +1,7 @@
 package com.practicecoding.sallonapp.appui.screens.initiatorScreens
-import android.widget.Toast
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,7 +29,6 @@ import kotlinx.coroutines.delay
 fun LogoScreen(
     navController: NavController,
     logoDurationMillis: Long = 2000L // Default duration of 2000 milliseconds (2 seconds)
-
 ){
 
 val context = LocalContext.current

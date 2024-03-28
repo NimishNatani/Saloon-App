@@ -1,7 +1,6 @@
 package com.practicecoding.sallonapp.appui.screens.initiatorScreens
 
 import android.app.Activity
-import android.app.Application
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -11,19 +10,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
@@ -41,27 +34,21 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.CommonDialog
-import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.utils.showMsg
 import com.practicecoding.sallonapp.appui.viewmodel.AuthViewModel
@@ -70,7 +57,6 @@ import com.practicecoding.sallonapp.ui.theme.Purple80
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 
 @Composable
@@ -80,13 +66,9 @@ fun PhoneNumberScreen(
     navigateToVerification: (String) -> Unit
 ) {
     var phoneNumber by remember { mutableStateOf("") }
-    var onVerificationCode by remember {
-        mutableStateOf("")
-    }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isDialog by remember { mutableStateOf(false) }
-
     val focusManager = LocalFocusManager.current
 
     if (isDialog)
@@ -117,7 +99,6 @@ fun PhoneNumberScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 40.dp),
-//                isError = phoneNumber.isBlank(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Phone,
                     imeAction = ImeAction.Done
@@ -160,7 +141,6 @@ fun PhoneNumberScreen(
 
             } else {
                 navigateToVerification(phoneNumber)
-
                 Toast.makeText(context, "Please provide valid phone number.", Toast.LENGTH_SHORT)
                     .show()
             }
@@ -181,8 +161,6 @@ fun OTPVerificationScreen(
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    val scrollState = rememberScrollState()
     var isDialog by remember { mutableStateOf(false) }
 
     if (isDialog)
