@@ -127,24 +127,6 @@ fun AppNavigation(
                 }
             )
         }
-        composable(Screens.SignUp.route) {
-            DoubleCard(
-                midCarBody = { HeadingText(bodyText = "Enter your details to access all the feature of barber shop") },
-                mainScreen = {
-                    AdvancedSignUpScreen(
-                        phoneNumber = "000",
-                        activity = context as Activity,
-                        navController = navController
-                    )
-                },
-                topAppBar = {
-                    BackButtonTopAppBar(
-                        onBackClick = { navController.popBackStack() },
-                        title = "Sign Up"
-                    )
-                }
-            )
-        }
         composable(Screens.MainScreen.route) {
             DoubleCard(midCarBody = { SearchBar() },
                 mainScreen = {
