@@ -1,11 +1,16 @@
 package com.practicecoding.sallonapp.appui.navigation
 
 import android.app.Activity
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
@@ -71,12 +76,14 @@ fun AppNavigation(
                     )
                 },
                 topAppBar = {
-                    BackButtonTopAppBar(
-                        onBackClick = { navController.popBackStack() },
-                        title = "Sign up"
-                    )
+                    Column {
+                        BackButtonTopAppBar(
+                            onBackClick = { navController.popBackStack() },
+                            title = "Sign up"
+                        )
+                        Spacer(modifier = Modifier.height(40.dp))
+                    }
                 }
-
             )
         }
         composable(Screens.OTPVerification.route + "/{phoneNumber}") { backStackEntry ->
@@ -91,10 +98,13 @@ fun AppNavigation(
                     )
                 },
                 topAppBar = {
-                    BackButtonTopAppBar(
-                        onBackClick = { navController.popBackStack() },
-                        title = "OTP Verification"
-                    )
+                    Column {
+                        BackButtonTopAppBar(
+                            onBackClick = { navController.popBackStack() },
+                            title = "OTP Verification"
+                        )
+                        Spacer(modifier = Modifier.height(40.dp))
+                    }
                 }
             )
         }

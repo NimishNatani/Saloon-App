@@ -338,7 +338,7 @@ fun AdvancedSignUpScreen(
                     imeAction = ImeAction.Next
                 )
             )
-            GeneralButton(text = "Sign In", width = 350, height = 80, modifier = Modifier) {
+            GeneralButton(text = "Sign In", width = 350, height = 80, modifier = Modifier, roundnessPercent = 50) {
                 if (name.isNotBlank() && selectedGender != null && birthDate.isNotBlank()
                 ) {
                     val userModel = UserModel(name, phoneNumber,birthDate,selectedGender.toString(),selectedImageUri.toString())

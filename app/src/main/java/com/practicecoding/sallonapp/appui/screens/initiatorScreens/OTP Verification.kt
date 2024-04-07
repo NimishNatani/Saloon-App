@@ -110,7 +110,7 @@ fun PhoneNumberScreen(
                 ),
             )
         }
-        GeneralButton(text = "SignUp", width = 250, height = 50, modifier = Modifier) {
+        GeneralButton(text = "SignUp", width = 250, height = 80, modifier = Modifier, roundnessPercent = 50) {
             if (phoneNumber.isNotBlank() && phoneNumber.length == 10) {
                 scope.launch(Dispatchers.Main) {
                     viewModel.createUserWithPhone(
@@ -140,9 +140,14 @@ fun PhoneNumberScreen(
 
 
             } else {
-                navigateToVerification(phoneNumber)
-                Toast.makeText(context, "Please provide valid phone number.", Toast.LENGTH_SHORT)
-                    .show()
+                if(phoneNumber.isNotBlank()){
+                    navigateToVerification(phoneNumber)
+                    Toast.makeText(context, "Please provide valid phone number.", Toast.LENGTH_SHORT)
+                        .show()
+                }else{
+                    Toast.makeText(context, "Please provide phone number.", Toast.LENGTH_SHORT)
+                        .show()
+                }
             }
         }
 
@@ -308,4 +313,5 @@ fun ClickableTextWithUnderline(text: String, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun PhoneNumberScreenPreview() {
+    PhoneNumberScreen(activity = Activity(), navigateToVerification = {})
 }
