@@ -150,6 +150,7 @@ fun OnBoardingScreen(
             onNextClick = {
                 scope.launch {
                     if(pagerState.currentPage <= imageList.size - 2){
+//there are two pagerStates on for images, here is for image and one defined in the function is for text
                         pagerState.animateScrollToPage(pagerState.currentPage + 1)
                     }else{
                         navController.navigate(Screens.PhoneNumberScreen.route){
