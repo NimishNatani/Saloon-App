@@ -143,4 +143,6 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.8.2")
     implementation("com.exyte:animated-navigation-bar:1.0.0")
 
+    implementation ( "com.airbnb.android:lottie-compose:6.4.0" )
+
 }

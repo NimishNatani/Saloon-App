@@ -1,11 +1,13 @@
 package com.practicecoding.sallonapp.appui.navigation
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
@@ -15,6 +17,9 @@ import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.HeadingText
 import com.practicecoding.sallonapp.appui.components.ProfileWithNotification
 import com.practicecoding.sallonapp.appui.components.SearchBar
+import com.practicecoding.sallonapp.appui.screens.MainScreens.BarberScreen
+import com.practicecoding.sallonapp.appui.screens.MainScreens.GenderSelectOnBook
+import com.practicecoding.sallonapp.appui.screens.MainScreens.ViewAllScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.AdvancedSignUpScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.LogoScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.MainScreen
@@ -138,13 +143,14 @@ fun AppNavigation(
         composable(Screens.MainScreen.route) {
             DoubleCard(midCarBody = { SearchBar() },
                 mainScreen = {
-                             MainScreen()
+                             MainScreen(navController = navController)
                 },
                 topAppBar = {
                     ProfileWithNotification(
 
                         onProfileClick = { /*TODO*/ },
-                        onNotificationClick = { /*TODO*/ })
+                        onNotificationClick = { /*TODO*/ },
+                        )
                 },
                 bottomAppBar = {
                     BottomAppNavigationBar(
@@ -156,6 +162,21 @@ fun AppNavigation(
                         onProfileClick = { /*TODO*/ })
                 }
                 )
+        }
+        composable(Screens.BarberScreen.route) {
+            val result =
+                navController.previousBackStackEntry?.savedStateHandle?.get<String>("uid").toString()
+//            Log.d("uid",result.toString())
+
+            BarberScreen(onBackClick = {}, onLikeClick = {}, onShareClick = {}, uid = result, navController = navController )
+        }
+        composable(Screens.GenderSelection.route){
+            GenderSelectOnBook()
+        }
+        composable(Screens.ViewAllScreen.route){
+            val resultType = navController.previousBackStackEntry?.savedStateHandle?.get<String>("type").toString()
+            val resultLocation = navController.previousBackStackEntry?.savedStateHandle?.get<String>("location").toString()
+            ViewAllScreen(type = resultType, location = resultLocation)
         }
     }
 }

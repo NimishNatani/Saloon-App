@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -39,16 +40,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
+import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.ServiceCat
+import com.practicecoding.sallonapp.data.model.ServiceModel
+import com.practicecoding.sallonapp.ui.theme.sallonColor
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HorizontalPagerWithTabs(
     barberDetails: BarberModel? = null,
-    serviceCategories: List<ServiceCat> ? = listOf(),
+    serviceCategories: List<ServiceModel?>  = listOf(),
     previewImages: List<String?> = listOf()
 ) {
     val pagerState = rememberPagerState(pageCount = { 4 })
@@ -64,11 +70,13 @@ fun HorizontalPagerWithTabs(
                     Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
                     color = Color.White
                 )
-            }
+            },
+            containerColor = sallonColor,
+            contentColor = Color.White
         ) {
             titles.forEachIndexed { index, title ->
                 Tab(
-                    text = { Text(text = title) },
+                    text = { Text(text = title, color = Color.White) },
                     selected = pagerState.currentPage == index,
                     onClick = {
                         scope.launch {
@@ -81,7 +89,8 @@ fun HorizontalPagerWithTabs(
         /*TODO: finding a way to make the horizontal pager to take the pager as parameter like providing it in a list or something*/
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
         ) { page ->
             when (page) {
                 0 -> AboutUsPage(barberDetails)
@@ -102,7 +111,8 @@ fun AboutUsPage(barberDetails: BarberModel? = null) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState),
+            .verticalScroll(scrollState)
+                ,
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -154,7 +164,8 @@ fun AboutUsPage(barberDetails: BarberModel? = null) {
 
 @Composable
 fun ServicesPage(
-    serviceCategories: List<ServiceCat> ? = listOf()
+    serviceCategories: List<ServiceModel?> = listOf()
+
 ) {
     val scrollState = rememberScrollState()
     Column(
@@ -164,16 +175,16 @@ fun ServicesPage(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        serviceCategories?.forEach { serviceCat ->
-            ExpandableCard(title = serviceCat.name!!, expanded = false) {
+        serviceCategories.forEach { service ->
+            ExpandableCard(title = service?.serviceTypeHeading!!, expanded = false) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.Start
                 ) {
-                    serviceCat.services.forEach { service ->
-                        ServiceNameAndPriceCard(serviceName = service.name!!, servicePrice = service.price)
-                    }
+//                    service.services.forEach { service ->
+                        ServiceNameAndPriceCard(serviceName = service.name!!, servicePrice = service.price.toDouble())
+                   // }
                 }
             }
         }

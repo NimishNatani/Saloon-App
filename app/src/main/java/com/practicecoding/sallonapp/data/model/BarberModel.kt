@@ -10,6 +10,10 @@ data class BarberModel(
     var city: String? = "",
     var state: String? = "",
     var aboutUs: String? = "",
-    var noOfReviews: String? = "",
+    var noOfReviews: String? = "0",
     var rating: Double = 0.0,
+    val uid:String,
+    val lat:Double,
+    val long:Double,
+    val open:Boolean?=false
 )

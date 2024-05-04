@@ -1,14 +1,17 @@
 package com.practicecoding.sallonapp.appui.screens.initiatorScreens
 
-import java.util.Locale
 import android.location.Address
 import android.location.Geocoder
+import android.location.Location
+import android.widget.Toast
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -25,12 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BigSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.components.Categories
+import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
 import com.practicecoding.sallonapp.appui.components.LoadingAnimation
 import com.practicecoding.sallonapp.appui.components.OfferCard
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
@@ -42,11 +47,13 @@ import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @Composable
 fun MainScreen(
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
-    locationViewModel: LocationViewModel = hiltViewModel()
+    locationViewModel: LocationViewModel = hiltViewModel(),
+    navController: NavController
 ) {
     val context = LocalContext.current
     locationViewModel.startLocationUpdates()
@@ -61,12 +68,13 @@ fun MainScreen(
         )
     }
     var isDialog by remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
     if (isDialog) {
 //        CircularProgress()
-        LoadingAnimation()
+        CircularProgressWithAppLogo()
     }
+
     if (!addresses.isNullOrEmpty()) {
         val address = addresses[0]
         locationDetails = LocationModel(
@@ -76,14 +84,14 @@ fun MainScreen(
             address.adminArea,
             address.countryName
         )
-//        Toast.makeText(context,locationDetails.city,Toast.LENGTH_SHORT).show()
+//        Toast.makeText(context,locationDetails.latitude,Toast.LENGTH_SHORT).show()
     }
     val scrollStateRowOffer = rememberScrollState()
     val scrollStateRowCategories = rememberScrollState()
     val scrollStateNearbySalon = rememberScrollState()
     val scope = rememberCoroutineScope()
-    var barberPopularModel by initializeBarberPopularModel()
-    var barberNearbyModel by initializeBarberPopularModel()
+    var barberPopularModel by initializeMultipleBarber()
+    var barberNearbyModel by initializeMultipleBarber()
 
     LaunchedEffect(key1 = true) {
         scope.launch(Dispatchers.Main) {
@@ -91,9 +99,9 @@ fun MainScreen(
             delay(500)
             if (locationDetails.city != null) {
                 barberNearbyModel =
-                    viewModelBarber.getBarberNearby(locationDetails.city.toString())
+                    viewModelBarber.getBarberNearby(locationDetails.city.toString(),6)
             }
-            barberPopularModel = viewModelBarber.getBarberPopular()
+            barberPopularModel = viewModelBarber.getBarberPopular(6)
             isDialog = false
         }.join()
     }
@@ -178,7 +186,17 @@ fun MainScreen(
                     )
 
                 )
-                TextButton(onClick = {}) {
+                TextButton(onClick = {
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        key = "type",
+                        value = "NearBy"
+                    )
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        key = "location",
+                        value = locationDetails.city.toString()
+                    )
+                    navController.navigate(Screens.ViewAllScreen.route)
+                }) {
                     Text(text = "View All", color = Color.Gray)
                 }
 
@@ -188,15 +206,27 @@ fun MainScreen(
                     BigSaloonPreviewCard(
                         shopName = barber.shopName.toString(),
                         imageUrl = barber.imageUri.toString(),
-                        address = barber.shopStreetAddress.toString(),
-                        distance = 5.5,
-                        noOfReviews = 10,
-                        rating = 4.5,
+                        address = barber.shopStreetAddress.toString() + barber.city.toString() + barber.state.toString(),
+                        distance = getLocation(lat1 =locationDetails.latitude!!.toDouble() , long1 =locationDetails.longitude!!.toDouble() , lat2 =barber.lat , long2 =barber.long ),
+                        noOfReviews = barber.noOfReviews!!.toInt(),
+                        rating = barber.rating,
                         onHeartClick = { },
-                        onBookNowClick = {},
+                        onBookNowClick = {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                key = "uid",
+                                value = barber.uid
+                            )
+                            navController.navigate(route=Screens.BarberScreen.route, builder = {
+                                // Specify the popUpTo and popUpToSavedState parameters
+                                popUpTo(route = Screens.MainScreen.route) {
+                                    inclusive = false // Exclude the HomeScreen from the popUpTo
+                                }
+                            })
+                        },
                         isFavorite = true,
                         modifier = Modifier
                     )
+                    Spacer(modifier = Modifier.width(10.dp))
                 }
 
 
@@ -216,7 +246,18 @@ fun MainScreen(
                     )
 
                 )
-                TextButton(onClick = {}) {
+                TextButton(onClick = {
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        key = "type",
+                        value = "Popular"
+
+                    )
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        key = "location",
+                        value = locationDetails.city.toString()
+                    )
+                    navController.navigate(Screens.ViewAllScreen.route)
+                }) {
                     Text(text = "View All", color = Color.Gray)
                 }
 
@@ -224,11 +265,18 @@ fun MainScreen(
             for (barber in barberPopularModel) {
                 SmallSaloonPreviewCard(shopName = barber.shopName.toString(),
                     imageUri = barber.imageUri.toString(),
-                    address = barber.shopStreetAddress.toString(),
-                    distance = 5.5,
-                    numberOfReviews = 10,
-                    rating = 4.5,
-                    onBookClick = { })
+                    address = barber.shopStreetAddress.toString() + barber.city.toString() + barber.state.toString(),
+                    distance = getLocation(lat1 =locationDetails.latitude!!.toDouble() , long1 =locationDetails.longitude!!.toDouble() , lat2 =barber.lat , long2 =barber.long ),
+                    numberOfReviews = barber.noOfReviews!!.toInt(),
+                    rating = barber.rating,
+                    onBookClick = {
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "uid",
+                            value = barber.uid
+
+                        )
+                        navController.navigate(Screens.BarberScreen.route)
+                    })
             }
 
         }
@@ -236,7 +284,7 @@ fun MainScreen(
 }
 
 @Composable
-fun initializeBarberPopularModel(): MutableState<List<BarberModel>> {
+fun initializeMultipleBarber(): MutableState<List<BarberModel>> {
     return remember {
         mutableStateOf(
             mutableListOf(
@@ -247,18 +295,32 @@ fun initializeBarberPopularModel(): MutableState<List<BarberModel>> {
                     shopStreetAddress = "Shop No 1, 1st Floor, 1st Cross, 1st Main, 1st Block",
                     imageUri = "",
                     aboutUs = "We are the best salon in Bangalore",
-                    noOfReviews = "10",
-                    rating = 4.2
+                    noOfReviews = "0",
+                    rating = 4.2,
+                    uid = "",
+                    lat=0.0,
+                    long = 0.0,
+                    open = true
                 )
             )
         )
     }
 }
-
-
-@Preview(showBackground = true)
 @Composable
-fun AdvancedSignUpScreenPreview() {
-    val context = LocalContext.current
-    MainScreen()
+fun getLocation(lat1:Double,long1:Double,lat2:Double,long2:Double):Double{
+    val distance by remember {
+        mutableStateOf(FloatArray(1))
+    }
+    Location.distanceBetween(lat1,long1,lat2,long2,distance)
+    var solution = distance[0].toDouble()/1000
+      solution = Math. round(solution * 10.0) / 10.0
+    return solution
 }
+
+
+//@Preview(showBackground = true)
+//@Composable
+//fun AdvancedSignUpScreenPreview() {
+//    val context = LocalContext.current
+//    MainScreen()
+//}

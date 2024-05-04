@@ -87,7 +87,8 @@ fun DoubleCard(
                         .fillMaxSize()
                         .fillMaxHeight()
                         .padding(top = 20.dp)
-                        .verticalScroll(scrollState),
+                        .verticalScroll(scrollState)
+                    ,
                     shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
                     backgroundColor = colorResource(id = R.color.white)
                 ) {

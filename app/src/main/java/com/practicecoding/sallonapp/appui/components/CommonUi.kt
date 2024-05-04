@@ -4,23 +4,22 @@ import android.net.Uri
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,38 +27,31 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Card
-import androidx.compose.material.TextFieldColors
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.window.Dialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SearchBarColors
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,21 +62,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.ui.theme.Purple40
 import com.practicecoding.sallonapp.ui.theme.purple_200
@@ -133,10 +127,45 @@ fun CommonDialog() {
 }
 
 @Composable
-fun CircularProgress() {
-    Dialog(onDismissRequest = { /*TODO*/ }) {
-        CircularProgressIndicator()
-    }
+fun CircularProgressWithAppLogo() {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading))
+        var isPlaying by remember { mutableStateOf(true) }
+        val progress by animateLottieCompositionAsState(
+            composition = composition,
+            isPlaying = isPlaying,restartOnPlay = true, iterations = 10, speed = 0.75f
+        )
+
+//        LaunchedEffect(key1 = progress) {
+//            if (progress == 1f) {
+//                isPlaying = false
+//                isPlaying = true
+//            }
+//            if (progress == 0f) {
+//                isPlaying = true
+//            }
+//        }
+//       if(progress==1f){
+//           mainProgress=0f
+//       }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    color = Color.White
+                ),
+//            contentAlignment = Alignment.Center
+        ) {
+Box(modifier = Modifier.fillMaxSize()){
+            LottieAnimation(
+                composition = composition, progress = { progress }, modifier = Modifier
+                    .size(250.dp).padding(start=100.dp,top=40.dp)
+                    , alignment = Alignment.Center
+            )
+        }
+    }}
 }
 
 @Composable
@@ -166,7 +195,7 @@ fun BackButtonTopAppBar(
                 modifier = Modifier.background(color = Color.White)
             ) {
                 androidx.compose.material.Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Next",
                     tint = Color.Black,
                     modifier = Modifier.size(24.dp)
@@ -249,10 +278,10 @@ fun LoadingAnimation(
                         animationSpec = infiniteRepeatable(
                             animation = keyframes {
                                 durationMillis = 1200
-                                0.0f at 0 with LinearOutSlowInEasing
-                                1.0f at 300 with LinearOutSlowInEasing
-                                0.0f at 600 with LinearOutSlowInEasing
-                                0.0f at 1200 with LinearOutSlowInEasing
+                                0.0f at 0 using LinearOutSlowInEasing
+                                1.0f at 300 using LinearOutSlowInEasing
+                                0.0f at 600 using LinearOutSlowInEasing
+                                0.0f at 1200 using LinearOutSlowInEasing
                             },
                             repeatMode = RepeatMode.Restart
                         )
@@ -355,7 +384,7 @@ fun BottomAppNavigationBar(
                 onClick = onMessageClick,
                 enabled = currentScreen != BottomNavItems.Message,
                 isSelected = currentScreen == BottomNavItems.Message,
-                icon = Icons.Default.Send
+                icon = Icons.AutoMirrored.Filled.Send
             )
             IconButtonWithTriangle(
                 onClick = onProfileClick,
@@ -519,7 +548,7 @@ fun CircularCheckbox(
                     color = Color.Black,
                     shape = CircleShape
                 )
-        ){
+        ) {
             // Inner circle (check mark)
             if (checked) {
                 androidx.compose.material.Icon(

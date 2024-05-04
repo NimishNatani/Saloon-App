@@ -29,13 +29,14 @@ import kotlinx.coroutines.delay
 @Composable
 fun LogoScreen(
     navController: NavController,
-    logoDurationMillis: Long = 2000L // Default duration of 2000 milliseconds (2 seconds)
+    logoDurationMillis: Long = 1000L // Default duration of 2000 milliseconds (2 seconds)
 
 ){
 
 val context = LocalContext.current
         LaunchedEffect(true) {
             delay(logoDurationMillis)
+
             val updatedCurrentUser = FirebaseAuth.getInstance().currentUser
             if (updatedCurrentUser == null) {
                 navController.navigate(Screens.OnBoardingScreens.route){

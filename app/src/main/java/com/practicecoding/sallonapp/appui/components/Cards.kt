@@ -28,54 +28,50 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingText
-import com.practicecoding.sallonapp.ui.theme.purple_200
-import com.practicecoding.sallonapp.ui.theme.sallonColor
-import kotlinx.coroutines.launch
-import androidx.compose.material3.Button
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
+import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.purple_400
+import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -157,7 +153,7 @@ fun OnBoardingBottomTextCard(
                         }, modifier = Modifier.background(color = Color(sallonColor.toArgb()))
                     ) {
                         Icon(
-                            imageVector = Icons.Default.KeyboardArrowLeft,
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                             contentDescription = "Back",
                             tint = Color.White,
                             modifier = Modifier.size(45.dp)
@@ -185,7 +181,7 @@ fun OnBoardingBottomTextCard(
                         }, modifier = Modifier.background(color = Color(sallonColor.toArgb()))
                     ) {
                         Icon(
-                            imageVector = Icons.Default.KeyboardArrowRight,
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                             contentDescription = "Next",
                             tint = Color.White,
                             modifier = Modifier.size(45.dp)
@@ -396,8 +392,8 @@ fun BigSaloonPreviewCard(
     Surface(
         modifier = modifier
             .width(280.dp)
-            .height(260.dp)
-            .padding(end = 10.dp),
+            .height(270.dp)
+            .padding(),
         tonalElevation = 14.dp,
         shadowElevation = 4.dp,
         color = purple_400,
@@ -412,10 +408,9 @@ fun BigSaloonPreviewCard(
             ) {
 
                 Image(
-                    painter =  rememberAsyncImagePainter(
+                    painter = rememberAsyncImagePainter(
                         imageUrl
-                    )
-                    , // Placeholder image
+                    ), // Placeholder image
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -431,13 +426,13 @@ fun BigSaloonPreviewCard(
 //                    Surface(
 //                        shape = CircleShape, color = Color.White
 //                    ) {
-                        Icon(
-                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = "Star Icon",
-                            tint = colorResource(id = R.color.sallon_color),
-                            modifier = Modifier.size(36.dp)
-                        )
-                   // }
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Star Icon",
+                        tint = colorResource(id = R.color.sallon_color),
+                        modifier = Modifier.size(36.dp)
+                    )
+                    // }
                 }
             }
             Row(
@@ -453,65 +448,97 @@ fun BigSaloonPreviewCard(
                     text = shopName, fontSize = 18.sp, maxLines = 1
                 )
                 Spacer(modifier = Modifier.weight(0.5f))
-                Row {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Star Icon",
-                        tint = colorResource(id = R.color.sallon_color),
-                        modifier = Modifier.size(18.dp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(id = R.drawable.distance),
+                        contentDescription = "Diastance Icon",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(end = 6.dp)
                     )
-                    Icon(
-                        imageVector = Icons.Default.ArrowForward,
-                        contentDescription = "Star Icon",
-                        tint = colorResource(id = R.color.sallon_color),
-                        modifier = Modifier.size(18.dp)
-                    )
-
                     Text(
-                        text = "$distance Km",
+                        text = "${distance} Km",
                         fontSize = 14.sp,
                         color = colorResource(id = R.color.sallon_color)
                     )
                 }
             }
+
+//            Row(
+//                modifier = modifier
+//                    .fillMaxWidth()
+//                    .padding(vertical = 4.dp, horizontal = 16.dp)
+//            ) {
+//                Image(
+//                    painter = painterResource(id = R.drawable.location),
+//                    contentDescription = "Star Icon",
+//                    modifier = Modifier.size(18.dp)
+//                )
+//                Text(
+//                    text = address,
+//                    fontSize = 14.sp,
+//                    maxLines = 2,
+//                    modifier = Modifier.width(300.dp)
+//                )
+//            }
             Row(
-                modifier = modifier
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp, horizontal = 16.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = "Star Icon",
-                    tint = Color.Green,
+                Image(
+                    painter = painterResource(id = R.drawable.location),
+                    contentDescription = "Location",
                     modifier = Modifier.size(18.dp)
                 )
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = address,
-                    fontSize = 14.sp,
-                    maxLines = 3,
-                    modifier = Modifier.width(300.dp)
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f),
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 2
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
-            Row(modifier = modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 1.dp)) {
-                Text(
-                    text = "$rating",
-                    fontSize = 14.sp,
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    painter = painterResource(id = R.drawable.img),
+//            Row(modifier = modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 1.dp)) {
+//                Text(
+//                    text = "$rating",
+//                    fontSize = 14.sp,
+//                )
+//                Spacer(modifier = Modifier.width(4.dp))
+//                Icon(
+//                    painter = painterResource(id = R.drawable.img),
+//                    contentDescription = "Star Icon",
+//                    tint = Color.Yellow,
+//                    modifier = Modifier.size(18.dp)
+//                )
+//                Text(
+//                    text = "(${noOfReviews})", fontSize = 14.sp, color = Color.Gray
+//                )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, bottom = 8.dp, end = 1.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.rating1),
                     contentDescription = "Star Icon",
-                    tint = Color.Yellow,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(end = 8.dp)
                 )
                 Text(
-                    text = "(${noOfReviews})", fontSize = 14.sp, color = Color.Gray
+                    text = "$rating ($noOfReviews reviews)",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
                 )
-                Spacer(modifier = Modifier.weight(0.80f))
+                Spacer(modifier = Modifier.weight(0.75f))
                 Button(
                     onClick = onBookNowClick,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorResource(id = R.color.purple_200)
@@ -537,7 +564,7 @@ fun CustomerReviewCard(
     rating: Float,
     imageUrl: String,
     time: String = "2 days ago"
-){
+) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -635,10 +662,9 @@ fun SmallSaloonPreviewCard(
             Box(
                 modifier = Modifier.width(100.dp),
             ) {
-
                 Image(
-                    painter =  rememberAsyncImagePainter(
-                         imageUri
+                    painter = rememberAsyncImagePainter(
+                        imageUri
                     ), // Placeholder image
                     contentDescription = "barberImage",
                     modifier = Modifier.fillMaxSize(),
@@ -666,90 +692,100 @@ fun SmallSaloonPreviewCard(
                 }
             }
             Spacer(modifier = Modifier.width(8.dp))
-           Column(
-               modifier = Modifier
-                   .padding(8.dp)
-                   .fillMaxWidth(),
-               verticalArrangement = Arrangement.Top
-           ) {
-               Row {
-                   Text(
-                       text = shopName,
-                       fontSize = 18.sp,
-                       maxLines = 1
-                   )
-                   Spacer(modifier = Modifier.weight(0.5f))
-                   Row {
-                       Icon(
-                           imageVector = Icons.Default.ArrowBack,
-                           contentDescription = "Star Icon",
-                           tint = colorResource(id = R.color.sallon_color),
-                           modifier = Modifier.size(18.dp)
-                       )
-                       Icon(
-                           imageVector = Icons.Default.ArrowForward,
-                           contentDescription = "Star Icon",
-                           tint = colorResource(id = R.color.sallon_color),
-                           modifier = Modifier.size(18.dp)
-                       )
-
-                       Text(
-                           text = "${distance} Km",
-                           fontSize = 14.sp,
-                           color = colorResource(id = R.color.sallon_color)
-                       )
-                   }
-               }
-               Spacer(modifier = Modifier.height(4.dp))
-               Row {
-                   Icon(
-                       imageVector = Icons.Default.LocationOn,
-                       contentDescription = "Star Icon",
-                       tint = Color.Green,
-                       modifier = Modifier.size(18.dp)
-                   )
-                   Text(
-                       text = address,
-                       fontSize = 14.sp,
-                       maxLines = 1,
-                       modifier = Modifier.width(200.dp),
-                       overflow = TextOverflow.Ellipsis
-                   )
-               }
-               Spacer(modifier = Modifier.height(4.dp))
-               Row(verticalAlignment = Alignment.CenterVertically) {
-                   Text(
-                       text = "$rating",
-                       fontSize = 14.sp
-                   )
-                   Spacer(modifier = Modifier.width(4.dp))
-                   Icon(
-                       painter = painterResource(id = R.drawable.img),
-                       contentDescription = "Star Icon",
-                       tint = Color.Yellow,
-                       modifier = Modifier.size(18.dp)
-                   )
-                   Text(
-                       text = "(${numberOfReviews})",
-                       fontSize = 14.sp,
-                       color = Color.Gray
-                   )
-                   Spacer(modifier = Modifier.weight(0.9f))
-                   Button(
-                       onClick = onBookClick,
-                       modifier = Modifier.padding(16.dp),
-                       shape = RoundedCornerShape(50),
-                       colors = ButtonDefaults.buttonColors(
-                           containerColor = colorResource(id = R.color.grey_light)
-                       )
-                   ) {
-                       Text(
-                           text = "Book Now",
-                           color = colorResource(id = R.color.sallon_color),
-                       )
-                   }
-               }
-           }
+            Column(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth(),
+//                verticalArrangement = Arrangement.Top
+            ) {
+                Row {
+                    Text(
+                        text = shopName, fontSize = 18.sp, maxLines = 1
+                    )
+                    Spacer(modifier = Modifier.weight(0.5f))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(id = R.drawable.distance),
+                            contentDescription = "Diastance Icon",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .padding(end = 6.dp)
+                        )
+                        Text(
+                            text = "${distance} Km",
+                            fontSize = 14.sp,
+                            color = colorResource(id = R.color.sallon_color)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.location),
+                        contentDescription = "Star Icon",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = address,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        modifier = Modifier.width(200.dp),
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                Row {
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.rating1),
+                                contentDescription = "Star Icon",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .padding(end = 8.dp)
+                            )
+                            Spacer(modifier = Modifier.padding(end = 8.dp))
+                            Text(
+                                text = "($rating)",
+                                fontSize = 14.sp,
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.review),
+                                contentDescription = "Star Icon",
+                                modifier = Modifier
+                                    .size(35.dp)
+                                    .padding(end = 8.dp)
+                            )
+                            Text(
+                                text = "(${numberOfReviews})", fontSize = 14.sp, color = Color.Gray
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.weight(0.9f))
+                    Button(
+                        onClick = onBookClick,
+                        modifier = Modifier.padding(),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(id = R.color.purple_200)
+                        )
+                    ) {
+                        Text(
+                            text = "Book Now",
+                            color = colorResource(id = R.color.sallon_color),
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -758,8 +794,9 @@ fun SmallSaloonPreviewCard(
 fun GenderSelectCard(
     icon: String = "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
     gender: String,
-){
-    var isSelect by remember { mutableStateOf(false) }
+    isSelect: MutableList<Boolean>,
+    onThis: Boolean
+) {
     Box(
         modifier = Modifier
             .padding(8.dp)
@@ -770,13 +807,31 @@ fun GenderSelectCard(
         Column {
             Box {
                 Image(
-                    painter = rememberAsyncImagePainter(model =icon),
+                    painter = rememberAsyncImagePainter(model = icon),
                     contentDescription = "gender icon",
                     modifier = Modifier.size(150.dp)
                 )
                 CircularCheckbox(
-                    isServiceSelected = isSelect,
-                    onClick = { /*TODO* Gender select code*/ },
+                    isServiceSelected = onThis,
+                    onClick = {
+                        when (gender) {
+                            "Male" -> {
+                                isSelect[0] = true
+                                isSelect[1]=false
+                                isSelect[2]=false
+                            }
+                            "Female" -> {
+                                isSelect[1] = true
+                                isSelect[0]=false
+                                isSelect[2]=false
+                            }
+                            else -> {
+                                isSelect[2] = true
+                                isSelect[1] = false
+                                isSelect[0]=false
+                            }
+                        }
+                    },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp),
@@ -800,25 +855,25 @@ fun GenderSelectCard(
 fun ServiceNameAndPriceCard(
     serviceName: String,
     servicePrice: Double,
-){
+) {
     Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = serviceName,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = "Rs. $servicePrice",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-        }
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = serviceName,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = "Rs. $servicePrice",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(end = 8.dp)
+        )
+    }
 }
 
 @Composable
@@ -826,7 +881,7 @@ fun ServiceAndPriceWithSelectCard(
     isServiceSelected: Boolean,
     serviceName: String,
     servicePrice: Double,
-){
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -842,7 +897,7 @@ fun ServiceAndPriceWithSelectCard(
         Row(
             modifier = Modifier.padding(end = 8.dp),
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
             Text(
                 text = "Rs. $servicePrice",
                 style = MaterialTheme.typography.bodyMedium,
@@ -850,7 +905,7 @@ fun ServiceAndPriceWithSelectCard(
             )
             CircularCheckbox(
                 isServiceSelected = isServiceSelected,
-                onClick = {/*TODO select the service*/},
+                onClick = {/*TODO select the service*/ },
                 modifier = Modifier
                     .padding(end = 8.dp),
                 size = 25.dp
@@ -863,17 +918,18 @@ fun ServiceAndPriceWithSelectCard(
 fun BookingScreenShopPreviewCard(
     shopName: String,
     shopAddress: String,
-    ratings: Float,
+    ratings: Double,
     numberOfReviews: Int,
     onOpenClick: () -> Unit
-){
+) {
     Column(
         modifier = Modifier
             .padding(2.dp)
             .clip(MaterialTheme.shapes.medium)
             .background(color = Color.White)
             .clickable(onClick = { onOpenClick() })
-            .padding(16.dp)
+            .padding(8.dp)
+            .padding(start = 5.dp, end = 6.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -905,16 +961,15 @@ fun BookingScreenShopPreviewCard(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.green_locationicon),
-                contentDescription = "Location Icon",
-                modifier = Modifier.size(18.dp),
-                tint = Color.Green
+            Image(
+                painter = painterResource(id = R.drawable.location),
+                contentDescription = "Star Icon",
+                modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = shopAddress,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f),
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1
@@ -925,21 +980,25 @@ fun BookingScreenShopPreviewCard(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(
-                imageVector = Icons.Default.Star,
+            Image(
+                painter = painterResource(id = R.drawable.rating1),
                 contentDescription = "Star Icon",
-                tint = Color.Yellow,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier
+                    .size(24.dp)
+                    .padding(end = 8.dp)
             )
             Text(
                 text = "$ratings ($numberOfReviews reviews)",
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(4.dp))
-            Icon(
-                imageVector = Icons.Default.MailOutline,
-                contentDescription = "Directions Icon"
+            Image(
+                painter = painterResource(id = R.drawable.direction),
+                contentDescription = "direction image",
+                modifier = Modifier
+                    .size(30.dp)
+
             )
             Text(
                 text = "Directions",
@@ -952,6 +1011,17 @@ fun BookingScreenShopPreviewCard(
 
 @Preview
 @Composable
-fun PrviewFuncions(){
-
+fun PrviewFuncions() {
+    BigSaloonPreviewCard(
+        shopName = "fhf",
+        imageUrl = "shx",
+        address = "wshbdgsfygrweygywetgyrfdjgruigiuhrehguhfr",
+        distance = 4.5,
+        noOfReviews = 2,
+        rating = 3.0,
+        onBookNowClick = { /*TODO*/ },
+        onHeartClick = {},
+        isFavorite = true,
+        modifier = Modifier
+    )
 }

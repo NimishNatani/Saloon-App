@@ -2,28 +2,32 @@ package com.practicecoding.sallonapp.domain
 
 import android.content.Context
 import android.net.Uri
-import com.google.firebase.firestore.Query
-import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
 import com.google.firebase.storage.FirebaseStorage
 import com.practicecoding.sallonapp.data.FireStoreDbRepository
 import com.practicecoding.sallonapp.data.Resource
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.ServiceModel
 import com.practicecoding.sallonapp.data.model.UserModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class FirestoreDbRespositoryImpl @Inject constructor(
     @Named("UserData")
@@ -66,6 +70,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
 
         }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun getUser(): UserModel {
         var userModel = UserModel(
             "User",
@@ -74,67 +79,125 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             "Gender",
             "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636"
         )
-        CoroutineScope(Dispatchers.IO).launch {
 
+        suspendCancellableCoroutine<Unit> { continuation ->
             usersDb.document(auth.currentUser!!.uid).get().addOnSuccessListener { documentSnapSot ->
                 userModel = documentSnapSot.toObject<UserModel>()!!
-            }.addOnFailureListener {
-                Toast.makeText(context, "Error in Loading the Data", Toast.LENGTH_SHORT).show()
+                continuation.resume(Unit)
+            }.addOnFailureListener { exception ->
+                continuation.resumeWithException(exception)
             }
         }
-        delay(1000)
+
+        delay(500)
         return userModel
     }
 
-    override suspend fun getBarberPopular(): MutableList<BarberModel> {
 
+    override suspend fun getBarberPopular(limit: Long): MutableList<BarberModel> {
         return withContext(Dispatchers.IO) {
             val querySnapshot =
-                barberDb.orderBy("review", Query.Direction.DESCENDING).limit(4).get().await()
+                barberDb.orderBy("rating", Query.Direction.DESCENDING).limit(limit).get().await()
             val listBarberModel = querySnapshot.documents.map { document ->
                 BarberModel(
                     name = document.getString("name") ?: "",
-                    rating = document.getDouble("review") ?: 0.0,
+                    rating = document.getDouble("rating") ?: 0.0,
                     shopName = document.getString("shopName") ?: "",
                     imageUri = document.getString("imageUri")
                         ?: "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
-                    shopStreetAddress = document.getString("shopAddress") ?: "",
+                    shopStreetAddress = document.getString("shopStreetAddress") ?: "",
                     phoneNumber = document.getString("phoneNumber") ?: "",
+                    uid = document.getString("uid").toString(),
+                    state = document.getString("state").toString(),
+                    city = document.getString("city") ?: "",
+                    lat = document.getDouble("lat")!!.toDouble(),
+                    long = document.getDouble("long")!!.toDouble(),
+                    noOfReviews = document.getString("noOfReviews"),
+                    open = document.getBoolean("open")!!
 
-
-                    // Map other fields as needed
                 )
             }.toMutableList()
-            delay(2000)
-
+            delay(1000)
             listBarberModel
         }
 
     }
 
-    override suspend fun getBarberNearby(city:String): MutableList<BarberModel> {
+    override suspend fun getBarberNearby(city: String, limit: Long): MutableList<BarberModel> {
         return withContext(Dispatchers.IO) {
             val querySnapshot =
                 barberDb.whereEqualTo("city", city)
-                    .limit(4).get().await()
+                    .limit(limit).get().await()
             val listBarberModel = querySnapshot.documents.map { document ->
                 BarberModel(
                     name = document.getString("name") ?: "",
-                    rating = document.getDouble("review") ?: 0.0,
+                    rating = document.getDouble("rating") ?: 0.0,
                     shopName = document.getString("shopName") ?: "",
                     imageUri = document.getString("imageUri")
                         ?: "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
-                    shopStreetAddress = document.getString("shopAddress") ?: "",
+                    shopStreetAddress = document.getString("shopStreetAddress") ?: "",
                     phoneNumber = document.getString("phoneNumber") ?: "",
-                    city = document.getString("city")?:""
+                    city = document.getString("city") ?: "",
+                    uid = document.getString("uid").toString(),
+                    state = document.getString("state").toString(),
+                    lat = document.getDouble("lat")!!.toDouble(),
+                    long = document.getDouble("long")!!.toDouble(),
+                    noOfReviews = document.getString("noOfReviews"),
+                    open = document.getBoolean("open")!!
 
-
-                    // Map other fields as needed
                 )
             }.toMutableList()
             delay(1000)
 
             listBarberModel
+        }
+    }
+
+    override suspend fun getBarber(uid: String?): BarberModel? {
+        return withContext(Dispatchers.IO) {
+            val querySnapshot =
+                barberDb.whereEqualTo("uid", uid)
+                    .limit(1).get().await()
+
+            val barberDocument = querySnapshot.documents.firstOrNull()
+
+            barberDocument?.let { document ->
+                BarberModel(
+                    name = document.getString("name") ?: "",
+                    rating = document.getDouble("rating") ?: 0.0,
+                    shopName = document.getString("shopName") ?: "",
+                    imageUri = document.getString("imageUri")
+                        ?: "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
+                    shopStreetAddress = document.getString("shopStreetAddress") ?: "",
+                    phoneNumber = document.getString("phoneNumber") ?: "",
+                    city = document.getString("city") ?: "",
+                    uid = document.getString("uid").toString(),
+                    noOfReviews = document.getString("noOfReviews"),
+                    state = document.getString("state").toString(),
+                    aboutUs = document.getString("aboutUs").toString(),
+                    lat = document.getDouble("lat")!!.toDouble(),
+                    long = document.getDouble("long")!!.toDouble(),
+                    open = document.getBoolean("open")!!
+
+                )
+            }
+        }
+    }
+
+    override suspend fun getServices(uid: String?): MutableList<ServiceModel>{
+        return withContext(Dispatchers.IO) {
+            val querySnapshot =
+                barberDb.document(uid.toString()).collection("Services").get().await()
+            val listServiceModel = querySnapshot.documents.map { document ->
+                ServiceModel(
+                    name = document.getString("serviceName") ?: "",
+                    price = document.getString("price")?:"0",
+                    serviceTypeHeading = document.getString("serviceTypeHeading")?:""
+                )
+            }.toMutableList()
+            delay(1000)
+
+            listServiceModel
         }
     }
 }
