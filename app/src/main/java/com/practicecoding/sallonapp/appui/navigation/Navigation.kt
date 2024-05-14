@@ -27,10 +27,12 @@ import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OTPVerificati
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.PhoneNumberScreen
+import com.practicecoding.sallonapp.appui.viewmodel.LikedBarberViewModel
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController
+    navController: NavHostController,
+    likedBarberViewModel: LikedBarberViewModel
 ) {
     val context = LocalContext.current
     NavHost(navController = navController, startDestination = Screens.Logo.route) {
@@ -143,7 +145,7 @@ fun AppNavigation(
         composable(Screens.MainScreen.route) {
             DoubleCard(midCarBody = { SearchBar() },
                 mainScreen = {
-                             MainScreen(navController = navController)
+                             MainScreen(navController = navController,likedBarberViewModel = likedBarberViewModel)
                 },
                 topAppBar = {
                     ProfileWithNotification(

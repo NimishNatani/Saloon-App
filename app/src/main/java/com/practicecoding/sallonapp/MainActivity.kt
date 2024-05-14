@@ -23,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.appui.navigation.AppNavigation
+import com.practicecoding.sallonapp.appui.viewmodel.LikedBarberViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.LocationViewModel
 import com.practicecoding.sallonapp.ui.theme.SallonAppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,13 +35,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
+            val likedBarberViewModel: LikedBarberViewModel = viewModel()
             SallonAppTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation(navController = navController)
+                    AppNavigation(navController = navController,likedBarberViewModel)
                 }
             }
             prepLocationUpdates()

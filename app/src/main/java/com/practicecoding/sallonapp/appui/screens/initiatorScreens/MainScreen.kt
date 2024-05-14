@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
@@ -40,12 +41,15 @@ import com.practicecoding.sallonapp.appui.components.LoadingAnimation
 import com.practicecoding.sallonapp.appui.components.OfferCard
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
+import com.practicecoding.sallonapp.appui.viewmodel.LikedBarberViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.LocationViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.LikedBarber
 import com.practicecoding.sallonapp.data.model.LocationModel
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -53,6 +57,7 @@ import java.util.Locale
 fun MainScreen(
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
     locationViewModel: LocationViewModel = hiltViewModel(),
+    likedBarberViewModel: LikedBarberViewModel,
     navController: NavController
 ) {
     val context = LocalContext.current
@@ -203,6 +208,9 @@ fun MainScreen(
             }
             Row(modifier = Modifier.horizontalScroll(scrollStateNearbySalon)) {
                 for (barber in barberNearbyModel) {
+                    var isBarberLiked by remember {
+                        mutableStateOf(false)
+                    }
                     BigSaloonPreviewCard(
                         shopName = barber.shopName.toString(),
                         imageUrl = barber.imageUri.toString(),
@@ -210,7 +218,18 @@ fun MainScreen(
                         distance = getLocation(lat1 =locationDetails.latitude!!.toDouble() , long1 =locationDetails.longitude!!.toDouble() , lat2 =barber.lat , long2 =barber.long ),
                         noOfReviews = barber.noOfReviews!!.toInt(),
                         rating = barber.rating,
-                        onHeartClick = { },
+                        onHeartClick = {
+                               scope.launch(Dispatchers.IO) {
+                                   val likedBarberList = likedBarberViewModel.getAllLikedBarbers.collect(){
+                                       val likedBarber = it.find { likedBarber -> likedBarber.barberUid == barber.uid }
+                                        if (likedBarber == null) {
+                                             likedBarberViewModel.addOrUpdateLikedBarber(LikedBarber(barberUid = barber.uid))
+                                        } else if(likedBarber.barberUid == barber.uid){
+                                            likedBarberViewModel.deleteLikedBarber(likedBarber)
+                                        }
+                                   }
+                               }
+                        },
                         onBookNowClick = {
                             navController.currentBackStackEntry?.savedStateHandle?.set(
                                 key = "uid",
@@ -223,7 +242,7 @@ fun MainScreen(
                                 }
                             })
                         },
-                        isFavorite = true,
+                        isFavorite = isBarberLiked,
                         modifier = Modifier
                     )
                     Spacer(modifier = Modifier.width(10.dp))
@@ -263,7 +282,11 @@ fun MainScreen(
 
             }
             for (barber in barberPopularModel) {
-                SmallSaloonPreviewCard(shopName = barber.shopName.toString(),
+                var isBarberLiked by remember {
+                    mutableStateOf(false)
+                }
+                SmallSaloonPreviewCard(
+                    shopName = barber.shopName.toString(),
                     imageUri = barber.imageUri.toString(),
                     address = barber.shopStreetAddress.toString() + barber.city.toString() + barber.state.toString(),
                     distance = getLocation(lat1 =locationDetails.latitude!!.toDouble() , long1 =locationDetails.longitude!!.toDouble() , lat2 =barber.lat , long2 =barber.long ),
@@ -276,7 +299,22 @@ fun MainScreen(
 
                         )
                         navController.navigate(Screens.BarberScreen.route)
-                    })
+                    },
+                    onHeartClick = {
+                        scope.launch(Dispatchers.IO) {
+                            val likedBarberList = likedBarberViewModel.getAllLikedBarbers.collect(){
+                                val likedBarber = it.find { likedBarber -> likedBarber.barberUid == barber.uid }
+                                if (likedBarber == null) {
+                                    likedBarberViewModel.addOrUpdateLikedBarber(LikedBarber(barberUid = barber.uid))
+                                } else if(likedBarber.barberUid == barber.uid){
+                                    likedBarberViewModel.deleteLikedBarber(likedBarber)
+                                }
+                            }
+                        }
+
+                    },
+                    isFavorite = isBarberLiked,
+                    )
             }
 
         }

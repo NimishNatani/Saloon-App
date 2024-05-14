@@ -640,6 +640,7 @@ fun SmallSaloonPreviewCard(
     numberOfReviews: Int,
     rating: Double,
     onBookClick: () -> Unit,
+    onHeartClick: () -> Unit,
     isFavorite: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -686,7 +687,9 @@ fun SmallSaloonPreviewCard(
                             tint = colorResource(id = R.color.sallon_color),
                             modifier = Modifier
                                 .size(24.dp)
-                                .padding(4.dp)
+                                .padding(4.dp).clickable {
+                                    onHeartClick()
+                                }
                         )
                     }
                 }
@@ -1012,16 +1015,14 @@ fun BookingScreenShopPreviewCard(
 @Preview
 @Composable
 fun PrviewFuncions() {
-    BigSaloonPreviewCard(
-        shopName = "fhf",
-        imageUrl = "shx",
-        address = "wshbdgsfygrweygywetgyrfdjgruigiuhrehguhfr",
-        distance = 4.5,
-        noOfReviews = 2,
-        rating = 3.0,
-        onBookNowClick = { /*TODO*/ },
-        onHeartClick = {},
-        isFavorite = true,
-        modifier = Modifier
+    SmallSaloonPreviewCard(
+        shopName = "Shop Name",
+        imageUri = " ",
+        address = "akljfl;adksja",
+        distance = 1.5,
+        numberOfReviews = 0,
+        rating = 0.0,
+        onBookClick = { /*TODO*/ },
+        onHeartClick = { /*TODO*/ }
     )
 }

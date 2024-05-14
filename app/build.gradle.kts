@@ -59,15 +59,22 @@ dependencies {
     implementation("com.google.firebase:firebase-storage:20.3.0")
     implementation("androidx.compose.material3:material3-android:1.2.1")
     implementation("com.google.android.gms:play-services-location:21.2.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     //this is the code for navigation between screens
     val nav_version = "2.7.7"
 
     implementation("androidx.navigation:navigation-compose:$nav_version")
 
-    //data base
-    val room = "2.6.0"
-    implementation("androidx.room:room-ktx:$room")
-    kapt("androidx.room:room-compiler:$room")
+    val room_version = "2.6.1"
+
+    implementation("androidx.room:room-runtime:$room_version")
+    annotationProcessor("androidx.room:room-compiler:$room_version")
+
+    // To use Kotlin annotation processing tool (kapt)
+    kapt("androidx.room:room-compiler:$room_version")
+
+    // optional - Kotlin Extensions and Coroutines support for Room
+    implementation("androidx.room:room-ktx:$room_version")
 
 
     val composeVersion = "1.6.2"

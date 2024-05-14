@@ -1,5 +1,9 @@
 package com.practicecoding.sallonapp.data.model
 
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
 data class BarberModel(
     val name: String? = "",
     val shopName: String? = "",
@@ -16,4 +20,11 @@ data class BarberModel(
     val lat:Double,
     val long:Double,
     val open:Boolean?=false
+)
+
+@Entity(tableName = "LikedBarbersTable")
+data class LikedBarber(
+    @PrimaryKey(autoGenerate = true)
+    val id : Int = 1,
+    @ColumnInfo(name = "BarberUid") val barberUid : String = " "
 )
