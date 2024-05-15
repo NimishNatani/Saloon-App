@@ -10,6 +10,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.practicecoding.sallonapp.data.FireStoreDbRepository
 import com.practicecoding.sallonapp.data.Resource
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.ServiceCat
 import com.practicecoding.sallonapp.data.model.ServiceModel
 import com.practicecoding.sallonapp.data.model.UserModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -113,7 +114,9 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     lat = document.getDouble("lat")!!.toDouble(),
                     long = document.getDouble("long")!!.toDouble(),
                     noOfReviews = document.getString("noOfReviews"),
-                    open = document.getBoolean("open")!!
+                    open = document.getBoolean("open")!!,
+                    aboutUs = document.getString("aboutUs").toString()
+
 
                 )
             }.toMutableList()
@@ -143,7 +146,8 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     lat = document.getDouble("lat")!!.toDouble(),
                     long = document.getDouble("long")!!.toDouble(),
                     noOfReviews = document.getString("noOfReviews"),
-                    open = document.getBoolean("open")!!
+                    open = document.getBoolean("open")!!,
+                    aboutUs = document.getString("aboutUs").toString()
 
                 )
             }.toMutableList()
@@ -177,27 +181,44 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     aboutUs = document.getString("aboutUs").toString(),
                     lat = document.getDouble("lat")!!.toDouble(),
                     long = document.getDouble("long")!!.toDouble(),
-                    open = document.getBoolean("open")!!
+                    open = document.getBoolean("open")!!,
 
                 )
             }
         }
     }
 
-    override suspend fun getServices(uid: String?): MutableList<ServiceModel>{
+    override suspend fun getServices(uid: String?): MutableList<ServiceCat> {
         return withContext(Dispatchers.IO) {
             val querySnapshot =
                 barberDb.document(uid.toString()).collection("Services").get().await()
-            val listServiceModel = querySnapshot.documents.map { document ->
-                ServiceModel(
-                    name = document.getString("serviceName") ?: "",
-                    price = document.getString("price")?:"0",
-                    serviceTypeHeading = document.getString("serviceTypeHeading")?:""
+            val listServiceCat = querySnapshot.documents.map { document ->
+                val data = document.data
+                val listServiceModel = mutableListOf<ServiceModel>()
+                data?.forEach { (serviceName, servicePrice) ->
+                    val time = (servicePrice as? Map<*, *>)?.get("time") as? String ?: ""
+                    val price = (servicePrice as? Map<*, *>)?.get("price").toString()
+
+
+                    val serviceModel = ServiceModel(
+                        name = serviceName,
+                        price = price,
+                        time = time
+                    )
+                    listServiceModel.add(serviceModel)
+                }
+
+
+                ServiceCat(
+                    type = document.id,
+                    services = listServiceModel
+
                 )
+
+
             }.toMutableList()
             delay(1000)
-
-            listServiceModel
+            listServiceCat
         }
     }
 }

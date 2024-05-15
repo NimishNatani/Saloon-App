@@ -66,12 +66,15 @@ import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingText
 import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
+import com.practicecoding.sallonapp.data.model.Service
+import com.practicecoding.sallonapp.data.model.ServiceModel
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.purple_400
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -386,7 +389,8 @@ fun BigSaloonPreviewCard(
     onHeartClick: () -> Unit,
     isFavorite: Boolean = false,
     modifier: Modifier,
-    distance: Double
+    distance: Double,
+    open:Boolean
 ) {
 
     Surface(
@@ -407,6 +411,7 @@ fun BigSaloonPreviewCard(
                     .background(Color.White)
             ) {
 
+
                 Image(
                     painter = rememberAsyncImagePainter(
                         imageUrl
@@ -416,6 +421,15 @@ fun BigSaloonPreviewCard(
                         .fillMaxWidth()
                         .align(Alignment.TopCenter),
                     contentScale = ContentScale.FillBounds
+                )
+                Image(
+                    painter = painterResource(id = if(open){R.drawable.open}else{R.drawable.close}),
+                    contentDescription = "Categories", // We don't need content description for images used as buttons
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .padding(6.dp)
+                        .clickable { /* Your click action */ }
                 )
                 IconButton(
                     onClick = onHeartClick,
@@ -639,9 +653,10 @@ fun SmallSaloonPreviewCard(
     distance: Double,
     numberOfReviews: Int,
     rating: Double,
+    onHeartClick: () -> Unit,
     onBookClick: () -> Unit,
-    isFavorite: Boolean = false,
-    modifier: Modifier = Modifier
+    isFavorite: Boolean ,
+    modifier: Modifier = Modifier,open:Boolean
 ) {
     Surface(
         modifier = modifier
@@ -671,9 +686,8 @@ fun SmallSaloonPreviewCard(
                     contentScale = ContentScale.Crop
                 )
                 IconButton(
-                    onClick = { /* Toggle favorite */ },
+                    onClick = onHeartClick,
                     modifier = Modifier
-                        .padding(start = 8.dp)
                         .size(36.dp)
                         .align(Alignment.TopStart)
                 ) {
@@ -690,6 +704,15 @@ fun SmallSaloonPreviewCard(
                         )
                     }
                 }
+                Image(
+                    painter = painterResource(id = if(open){R.drawable.open}else{R.drawable.close}),
+                    contentDescription = "Categories", // We don't need content description for images used as buttons
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(15.dp))
+                        .align(Alignment.BottomEnd)
+                        .clickable { /* Your click action */ }
+                )
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column(
@@ -854,7 +877,8 @@ fun GenderSelectCard(
 @Composable
 fun ServiceNameAndPriceCard(
     serviceName: String,
-    servicePrice: Double,
+    serviceTime:String,
+    servicePrice: String,
 ) {
     Row(
         modifier = Modifier
@@ -868,6 +892,7 @@ fun ServiceNameAndPriceCard(
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f)
         )
+        Text(text = serviceTime+"mins", style =MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(end=8.dp) )
         Text(
             text = "Rs. $servicePrice",
             style = MaterialTheme.typography.bodyMedium,
@@ -880,8 +905,12 @@ fun ServiceNameAndPriceCard(
 fun ServiceAndPriceWithSelectCard(
     isServiceSelected: Boolean,
     serviceName: String,
-    servicePrice: Double,
+    servicePrice: String,
+    serviceTime: String,
+    onServiceSelectedChange: (Service, Boolean) -> Unit
 ) {
+    var isServiceSelectedcard by remember { mutableStateOf(isServiceSelected) }
+var service = Service(time = serviceTime, isServiceSelected = isServiceSelected, serviceName = serviceName, price = servicePrice,id=serviceName)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -898,6 +927,8 @@ fun ServiceAndPriceWithSelectCard(
             modifier = Modifier.padding(end = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(text = serviceTime+"mins", style =MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(end=8.dp) )
+
             Text(
                 text = "Rs. $servicePrice",
                 style = MaterialTheme.typography.bodyMedium,
@@ -905,10 +936,14 @@ fun ServiceAndPriceWithSelectCard(
             )
             CircularCheckbox(
                 isServiceSelected = isServiceSelected,
-                onClick = {/*TODO select the service*/ },
+                onClick = {isChecked ->
+                    isServiceSelectedcard=!isServiceSelectedcard
+//                    isServiceSelected = isChecked
+                    service.isServiceSelected = isServiceSelectedcard
+                    onServiceSelectedChange(service, isServiceSelectedcard) },
                 modifier = Modifier
-                    .padding(end = 8.dp),
-                size = 25.dp
+                    .padding(end = 1.dp),
+                size = 25.dp, color = sallonColor
             )
         }
     }
@@ -1022,6 +1057,6 @@ fun PrviewFuncions() {
         onBookNowClick = { /*TODO*/ },
         onHeartClick = {},
         isFavorite = true,
-        modifier = Modifier
+        modifier = Modifier, open = true
     )
 }

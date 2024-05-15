@@ -1,13 +1,11 @@
 package com.practicecoding.sallonapp.appui.navigation
 
 import android.app.Activity
-import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
@@ -18,7 +16,9 @@ import com.practicecoding.sallonapp.appui.components.HeadingText
 import com.practicecoding.sallonapp.appui.components.ProfileWithNotification
 import com.practicecoding.sallonapp.appui.components.SearchBar
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BarberScreen
+import com.practicecoding.sallonapp.appui.screens.MainScreens.DayTimeSelection
 import com.practicecoding.sallonapp.appui.screens.MainScreens.GenderSelectOnBook
+import com.practicecoding.sallonapp.appui.screens.MainScreens.ServiceSelector
 import com.practicecoding.sallonapp.appui.screens.MainScreens.ViewAllScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.AdvancedSignUpScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.LogoScreen
@@ -27,6 +27,10 @@ import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OTPVerificati
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.PhoneNumberScreen
+import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.Service
+import com.practicecoding.sallonapp.data.model.ServiceCat
+import com.practicecoding.sallonapp.room.LikedBarberViewModel
 
 @Composable
 fun AppNavigation(
@@ -111,7 +115,7 @@ fun AppNavigation(
                     AdvancedSignUpScreen(
                         phoneNumber = phoneNumber,
                         activity = context as Activity,
-                        navController=navController
+                        navController = navController
                     )
                 },
                 topAppBar = {
@@ -143,14 +147,14 @@ fun AppNavigation(
         composable(Screens.MainScreen.route) {
             DoubleCard(midCarBody = { SearchBar() },
                 mainScreen = {
-                             MainScreen(navController = navController)
+                    MainScreen(navController = navController,likedBarberViewModel = LikedBarberViewModel(context))
                 },
                 topAppBar = {
                     ProfileWithNotification(
 
                         onProfileClick = { /*TODO*/ },
                         onNotificationClick = { /*TODO*/ },
-                        )
+                    )
                 },
                 bottomAppBar = {
                     BottomAppNavigationBar(
@@ -161,22 +165,52 @@ fun AppNavigation(
                         onMessageClick = { /*TODO*/ },
                         onProfileClick = { /*TODO*/ })
                 }
-                )
+            )
         }
         composable(Screens.BarberScreen.route) {
             val result =
-                navController.previousBackStackEntry?.savedStateHandle?.get<String>("uid").toString()
-//            Log.d("uid",result.toString())
-
-            BarberScreen(onBackClick = {}, onLikeClick = {}, onShareClick = {}, uid = result, navController = navController )
+                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
+            if (result != null) {
+                BarberScreen(
+                    onBackClick = { navController.popBackStack() }, // Assuming you want to navigate back when back is clicked
+                    onLikeClick = { /* Handle like click */ },
+                    onShareClick = { /* Handle share click */ },
+                    barber = result,
+                    navController = navController
+                )
+            }
+//            else {
+//                // Handle the case where result is null gracefully
+//                // This could be displaying an error message or navigating back
+//                navController.popBackStack() // Navigate back if data is not available
+//            }
         }
-        composable(Screens.GenderSelection.route){
-            GenderSelectOnBook()
+        composable(Screens.GenderSelection.route) {
+            val result =
+                navController.previousBackStackEntry?.savedStateHandle?.get<List<ServiceCat>>("service")
+            if (result!=null)
+            GenderSelectOnBook(navController = navController, service = result)
         }
-        composable(Screens.ViewAllScreen.route){
-            val resultType = navController.previousBackStackEntry?.savedStateHandle?.get<String>("type").toString()
-            val resultLocation = navController.previousBackStackEntry?.savedStateHandle?.get<String>("location").toString()
+        composable(Screens.ViewAllScreen.route) {
+            val resultType =
+                navController.previousBackStackEntry?.savedStateHandle?.get<String>("type")
+                    .toString()
+            val resultLocation =
+                navController.previousBackStackEntry?.savedStateHandle?.get<String>("location")
+                    .toString()
             ViewAllScreen(type = resultType, location = resultLocation)
+        }
+        composable(Screens.serviceSelector.route) {
+            val result =
+                navController.previousBackStackEntry?.savedStateHandle?.get<List<ServiceCat>>("service")
+            if(result!=null)
+            ServiceSelector(navController = navController, onBackClick = {}, services = result)
+        }
+        composable(Screens.DayTimeSelection.route) {
+            val result =
+                navController.previousBackStackEntry?.savedStateHandle?.get<List<Service>>("services")
+            if (result!=null)
+            DayTimeSelection(service = result)
         }
     }
 }

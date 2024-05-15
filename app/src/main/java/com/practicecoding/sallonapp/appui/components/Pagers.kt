@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -40,21 +39,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
-import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.ServiceCat
-import com.practicecoding.sallonapp.data.model.ServiceModel
 import com.practicecoding.sallonapp.ui.theme.sallonColor
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HorizontalPagerWithTabs(
-    barberDetails: BarberModel? = null,
-    serviceCategories: List<ServiceModel?>  = listOf(),
+    barberDetails: BarberModel,
+    serviceCategories: List<ServiceCat?>  = listOf(),
     previewImages: List<String?> = listOf()
 ) {
     val pagerState = rememberPagerState(pageCount = { 4 })
@@ -97,13 +92,13 @@ fun HorizontalPagerWithTabs(
                 1 -> ServicesPage(serviceCategories)
                 2 -> GalleryPage(previewImages)
                 3 -> ReviewsPage(barberDetails)
-                else -> AboutUsPage() // Handle unexpected page index
+                else -> AboutUsPage(barberDetails) // Handle unexpected page index
             }
         }
     }
 }
 @Composable
-fun AboutUsPage(barberDetails: BarberModel? = null) {
+fun AboutUsPage(barberDetails: BarberModel) {
     val scrollState = rememberScrollState()
     var isAboutUsExpanded by remember { mutableStateOf(false) }
     var isOpen_ClosedExpanded by remember { mutableStateOf(false) }
@@ -123,7 +118,7 @@ fun AboutUsPage(barberDetails: BarberModel? = null) {
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = barberDetails?.aboutUs ?: "About Us",
+                    text = barberDetails.aboutUs ?: "Nothing",
                     modifier = Modifier.padding(8.dp)
                 )
             }
@@ -164,7 +159,7 @@ fun AboutUsPage(barberDetails: BarberModel? = null) {
 
 @Composable
 fun ServicesPage(
-    serviceCategories: List<ServiceModel?> = listOf()
+    serviceCategories: List<ServiceCat?> = listOf()
 
 ) {
     val scrollState = rememberScrollState()
@@ -176,15 +171,15 @@ fun ServicesPage(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         serviceCategories.forEach { service ->
-            ExpandableCard(title = service?.serviceTypeHeading!!, expanded = false) {
+            ExpandableCard(title = service?.type!!, expanded = false) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.Start
                 ) {
-//                    service.services.forEach { service ->
-                        ServiceNameAndPriceCard(serviceName = service.name!!, servicePrice = service.price.toDouble())
-                   // }
+                   service.services.forEach { service ->
+                        ServiceNameAndPriceCard(serviceName = service.name!!, serviceTime = service.time, servicePrice = service.price.toString())
+                    }
                 }
             }
         }

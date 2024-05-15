@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.Surface
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -34,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -43,7 +43,6 @@ import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
 import com.practicecoding.sallonapp.appui.components.GenderSelectCard
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.components.HorizontalPagerWithTabs
-import com.practicecoding.sallonapp.appui.components.LoadingAnimation
 import com.practicecoding.sallonapp.appui.components.TransparentTopAppBar
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
@@ -60,7 +59,7 @@ fun BarberScreen(
     onBackClick: () -> Unit,
     onLikeClick: () -> Unit,
     onShareClick: () -> Unit,
-    uid: String,
+    barber:BarberModel,
     viewModelBarber: GetBarberDataViewModel = hiltViewModel()
 ) {
     val previewImages = listOf(
@@ -76,20 +75,20 @@ fun BarberScreen(
     val screenHeight = LocalContext.current.resources.displayMetrics.heightPixels
     val scope = rememberCoroutineScope()
     var isDialog by remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
     if (isDialog) {
         CircularProgressWithAppLogo()
     }
-    var barber by initializeSingleBarber()
-    var services by initializeServices()
+//    var barber by initializeSingleBarber()
+    var services:List<ServiceCat> by initializeServices()
 
     LaunchedEffect(key1 = true) {
         scope.launch(Dispatchers.Main) {
             isDialog = true
             delay(500)
-            barber = viewModelBarber.getBarber(uid)
-            services = viewModelBarber.getServices(uid)
+//            barber = viewModelBarber.getBarber(uid)
+            services = viewModelBarber.getServices(barber.uid)
             isDialog = false
         }.join()
     }
@@ -118,7 +117,7 @@ fun BarberScreen(
                     ) {
                         Image(
                             painter = rememberAsyncImagePainter(
-                                model = barber?.imageUri.toString()
+                                model = barber.imageUri.toString()
                             ),
                             contentDescription = null,
                             modifier = Modifier.clip(RoundedCornerShape(16.dp)),
@@ -168,10 +167,10 @@ fun BarberScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 BookingScreenShopPreviewCard(
-                                    shopName = barber?.shopName.toString(),
-                                    shopAddress = barber?.shopStreetAddress.toString() + barber?.city.toString() + barber?.state.toString(),
-                                    ratings = barber?.rating!!.toDouble(),
-                                    numberOfReviews = barber?.noOfReviews!!.toInt(),
+                                    shopName = barber.shopName.toString(),
+                                    shopAddress = barber.shopStreetAddress.toString() + barber?.city.toString() + barber?.state.toString(),
+                                    ratings = barber.rating.toDouble(),
+                                    numberOfReviews = barber.noOfReviews!!.toInt(),
                                 ) {
 
                                 }
@@ -208,8 +207,11 @@ fun BarberScreen(
                         modifier = Modifier.fillMaxWidth(),
                         roundnessPercent = 35,
                     ) {
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "service",
+                            value = services
+                        )
                         navController.navigate(Screens.GenderSelection.route)
-
                     }
                 }
             }
@@ -218,7 +220,7 @@ fun BarberScreen(
 }
 
 @Composable
-fun GenderSelectOnBook(
+fun GenderSelectOnBook(navController:NavController,service: List<ServiceCat>
 ) {
     var isSelect by remember { mutableStateOf(mutableListOf<Boolean>(false,false,false)) }
 
@@ -262,7 +264,12 @@ fun GenderSelectOnBook(
                 modifier = Modifier.fillMaxWidth(),
                 roundnessPercent = 45,
             ) {
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    key = "service",
+                    value = service
 
+                )
+                navController.navigate(Screens.serviceSelector.route)
             }
         }
     }
@@ -289,16 +296,13 @@ fun initializeSingleBarber(): MutableState<BarberModel?> {
     }
 }
 @Composable
-fun initializeServices(): MutableState<List<ServiceModel?>> {
+fun initializeServices(): MutableState<List<ServiceCat>> {
     return remember {
         mutableStateOf(
-            mutableListOf(
-            ServiceModel(
-              name = null,
-                price = "0.0",
-                isSelected = false,
-                id=1,
-                serviceTypeHeading = null
+           listOf(
+            ServiceCat(
+              type = null,
+                services = listOf()
             )
         ))
     }

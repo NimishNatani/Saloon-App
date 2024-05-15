@@ -1,5 +1,12 @@
 package com.practicecoding.sallonapp.data.model
 
+import android.os.Parcelable
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class BarberModel(
     val name: String? = "",
     val shopName: String? = "",
@@ -16,4 +23,5 @@ data class BarberModel(
     val lat:Double,
     val long:Double,
     val open:Boolean?=false
-)
+): Parcelable
+

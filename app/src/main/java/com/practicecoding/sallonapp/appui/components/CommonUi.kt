@@ -137,26 +137,12 @@ fun CircularProgressWithAppLogo() {
             composition = composition,
             isPlaying = isPlaying,restartOnPlay = true, iterations = 10, speed = 0.75f
         )
-
-//        LaunchedEffect(key1 = progress) {
-//            if (progress == 1f) {
-//                isPlaying = false
-//                isPlaying = true
-//            }
-//            if (progress == 0f) {
-//                isPlaying = true
-//            }
-//        }
-//       if(progress==1f){
-//           mainProgress=0f
-//       }
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     color = Color.White
                 ),
-//            contentAlignment = Alignment.Center
         ) {
 Box(modifier = Modifier.fillMaxSize()){
             LottieAnimation(
