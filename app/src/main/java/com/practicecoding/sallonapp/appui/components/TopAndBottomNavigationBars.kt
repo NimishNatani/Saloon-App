@@ -1,6 +1,8 @@
 package com.practicecoding.sallonapp.appui.components
 
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -33,6 +36,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -41,6 +46,8 @@ import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
 import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
+import com.practicecoding.sallonapp.ui.theme.purple_200
+import com.practicecoding.sallonapp.ui.theme.purple_400
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 
 
@@ -74,14 +81,15 @@ fun BottomAppNavigationBar(
     var selectedIndex by remember { mutableStateOf(0) }
     AnimatedNavigationBar(
         modifier = modifier
-            .height(60.dp)
+            .height(65.dp).background(Color.White)
+//            .clip(shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)).border(0.5.dp, color = Color.LightGray)
         .fillMaxWidth(),
         selectedIndex = selectedIndex,
         barColor = sallonColor,
-        ballAnimation = Parabolic(tween(durationMillis = 200)),
-        ballColor = Color(sallonColor.toArgb()),
+        ballAnimation = Parabolic(tween(durationMillis = 300)),
+        ballColor = sallonColor,
 //        cornerRadius = shapeCornerRadius(36.dp),
-        indentAnimation = Height(tween(durationMillis = 200)),
+        indentAnimation = Height(tween(durationMillis = 300)),
     ) {
         bottomBarItems.forEach { item ->
             Box(

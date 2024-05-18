@@ -110,16 +110,15 @@ fun MainScreen(
     LaunchedEffect(key1 = true) {
         scope.launch(Dispatchers.Main) {
             isDialog = true
-            delay(500)
-            if (locationDetails.city != null) {
-                barberNearbyModel =
-                    viewModelBarber.getBarberNearby(locationDetails.city.toString(), 6)
-            }
-            barberPopularModel = viewModelBarber.getBarberPopular(6)
+                delay(500)
+                if (locationDetails.city != null) {
+                    barberNearbyModel =
+                        viewModelBarber.getBarberNearby(locationDetails.city.toString(), 6)
+                }
+                barberPopularModel = viewModelBarber.getBarberPopular(6)
             isDialog = false
         }.join()
     }
-//    Toast.makeText(context,barberPopularModel[0].imageUri,Toast.LENGTH_SHORT).show()
     if (!isDialog) {
         Box(modifier = Modifier.fillMaxSize()) {
 
@@ -236,35 +235,36 @@ fun MainScreen(
                                 false
                             )
                         }
-                        LaunchedEffect(barber.uid) {
+                        LaunchedEffect(isLiked) {
                             scope.launch(Dispatchers.IO) {
                                 isLiked = likedBarberViewModel.isBarberLiked(barber.uid)
                             }
                         }
+                        barber.distance = getLocation(
+                            lat1 = locationDetails.latitude!!.toDouble(),
+                            long1 = locationDetails.longitude!!.toDouble(),
+                            lat2 = barber.lat,
+                            long2 = barber.long
+                        )
 
                         BigSaloonPreviewCard(
                             shopName = barber.shopName.toString(),
                             imageUrl = barber.imageUri.toString(),
                             address = barber.shopStreetAddress.toString() + barber.city.toString() + barber.state.toString(),
-                            distance = getLocation(
-                                lat1 = locationDetails.latitude!!.toDouble(),
-                                long1 = locationDetails.longitude!!.toDouble(),
-                                lat2 = barber.lat,
-                                long2 = barber.long
-                            ),
+                            distance = barber.distance!!,
                             noOfReviews = barber.noOfReviews!!.toInt(),
                             rating = barber.rating,
                             onHeartClick = {
-                                if (isLiked) {
+                                isLiked = if (isLiked) {
                                     // Barber is already liked, so unlike
                                     likedBarberViewModel.unlikeBarber(barber.uid)
-                                    isLiked = false // Update local state immediately
+                                    false // Update local state immediately
 
 
                                 } else {
                                     // Barber is not liked yet, so like
                                     likedBarberViewModel.likeBarber(barber.uid)
-                                    isLiked = true // Update local state immediately
+                                    true // Update local state immediately
 
                                 }
                             },
@@ -330,21 +330,22 @@ fun MainScreen(
                             false
                         )
                     }
-                    LaunchedEffect(barber.uid) {
+                    LaunchedEffect(isLiked) {
                         scope.launch(Dispatchers.IO) {
                             isLiked = likedBarberViewModel.isBarberLiked(barber.uid)
                         }
                     }
+                    barber.distance =getLocation(
+                        lat1 = locationDetails.latitude!!.toDouble(),
+                        long1 = locationDetails.longitude!!.toDouble(),
+                        lat2 = barber.lat,
+                        long2 = barber.long
+                    )
                     SmallSaloonPreviewCard(
                         shopName = barber.shopName.toString(),
                         imageUri = barber.imageUri.toString(),
                         address = barber.shopStreetAddress.toString() + barber.city.toString() + barber.state.toString(),
-                        distance = getLocation(
-                            lat1 = locationDetails.latitude!!.toDouble(),
-                            long1 = locationDetails.longitude!!.toDouble(),
-                            lat2 = barber.lat,
-                            long2 = barber.long
-                        ),
+                        distance = barber.distance!!,
                         numberOfReviews = barber.noOfReviews!!.toInt(),
                         rating = barber.rating,
                         onBookClick = {
@@ -355,26 +356,25 @@ fun MainScreen(
                             navController.navigate(Screens.BarberScreen.route)
 //                        navController.popBackStack()
                         }, open = barber.open!!,
-                        onHeartClick = { if (isLiked) {
-                            // Barber is already liked, so unlike
-                            likedBarberViewModel.unlikeBarber(barber.uid)
-                            isLiked = false // Update local state immediately
+                        onHeartClick = {
+                            isLiked = if (isLiked) {
+                                // Barber is already liked, so unlike
+                                likedBarberViewModel.unlikeBarber(barber.uid)
+                                false // Update local state immediately
 
 
-                        } else {
-                            // Barber is not liked yet, so like
-                            likedBarberViewModel.likeBarber(barber.uid)
-                            isLiked = true // Update local state immediately
+                            } else {
+                                // Barber is not liked yet, so like
+                                likedBarberViewModel.likeBarber(barber.uid)
+                                true // Update local state immediately
 
-                        }},
-                        isFavorite = isLiked
+                            }
+                        },
+                        isFavorite = isLiked,
                     )
                 }
 
             }
-//            Column(modifier = Modifier.align(Alignment.BottomCenter)) {
-
-
             BottomAppNavigationBar(
                 onHomeClick = { /*TODO*/ },
                 onLocationClick = { /*TODO*/ },
@@ -384,7 +384,6 @@ fun MainScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
             )
-            // }
         }
     }
 }
@@ -406,7 +405,8 @@ fun initializeMultipleBarber(): MutableState<List<BarberModel>> {
                     uid = "",
                     lat = 0.0,
                     long = 0.0,
-                    open = true
+                    open = true,
+                    distance = 0.0
                 )
             )
         )

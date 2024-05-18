@@ -196,8 +196,8 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                 val data = document.data
                 val listServiceModel = mutableListOf<ServiceModel>()
                 data?.forEach { (serviceName, servicePrice) ->
-                    val time = (servicePrice as? Map<*, *>)?.get("time") as? String ?: ""
-                    val price = (servicePrice as? Map<*, *>)?.get("price").toString()
+                    val time = (servicePrice as? Map<*, *>)?.get("serviceDuration") as? String ?: ""
+                    val price = (servicePrice as? Map<*, *>)?.get("servicePrice").toString()
 
 
                     val serviceModel = ServiceModel(

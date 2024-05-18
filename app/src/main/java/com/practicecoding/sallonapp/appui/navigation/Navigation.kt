@@ -2,6 +2,11 @@ package com.practicecoding.sallonapp.appui.navigation
 
 import android.app.Activity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -14,12 +19,16 @@ import com.practicecoding.sallonapp.appui.components.BottomNavItems
 import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.HeadingText
 import com.practicecoding.sallonapp.appui.components.ProfileWithNotification
+import com.practicecoding.sallonapp.appui.components.SalonCard
 import com.practicecoding.sallonapp.appui.components.SearchBar
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BarberScreen
-import com.practicecoding.sallonapp.appui.screens.MainScreens.DayTimeSelection
+import com.practicecoding.sallonapp.appui.screens.MainScreens.DetailScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.GenderSelectOnBook
 import com.practicecoding.sallonapp.appui.screens.MainScreens.ServiceSelector
+import com.practicecoding.sallonapp.appui.screens.MainScreens.TimeSelection
+import com.practicecoding.sallonapp.appui.screens.MainScreens.TimeSlot
 import com.practicecoding.sallonapp.appui.screens.MainScreens.ViewAllScreen
+import com.practicecoding.sallonapp.appui.screens.MainScreens.daySelection
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.AdvancedSignUpScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.LogoScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.MainScreen
@@ -31,6 +40,8 @@ import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.ServiceCat
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
+import java.time.LocalDate
+import java.time.LocalTime
 
 @Composable
 fun AppNavigation(
@@ -147,7 +158,10 @@ fun AppNavigation(
         composable(Screens.MainScreen.route) {
             DoubleCard(midCarBody = { SearchBar() },
                 mainScreen = {
-                    MainScreen(navController = navController,likedBarberViewModel = LikedBarberViewModel(context))
+                    MainScreen(
+                        navController = navController,
+                        likedBarberViewModel = LikedBarberViewModel(context)
+                    )
                 },
                 topAppBar = {
                     ProfileWithNotification(
@@ -157,13 +171,14 @@ fun AppNavigation(
                     )
                 },
                 bottomAppBar = {
-                    BottomAppNavigationBar(
-                        currentScreen = BottomNavItems.Home,
-                        onHomeClick = { /*TODO*/ },
-                        onLocationClick = { /*TODO*/ },
-                        onBookClick = { /*TODO*/ },
-                        onMessageClick = { /*TODO*/ },
-                        onProfileClick = { /*TODO*/ })
+BottomAppNavigationBar(
+    onHomeClick = { /*TODO*/ },
+    onLocationClick = { /*TODO*/ },
+    onBookClick = { /*TODO*/ },
+    onMessageClick = { /*TODO*/ },
+    onProfileClick = { /*TODO*/ },
+    modifier = Modifier
+)
                 }
             )
         }
@@ -186,10 +201,17 @@ fun AppNavigation(
 //            }
         }
         composable(Screens.GenderSelection.route) {
-            val result =
+            val service =
                 navController.previousBackStackEntry?.savedStateHandle?.get<List<ServiceCat>>("service")
-            if (result!=null)
-            GenderSelectOnBook(navController = navController, service = result)
+            val barber =
+                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
+            if (service != null&&barber!=null) {
+                GenderSelectOnBook(
+                    navController = navController,
+                    service = service,
+                    barber = barber
+                )
+            }
         }
         composable(Screens.ViewAllScreen.route) {
             val resultType =
@@ -201,16 +223,84 @@ fun AppNavigation(
             ViewAllScreen(type = resultType, location = resultLocation)
         }
         composable(Screens.serviceSelector.route) {
-            val result =
+            val services =
                 navController.previousBackStackEntry?.savedStateHandle?.get<List<ServiceCat>>("service")
-            if(result!=null)
-            ServiceSelector(navController = navController, onBackClick = {}, services = result)
+           val barber =
+                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
+            if (services != null&&barber!=null)
+                ServiceSelector(navController = navController, onBackClick = {}, services = services,barber=barber)
         }
         composable(Screens.DayTimeSelection.route) {
-            val result =
+            val startTime = LocalTime.of(10, 0)
+            val endTime = LocalTime.of(21, 0)
+            val intervalMinutes = 30L
+            val bookedTimes = listOf(
+                LocalTime.of(11, 0),
+                LocalTime.of(13, 30),
+                LocalTime.of(15, 0)
+            )
+            val notAvailableTimes = listOf(
+                LocalTime.of(12, 30),
+                LocalTime.of(16, 0)
+            )
+            val currentDate = LocalDate.now()
+            val services =
                 navController.previousBackStackEntry?.savedStateHandle?.get<List<Service>>("services")
-            if (result!=null)
-            DayTimeSelection(service = result)
+            val barber =
+                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
+            if (services != null&&barber!=null) {
+                val time = services.sumOf { it.time.toString().toInt() }
+                var date by remember {
+                    mutableStateOf<LocalDate>(currentDate)
+                }
+                DoubleCard(
+                    midCarBody = { date = daySelection() },
+                    navController,
+                    topAppBar = {
+                        BackButtonTopAppBar(
+                            onBackClick = { /*TODO*/ },
+                            title = "Select Date & Time"
+                        )
+                    },
+                    bottomAppBar = {},
+                    mainScreen = {
+                        TimeSelection(
+                            startTime,
+                            endTime,
+                            intervalMinutes,
+                            bookedTimes,
+                            notAvailableTimes,
+                            time,
+                            date,
+                            navController,services,barber
+                        )
+                    })
+            }
+        }
+        composable(Screens.Appointment.route) {
+            val time =
+                navController.previousBackStackEntry?.savedStateHandle?.get<List<TimeSlot>>("time")
+            val date =
+                navController.previousBackStackEntry?.savedStateHandle?.get<LocalDate>("date")
+            val barber =
+                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
+            val services =
+                navController.previousBackStackEntry?.savedStateHandle?.get<List<Service>>("services")
+            if (time != null && date != null && barber != null && services != null) {
+                DoubleCard(midCarBody = {
+                    SalonCard(
+                        shopName = barber.shopName!!,
+                        imageUri = barber.imageUri!!,
+                        address = barber.shopStreetAddress!!,
+                        distance = barber.distance!!,
+                    )
+                }, navController, topAppBar = {
+                    BackButtonTopAppBar(
+                        onBackClick = { /*TODO*/ },
+                        title = "Your Appointment"
+                    )
+                }, bottomAppBar = {}, mainScreen = {DetailScreen(time,date,barber,services)})
+            }
         }
     }
 }

@@ -50,6 +50,7 @@ import com.practicecoding.sallonapp.appui.components.ExpandableCard
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.components.ServiceAndPriceWithSelectCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
+import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.ServiceCat
 import com.practicecoding.sallonapp.ui.theme.purple_200
@@ -59,7 +60,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ServiceSelector(
-    navController: NavController, services: List<ServiceCat>,
+    navController: NavController, services: List<ServiceCat>,barber:BarberModel,
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(), onBackClick: () -> Unit
 ) {
 //    var services: List<ServiceCat> by initializeServices()
@@ -138,14 +139,14 @@ fun ServiceSelector(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(top = 20.dp)
+                            .padding(top = 20.dp, start = 15.dp, end = 15.dp)
                             .verticalScroll(scrollState)
                             .background(color = purple_200),
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         services.forEach { services ->
-                            ExpandableCard(title = services.type!!, expanded = false) {
+                            ExpandableCard(title = services.type!!, expanded = true) {
                                 Column(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalArrangement = Arrangement.Top,
@@ -171,12 +172,14 @@ fun ServiceSelector(
                             Spacer(modifier = Modifier.height(15.dp))
                         }
                         GeneralButton(text = "Next", width = 180, modifier = Modifier) {
-                            Log.d("service", selectedServices[0].price.toString())
-
-                            Toast.makeText(context,selectedServices[0].price,Toast.LENGTH_LONG).show()
                             navController.currentBackStackEntry?.savedStateHandle?.set(
                                 key = "services",
                                 value = selectedServices
+
+                            )
+                             navController.currentBackStackEntry?.savedStateHandle?.set(
+                                key = "barber",
+                                value = barber
 
                             )
                             navController.navigate(Screens.DayTimeSelection.route)

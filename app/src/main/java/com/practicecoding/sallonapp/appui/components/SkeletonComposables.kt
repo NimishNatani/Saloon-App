@@ -180,14 +180,16 @@ fun ExpandableCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 8.dp, end = 8.dp, top = 2.dp),
+//            .padding(start = 8.dp, end = 8.dp, top = 2.dp),
+                ,
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 8.dp, end = 8.dp, top = 1.dp),
+//                .padding(start = 8.dp, end = 8.dp, top = 1.dp),
+                    ,
             elevation = 4.dp,
             shape = RoundedCornerShape(10.dp)
         ) {

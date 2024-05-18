@@ -86,10 +86,10 @@ fun BarberScreen(
     LaunchedEffect(key1 = true) {
         scope.launch(Dispatchers.Main) {
             isDialog = true
-            delay(500)
+                delay(500)
 //            barber = viewModelBarber.getBarber(uid)
-            services = viewModelBarber.getServices(barber.uid)
-            isDialog = false
+                services = viewModelBarber.getServices(barber.uid)
+                isDialog = false
         }.join()
     }
     if (!isDialog) {
@@ -211,6 +211,10 @@ fun BarberScreen(
                             key = "service",
                             value = services
                         )
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "barber",
+                            value = barber
+                        )
                         navController.navigate(Screens.GenderSelection.route)
                     }
                 }
@@ -220,7 +224,9 @@ fun BarberScreen(
 }
 
 @Composable
-fun GenderSelectOnBook(navController:NavController,service: List<ServiceCat>
+fun GenderSelectOnBook(navController:NavController,
+                       service: List<ServiceCat>,
+                       barber: BarberModel
 ) {
     var isSelect by remember { mutableStateOf(mutableListOf<Boolean>(false,false,false)) }
 
@@ -267,7 +273,10 @@ fun GenderSelectOnBook(navController:NavController,service: List<ServiceCat>
                 navController.currentBackStackEntry?.savedStateHandle?.set(
                     key = "service",
                     value = service
-
+                )
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    key = "barber",
+                    value = barber
                 )
                 navController.navigate(Screens.serviceSelector.route)
             }

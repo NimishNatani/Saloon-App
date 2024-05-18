@@ -1,6 +1,7 @@
 package com.practicecoding.sallonapp.data.model
 
 import android.os.Parcelable
+import androidx.compose.foundation.pager.PagerSnapDistance
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -22,6 +23,7 @@ data class BarberModel(
     val uid:String,
     val lat:Double,
     val long:Double,
-    val open:Boolean?=false
+    val open:Boolean?=false,
+    var distance:Double?=0.0
 ): Parcelable
 
