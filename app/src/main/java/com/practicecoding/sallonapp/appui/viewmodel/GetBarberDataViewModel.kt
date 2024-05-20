@@ -10,7 +10,7 @@ class GetBarberDataViewModel @Inject constructor(
     private val repo: FireStoreDbRepository
 ) : ViewModel(){
 
-    suspend fun getBarberPopular(limit:Long) = repo.getBarberPopular(limit)
+    suspend fun getBarberPopular(city: String,limit:Long) = repo.getBarberPopular(city,limit)
     suspend fun getBarberNearby(city:String,limit:Long) = repo.getBarberNearby(city,limit)
 
     suspend fun getBarber(uid:String?) = repo.getBarber(uid)

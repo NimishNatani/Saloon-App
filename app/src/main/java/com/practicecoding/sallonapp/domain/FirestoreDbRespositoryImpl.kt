@@ -95,10 +95,10 @@ class FirestoreDbRespositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun getBarberPopular(limit: Long): MutableList<BarberModel> {
+    override suspend fun getBarberPopular(city: String,limit: Long): MutableList<BarberModel> {
         return withContext(Dispatchers.IO) {
             val querySnapshot =
-                barberDb.orderBy("rating", Query.Direction.DESCENDING).limit(limit).get().await()
+                barberDb.whereEqualTo("city",city).orderBy("rating", Query.Direction.DESCENDING).limit(limit).get().await()
             val listBarberModel = querySnapshot.documents.map { document ->
                 BarberModel(
                     name = document.getString("name") ?: "",

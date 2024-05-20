@@ -3,10 +3,10 @@ package com.practicecoding.sallonapp.appui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,16 +15,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,11 +35,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.R
@@ -53,11 +55,13 @@ fun DoubleCard(
     navController: NavController = rememberNavController(),
     mainScreen: @Composable () -> Unit,
     topAppBar: @Composable () -> Unit = {},
-    bottomAppBar: @Composable ()-> Unit={}
+    bottomAppBar: @Composable () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
-
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val context = LocalContext.current
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -69,34 +73,42 @@ fun DoubleCard(
         Card(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 40.dp),
+                .padding(top = 30.dp),
             shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
             backgroundColor = colorResource(id = R.color.sallon_color)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 16.dp),
+                    .padding(top = 10.dp),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
                 midCarBody()
 
                 Card(
                     modifier = Modifier
                         .fillMaxSize()
-                        .fillMaxHeight()
-                        .padding(top = 20.dp)
-                        .verticalScroll(scrollState)
+                        .padding(top = 10.dp)
+//                        .verticalScroll(scrollState)
                     ,
                     shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
                     backgroundColor = colorResource(id = R.color.white)
                 ) {
-                    mainScreen()
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        mainScreen()
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .fillMaxWidth()
+                                .zIndex(1f) // Ensure the BottomAppBar is on top
+                        ) {
+                            bottomAppBar()
+                        }                    }
                 }
             }
         }
-        bottomAppBar()
     }
 }
 
@@ -105,7 +117,7 @@ fun SelectorScreenOnBooking(
     title: String = "Select Service",
     onBackClick: () -> Unit,
     content: @Composable () -> Unit
-){
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -136,7 +148,7 @@ fun SelectorScreenOnBooking(
                             color = Color.White
                         ) {
                             Icon(
-                                imageVector = Icons.Default.ArrowBack,
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
                                 tint = Color.Black,
                                 modifier = Modifier
@@ -181,7 +193,7 @@ fun ExpandableCard(
         modifier = Modifier
             .fillMaxWidth()
 //            .padding(start = 8.dp, end = 8.dp, top = 2.dp),
-                ,
+        ,
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -189,7 +201,7 @@ fun ExpandableCard(
             modifier = Modifier
                 .fillMaxWidth()
 //                .padding(start = 8.dp, end = 8.dp, top = 1.dp),
-                    ,
+            ,
             elevation = 4.dp,
             shape = RoundedCornerShape(10.dp)
         ) {
@@ -219,7 +231,7 @@ fun ExpandableCard(
                     .padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
                 elevation = 4.dp,
                 shape = RoundedCornerShape(10.dp)
-            ){
+            ) {
                 content()
             }
         }

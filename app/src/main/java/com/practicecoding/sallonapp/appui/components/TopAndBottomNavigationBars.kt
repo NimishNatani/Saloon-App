@@ -20,13 +20,16 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.twotone.List
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.twotone.List
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -53,8 +56,7 @@ import com.practicecoding.sallonapp.ui.theme.sallonColor
 
 enum class NavigationItem(val icon: ImageVector) {
     Home(Icons.Default.Home),
-    Location(Icons.Default.LocationOn),
-    Book(Icons.Default.ShoppingCart),
+    Book(Icons.AutoMirrored.TwoTone.List),
     Message(Icons.AutoMirrored.Filled.Send),
     Profile(Icons.Default.Person)
 }
@@ -71,7 +73,6 @@ fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
 @Composable
 fun BottomAppNavigationBar(
     onHomeClick: () -> Unit,
-    onLocationClick: () -> Unit,
     onBookClick: () -> Unit,
     onMessageClick: () -> Unit,
     onProfileClick: () -> Unit,

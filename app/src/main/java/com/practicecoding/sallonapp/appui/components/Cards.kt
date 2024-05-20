@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -66,6 +67,7 @@ import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingText
 import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
+import com.practicecoding.sallonapp.appui.viewmodel.MainScreenViewModel
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.ServiceModel
 import com.practicecoding.sallonapp.ui.theme.purple_200
@@ -201,30 +203,14 @@ fun OnBoardingBottomTextCard(
 fun ProfileWithNotification(
     onProfileClick: () -> Unit,
     onNotificationClick: () -> Unit,
-    viewModel: GetUserDataViewModel = hiltViewModel()
+    viewModel: GetUserDataViewModel = hiltViewModel(),
+    mainScreenViewModel: MainScreenViewModel = hiltViewModel()
 
 ) {
-    val context = LocalContext.current
-    var name by remember {
-        mutableStateOf("User")
-    }
-    var phoneNo by remember {
-        mutableStateOf("+91 111111111")
-    }
-    var imageUri by remember {
-        mutableStateOf("https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636")
-    }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(key1 = true) {
-        scope.launch(Dispatchers.Main) {
-            val userModel = viewModel.getUser()
-            delay(500)
-            name = userModel?.name.toString()
-            phoneNo = userModel?.phoneNumber.toString()
-            imageUri = userModel?.imageUri.toString()
-
-        }.join()
+       mainScreenViewModel.initializedUser(viewModel)
     }
     Surface(
         modifier = Modifier
@@ -246,7 +232,7 @@ fun ProfileWithNotification(
                     .clickable { onProfileClick() }) {
                 Image(
                     painter = rememberAsyncImagePainter(
-                        model = imageUri
+                        model = mainScreenViewModel.userModel.value.imageUri
                     ),
                     contentDescription = "User Profile Image",
                     modifier = Modifier.fillMaxSize(),
@@ -259,16 +245,10 @@ fun ProfileWithNotification(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = name,
+                    text = mainScreenViewModel.userModel.value.name!!,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     color = Color.Black,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = phoneNo,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -390,13 +370,15 @@ fun BigSaloonPreviewCard(
     isFavorite: Boolean = false,
     modifier: Modifier,
     distance: Double,
-    open:Boolean
+    open:Boolean,
+    width: Dp,
+    height:Dp
 ) {
 
     Surface(
         modifier = modifier
-            .width(280.dp)
-            .height(270.dp)
+            .width(width)
+            .height(height)
             .padding(),
         tonalElevation = 14.dp,
         shadowElevation = 4.dp,
@@ -407,7 +389,7 @@ fun BigSaloonPreviewCard(
             Box(
                 modifier = modifier
                     .fillMaxWidth()
-                    .height(150.dp)
+                    .height(height - 120.dp)
                     .background(Color.White)
             ) {
 
@@ -437,16 +419,12 @@ fun BigSaloonPreviewCard(
                         .align(Alignment.TopEnd)
                         .padding(6.dp)
                 ) {
-//                    Surface(
-//                        shape = CircleShape, color = Color.White
-//                    ) {
                     Icon(
                         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = "Star Icon",
                         tint = colorResource(id = R.color.sallon_color),
                         modifier = Modifier.size(36.dp)
                     )
-                    // }
                 }
             }
             Row(
@@ -454,8 +432,6 @@ fun BigSaloonPreviewCard(
                     .fillMaxWidth()
                     .background(purple_400)
                     .padding(vertical = 4.dp, horizontal = 16.dp),
-//                horizontalArrangement = Arrangement.SpaceBetween,
-//                verticalAlignment = Alignment.CenterVertically
             ) {
 
                 Text(
@@ -477,24 +453,6 @@ fun BigSaloonPreviewCard(
                     )
                 }
             }
-
-//            Row(
-//                modifier = modifier
-//                    .fillMaxWidth()
-//                    .padding(vertical = 4.dp, horizontal = 16.dp)
-//            ) {
-//                Image(
-//                    painter = painterResource(id = R.drawable.location),
-//                    contentDescription = "Star Icon",
-//                    modifier = Modifier.size(18.dp)
-//                )
-//                Text(
-//                    text = address,
-//                    fontSize = 14.sp,
-//                    maxLines = 2,
-//                    modifier = Modifier.width(300.dp)
-//                )
-//            }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -512,25 +470,10 @@ fun BigSaloonPreviewCard(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.weight(1f),
                     overflow = TextOverflow.Ellipsis,
-                    maxLines = 2
+                    maxLines = 1
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
-//            Row(modifier = modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 1.dp)) {
-//                Text(
-//                    text = "$rating",
-//                    fontSize = 14.sp,
-//                )
-//                Spacer(modifier = Modifier.width(4.dp))
-//                Icon(
-//                    painter = painterResource(id = R.drawable.img),
-//                    contentDescription = "Star Icon",
-//                    tint = Color.Yellow,
-//                    modifier = Modifier.size(18.dp)
-//                )
-//                Text(
-//                    text = "(${noOfReviews})", fontSize = 14.sp, color = Color.Gray
-//                )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -1044,19 +987,19 @@ fun BookingScreenShopPreviewCard(
     }
 }
 
-@Preview
-@Composable
-fun PrviewFuncions() {
-    BigSaloonPreviewCard(
-        shopName = "fhf",
-        imageUrl = "shx",
-        address = "wshbdgsfygrweygywetgyrfdjgruigiuhrehguhfr",
-        distance = 4.5,
-        noOfReviews = 2,
-        rating = 3.0,
-        onBookNowClick = { /*TODO*/ },
-        onHeartClick = {},
-        isFavorite = true,
-        modifier = Modifier, open = true
-    )
-}
+//@Preview
+//@Composable
+//fun PrviewFuncions() {
+//    BigSaloonPreviewCard(
+//        shopName = "fhf",
+//        imageUrl = "shx",
+//        address = "wshbdgsfygrweygywetgyrfdjgruigiuhrehguhfr",
+//        distance = 4.5,
+//        noOfReviews = 2,
+//        rating = 3.0,
+//        onBookNowClick = { /*TODO*/ },
+//        onHeartClick = {},
+//        isFavorite = true,
+//        modifier = Modifier, open = true
+//    )
+//}
