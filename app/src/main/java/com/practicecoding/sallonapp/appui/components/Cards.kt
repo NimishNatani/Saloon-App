@@ -208,58 +208,61 @@ fun ProfileWithNotification(
 
 ) {
     val scope = rememberCoroutineScope()
-
     LaunchedEffect(key1 = true) {
        mainScreenViewModel.initializedUser(viewModel)
     }
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 8.dp)
-            .wrapContentHeight(),
-        color = purple_200,
-    ) {
-        Row(
+    if(mainScreenViewModel.isDialog2.value) {
+        ShimmerEffectProfile()
+    } else {
+        Surface(
             modifier = Modifier
-                .padding(vertical = 16.dp, horizontal = 8.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 8.dp)
+                .wrapContentHeight(),
+            color = purple_200,
         ) {
-            Surface(shape = CircleShape,
-                color = Color.LightGray,
+            Row(
                 modifier = Modifier
-                    .size(35.dp)
-                    .clickable { onProfileClick() }) {
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        model = mainScreenViewModel.userModel.value.imageUri
-                    ),
-                    contentDescription = "User Profile Image",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(
-                modifier = Modifier.weight(1f)
+                    .padding(vertical = 16.dp, horizontal = 8.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = mainScreenViewModel.userModel.value.name!!,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    color = Color.Black,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+                Surface(shape = CircleShape,
+                    color = Color.LightGray,
+                    modifier = Modifier
+                        .size(35.dp)
+                        .clickable { onProfileClick() }) {
+                    Image(
+                        painter = rememberAsyncImagePainter(
+                            model = mainScreenViewModel.userModel.value.imageUri
+                        ),
+                        contentDescription = "User Profile Image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
 
-            Spacer(modifier = Modifier.width(16.dp))
-            Surface(shape = CircleShape,
-                color = Color.Red,
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable { onNotificationClick() }) {
-                /*TODO notification icon*/
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = mainScreenViewModel.userModel.value.name!!,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        color = Color.Black,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+                Surface(shape = CircleShape,
+                    color = Color.Red,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable { onNotificationClick() }) {
+                    /*TODO notification icon*/
+                }
             }
         }
     }

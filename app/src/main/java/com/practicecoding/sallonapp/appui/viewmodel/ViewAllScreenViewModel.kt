@@ -20,7 +20,7 @@ class ViewAllScreenViewModel : ViewModel() {
         location: String,
         type: String,
         latitude: Double,
-        longitude: Double
+        longitude: Double,
     ) {
         if (isDataInitialized.value) return
 

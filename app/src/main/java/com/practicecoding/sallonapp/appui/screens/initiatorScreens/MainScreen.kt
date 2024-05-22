@@ -47,6 +47,7 @@ import com.practicecoding.sallonapp.appui.components.BottomAppNavigationBar
 import com.practicecoding.sallonapp.appui.components.Categories
 import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
 import com.practicecoding.sallonapp.appui.components.OfferCard
+import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.LocationViewModel
@@ -100,7 +101,7 @@ fun MainScreen(
 
     }
     if (mainScreenViewModel.isDialog.value) {
-        CircularProgressWithAppLogo()
+        ShimmerEffectMainScreen()
     } else {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(

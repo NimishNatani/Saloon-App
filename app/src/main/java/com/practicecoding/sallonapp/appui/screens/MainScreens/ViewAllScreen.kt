@@ -1,5 +1,6 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,15 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.BottomSheetValue
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.Divider
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -35,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,11 +42,13 @@ import androidx.navigation.NavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BigSaloonPreviewCard
-import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
-import com.practicecoding.sallonapp.appui.components.ShimmerEffect
+import com.practicecoding.sallonapp.appui.components.CircularCheckbox
+import com.practicecoding.sallonapp.appui.components.ShimmerEffectBarberBig
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.ViewAllScreenViewModel
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
+import com.practicecoding.sallonapp.ui.theme.purple_400
+import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -61,7 +61,9 @@ fun ViewAllScreen(
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
     viewAllScreenViewModel: ViewAllScreenViewModel = hiltViewModel(),
     likedBarberViewModel: LikedBarberViewModel,
-    navController: NavController
+    navController: NavController,
+    sortType: String
+
 ) {
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
@@ -72,12 +74,30 @@ fun ViewAllScreen(
             location,
             type,
             latitude,
-            longitude
+            longitude,
+
         )
     }
     if (viewAllScreenViewModel.isDialog.value) {
-        ShimmerEffect(screenWidth-50.dp,screenWidth-85.dp)
+        for (i in 1 until 3) {
+            ShimmerEffectBarberBig(screenWidth - 50.dp, screenWidth - 85.dp)
+        }
     } else {
+        when (sortType) {
+            "Distance" -> {
+                viewAllScreenViewModel.barbers.value =
+                    viewAllScreenViewModel.barbers.value.sortedBy { it.distance }
+            }
+            "Rating" -> {
+
+                viewAllScreenViewModel.barbers.value =
+                    viewAllScreenViewModel.barbers.value.sortedBy { it.rating }.asReversed()
+
+            }
+            else -> {viewAllScreenViewModel.barbers.value =
+                viewAllScreenViewModel.barbers.value.sortedBy { it.noOfReviews!!.toInt() }.asReversed()
+            }
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -132,67 +152,98 @@ fun ViewAllScreen(
 }
 
 @Composable
-fun sortBarber():Boolean{
-    var isBottomBar by remember {
-        mutableStateOf(false)
-    }
-    Row (Modifier.padding(horizontal = 15.dp,)){
-        Text(text = "Sort", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 20.sp, modifier = Modifier
-            .padding(start = 10.dp, top = 14.dp)
-            .weight(1f))
-        IconButton(onClick = { isBottomBar=true }) {
-            Icon(painter = painterResource(id = R.drawable.sort), contentDescription = "",Modifier.size(24.dp))
+fun SortBarber(onSortClick: () -> Unit) {
+    Row(Modifier.padding(horizontal = 20.dp)) {
+        Text(
+            text = "Sort",
+            color = Color.White,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 20.sp,
+            modifier = Modifier
+                .padding(start = 15.dp, top = 14.dp)
+                .weight(1f)
+        )
+        IconButton(onClick =  onSortClick ) {
+            Icon(
+                painter = painterResource(id = R.drawable.sort),
+                contentDescription = "",
+                Modifier.size(24.dp)
+            )
         }
     }
-    return isBottomBar
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomSheet(){
-    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState()
+fun BottomSheet( onDismiss: () -> Unit,
+                 initialSortType: String,
+                 onSortTypeChange: (String) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
-    var selectedSortOption by remember { mutableStateOf("Distance") }
+    var selectedSortOption by remember { mutableStateOf(initialSortType) }
+
     BottomSheetScaffold(
-        scaffoldState = bottomSheetScaffoldState,
+        sheetContainerColor = purple_400,
+        scaffoldState = rememberBottomSheetScaffoldState(),
         sheetContent = {
-            BottomSheetContent(selectedSortOption)
+            BottomSheetContent(selectedSortOption = selectedSortOption) { newSortType ->
+                selectedSortOption = newSortType
+                onSortTypeChange(newSortType)
+                onDismiss()
+            }
         },
-        sheetPeekHeight = 0.dp
-    ) {
-        // Your main content goes here
+        sheetPeekHeight = 250.dp
+    ){}
+
+    LaunchedEffect(selectedSortOption) {
+        onSortTypeChange(selectedSortOption)
     }
+
+//    LaunchedEffect(key1 = Unit) {
+//        coroutineScope.launch {
+//            onDismiss()
+//        }
+//    }
 
 }
 
 @Composable
-fun BottomSheetContent(selected:String) {
+fun BottomSheetContent(selectedSortOption: String, onSortTypeChange: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        Text(text = "Sort By", fontSize = 20.sp, modifier = Modifier.padding(bottom = 8.dp))
-        Divider()
-        sortOption("Distance", )
-        sortOption("Rating", )
-        sortOption("Number of Reviews", )
+        Text(text = "Sort By", fontSize = 20.sp, modifier = Modifier.padding(bottom = 8.dp), color = Color.Black)
+        HorizontalDivider()
+        SortOption("Distance", selectedSortOption, onSortTypeChange)
+        SortOption("Rating", selectedSortOption, onSortTypeChange)
+        SortOption("Number of Reviews", selectedSortOption, onSortTypeChange)
     }
 }
 
 @Composable
-fun sortOption(option: String):String {
-    var select by remember {
-        mutableStateOf("NearBy")
-    }
-    Text(
-        text = option,
-        fontSize = 18.sp,
+fun SortOption(option: String, selectedSortOption: String, onSortTypeChange: (String) -> Unit) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable { select = option }
-    )
-    return select
+    ) {
+        Text(
+            text = option,
+            fontSize = 18.sp,
+            color = if (option == selectedSortOption) sallonColor else Color.Black,
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp)
+        )
+        CircularCheckbox(
+            isServiceSelected = option == selectedSortOption,
+            onClick = { onSortTypeChange(option) },
+            modifier = Modifier
+                .size(36.dp)
+                .padding(top = 8.dp, bottom = 8.dp, end = 15.dp),
+            color = if (option == selectedSortOption) sallonColor else Color.Transparent
+        )
+    }
 }
 

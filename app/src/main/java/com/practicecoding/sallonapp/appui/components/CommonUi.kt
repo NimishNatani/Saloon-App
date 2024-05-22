@@ -516,7 +516,7 @@ fun CircularCheckbox(
     color: Color = Color.Green,
     size: Dp = 48.dp
 ) {
-    var checked by remember { mutableStateOf(false) }
+    var checked by remember { mutableStateOf(isServiceSelected) }
     Box(
         modifier = modifier
             .size(size)

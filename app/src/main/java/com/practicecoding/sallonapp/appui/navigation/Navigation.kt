@@ -25,11 +25,11 @@ import com.practicecoding.sallonapp.appui.screens.MainScreens.BottomSheet
 import com.practicecoding.sallonapp.appui.screens.MainScreens.DetailScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.GenderSelectOnBook
 import com.practicecoding.sallonapp.appui.screens.MainScreens.ServiceSelector
+import com.practicecoding.sallonapp.appui.screens.MainScreens.SortBarber
 import com.practicecoding.sallonapp.appui.screens.MainScreens.TimeSelection
 import com.practicecoding.sallonapp.appui.screens.MainScreens.TimeSlot
 import com.practicecoding.sallonapp.appui.screens.MainScreens.ViewAllScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.daySelection
-import com.practicecoding.sallonapp.appui.screens.MainScreens.sortBarber
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.AdvancedSignUpScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.LogoScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.MainScreen
@@ -194,11 +194,6 @@ fun AppNavigation(
                     navController = navController
                 )
             }
-//            else {
-//                // Handle the case where result is null gracefully
-//                // This could be displaying an error message or navigating back
-//                navController.popBackStack() // Navigate back if data is not available
-//            }
         }
         composable(Screens.GenderSelection.route) {
             val service =
@@ -226,8 +221,11 @@ fun AppNavigation(
                 var isBottomBar by remember {
                     mutableStateOf(false)
                 }
+                var sortType by remember {
+                    mutableStateOf(if (resultType == "NearBy") "Distance" else "Rating")
+                }
                 DoubleCard(
-                    midCarBody = { isBottomBar=sortBarber() },
+                    midCarBody = { SortBarber(onSortClick = { isBottomBar = true }) },
                     navController,
                     mainScreen = {
                         ViewAllScreen(
@@ -236,17 +234,26 @@ fun AppNavigation(
                             latitude = resultLat,
                             longitude = resultLong,
                             likedBarberViewModel = LikedBarberViewModel(context),
-                            navController = navController
+                            navController = navController,
+                            sortType = sortType
+
                         )
                     },
                     topAppBar = {
                         BackButtonTopAppBar(
                             onBackClick = { /*TODO*/ },
-                            title = "NearBy Salon"
+                            title = "$resultType Salon"
                         )
                     },
-                    bottomAppBar = {if (isBottomBar){
-                        BottomSheet()} })
+                    bottomAppBar = {if(isBottomBar) {
+                        BottomSheet(
+                            onDismiss = { isBottomBar = false },
+                            initialSortType = sortType,
+                            onSortTypeChange = { newSortType ->
+                                sortType = newSortType
+                            }
+                        )
+                    }})
             }
         }
         composable(Screens.serviceSelector.route) {

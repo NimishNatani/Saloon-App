@@ -71,21 +71,6 @@ fun ServiceSelector(
     var isDialog by remember {
         mutableStateOf(false)
     }
-//    if (isDialog) {
-//        CircularProgressWithAppLogo()
-//    }
-//    LaunchedEffect(key1 = true) {
-//        scope.launch(Dispatchers.Main) {
-//            isDialog = true
-//
-//            delay(2500)
-//
-////            services = viewModelBarber.getServices(uid)
-//            isDialog = false
-//
-//        }.join()
-//    }
-//    if (!isDialog) {
         Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
             Column(
                 modifier = Modifier
