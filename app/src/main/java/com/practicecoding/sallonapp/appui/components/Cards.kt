@@ -1,5 +1,6 @@
 package com.practicecoding.sallonapp.appui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -27,12 +28,15 @@ import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -50,13 +54,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,14 +71,10 @@ import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingTex
 import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MainScreenViewModel
 import com.practicecoding.sallonapp.data.model.Service
-import com.practicecoding.sallonapp.data.model.ServiceModel
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.purple_400
 import com.practicecoding.sallonapp.ui.theme.sallonColor
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -209,9 +207,9 @@ fun ProfileWithNotification(
 ) {
     val scope = rememberCoroutineScope()
     LaunchedEffect(key1 = true) {
-       mainScreenViewModel.initializedUser(viewModel)
+        mainScreenViewModel.initializedUser(viewModel)
     }
-    if(mainScreenViewModel.isDialog2.value) {
+    if (mainScreenViewModel.isDialog2.value) {
         ShimmerEffectProfile()
     } else {
         Surface(
@@ -256,13 +254,12 @@ fun ProfileWithNotification(
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
-                Surface(shape = CircleShape,
-                    color = Color.Red,
+                Image(
+                    painter = painterResource(id = R.drawable.notificationbell),
+                    contentDescription = "notification bell",
                     modifier = Modifier
-                        .size(24.dp)
-                        .clickable { onNotificationClick() }) {
-                    /*TODO notification icon*/
-                }
+                        .size(22.dp)
+                        .clickable { onNotificationClick() })
             }
         }
     }
@@ -370,12 +367,12 @@ fun BigSaloonPreviewCard(
     imageUrl: String,
     onBookNowClick: () -> Unit,
     onHeartClick: () -> Unit,
-    isFavorite: Boolean = false,
+    isFavorite: Boolean,
     modifier: Modifier,
     distance: Double,
-    open:Boolean,
+    open: Boolean,
     width: Dp,
-    height:Dp
+    height: Dp
 ) {
 
     Surface(
@@ -408,7 +405,13 @@ fun BigSaloonPreviewCard(
                     contentScale = ContentScale.FillBounds
                 )
                 Image(
-                    painter = painterResource(id = if(open){R.drawable.open}else{R.drawable.close}),
+                    painter = painterResource(
+                        id = if (open) {
+                            R.drawable.open
+                        } else {
+                            R.drawable.close
+                        }
+                    ),
                     contentDescription = "Categories", // We don't need content description for images used as buttons
                     modifier = Modifier
                         .size(48.dp)
@@ -601,8 +604,8 @@ fun SmallSaloonPreviewCard(
     rating: Double,
     onHeartClick: () -> Unit,
     onBookClick: () -> Unit,
-    isFavorite: Boolean ,
-    modifier: Modifier = Modifier,open:Boolean
+    isFavorite: Boolean,
+    modifier: Modifier = Modifier, open: Boolean
 ) {
     Surface(
         modifier = modifier
@@ -651,7 +654,13 @@ fun SmallSaloonPreviewCard(
                     }
                 }
                 Image(
-                    painter = painterResource(id = if(open){R.drawable.open}else{R.drawable.close}),
+                    painter = painterResource(
+                        id = if (open) {
+                            R.drawable.open
+                        } else {
+                            R.drawable.close
+                        }
+                    ),
                     contentDescription = "Categories", // We don't need content description for images used as buttons
                     modifier = Modifier
                         .size(36.dp)
@@ -760,71 +769,11 @@ fun SmallSaloonPreviewCard(
 }
 
 @Composable
-fun GenderSelectCard(
-    icon: String = "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
-    gender: String,
-    isSelect: MutableList<Boolean>,
-    onThis: Boolean
-) {
-    Box(
-        modifier = Modifier
-            .padding(8.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White),
-        contentAlignment = Alignment.Center
-    ) {
-        Column {
-            Box {
-                Image(
-                    painter = rememberAsyncImagePainter(model = icon),
-                    contentDescription = "gender icon",
-                    modifier = Modifier.size(150.dp)
-                )
-                CircularCheckbox(
-                    isServiceSelected = onThis,
-                    onClick = {
-                        when (gender) {
-                            "Male" -> {
-                                isSelect[0] = true
-                                isSelect[1]=false
-                                isSelect[2]=false
-                            }
-                            "Female" -> {
-                                isSelect[1] = true
-                                isSelect[0]=false
-                                isSelect[2]=false
-                            }
-                            else -> {
-                                isSelect[2] = true
-                                isSelect[1] = false
-                                isSelect[0]=false
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp),
-                    size = 25.dp
-                )
-            }
-            Text(
-                text = gender,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(8.dp),
-                fontSize = 20.sp,
-                fontStyle = FontStyle.Italic
-            )
-        }
-    }
-}
-
-@Composable
 fun ServiceNameAndPriceCard(
     serviceName: String,
-    serviceTime:String,
+    serviceTime: String,
     servicePrice: String,
+    count: Int
 ) {
     Row(
         modifier = Modifier
@@ -838,68 +787,147 @@ fun ServiceNameAndPriceCard(
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f)
         )
-        Text(text = serviceTime+"mins", style =MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(end=8.dp) )
+        Text(
+            text = serviceTime + "mins",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(end = 8.dp)
+        )
         Text(
             text = "Rs. $servicePrice",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(end = 8.dp)
         )
+        if (count > 0) {
+            Text(
+                text = "×${count}",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+        }
     }
 }
 
 @Composable
 fun ServiceAndPriceWithSelectCard(
-    isServiceSelected: Boolean,
-    serviceName: String,
-    servicePrice: String,
-    serviceTime: String,
-    onServiceSelectedChange: (Service, Boolean) -> Unit
+    service: Service,
+    noOfGender: Int,
+    onServiceSelectedChange: (Service) -> Unit
 ) {
-    var isServiceSelectedcard by remember { mutableStateOf(isServiceSelected) }
-var service = Service(time = serviceTime, isServiceSelected = isServiceSelected, serviceName = serviceName, price = servicePrice,id=serviceName)
+    // Remember the state of the service
+    var selectedService by remember { mutableStateOf(service) }
+    var showDialog by remember { mutableStateOf(false) }
+    var dialogMessage by remember { mutableStateOf("") }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(top = 8.dp, bottom = 8.dp, start = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = serviceName,
+            text = selectedService.serviceName,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f)
         )
         Row(
-            modifier = Modifier.padding(end = 8.dp),
+//            modifier = Modifier.padding(end = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = serviceTime+"mins", style =MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(end=8.dp) )
-
             Text(
-                text = "Rs. $servicePrice",
+                text = "${selectedService.time} mins",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(end = 8.dp)
             )
-            CircularCheckbox(
-                isServiceSelected = isServiceSelected,
-                onClick = {isChecked ->
-                    isServiceSelectedcard=!isServiceSelectedcard
-//                    isServiceSelected = isChecked
-                    service.isServiceSelected = isServiceSelectedcard
-                    onServiceSelectedChange(service, isServiceSelectedcard) },
-                modifier = Modifier
-                    .padding(end = 1.dp),
-                size = 25.dp, color = sallonColor
+
+            Text(
+                text = "Rs. ${selectedService.price}",
+                style = MaterialTheme.typography.bodyMedium,
+//                modifier = Modifier.padding(end = 8.dp)
+            )
+
+            Counter(
+                count = selectedService.count,
+                onIncrement = {
+                    if (selectedService.count == noOfGender) {
+                        showDialog = true
+                        dialogMessage = "You reach your max for this service"
+                    } else {
+                        // Update the count
+                        selectedService = selectedService.copy(count = selectedService.count + 1)
+                        // Notify the parent
+                        onServiceSelectedChange(selectedService)
+                    }
+                },
+                onDecrement = {
+                    if (selectedService.count > 0) {
+                        // Update the count
+                        selectedService = selectedService.copy(count = selectedService.count - 1)
+                        // Notify the parent
+                        onServiceSelectedChange(selectedService)
+                    }
+                }
+            )
+        }
+    }
+    AnimatedVisibility(showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { androidx.compose.material3.Text(text = "Limit ") },
+            text = { androidx.compose.material3.Text(text = dialogMessage) },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    androidx.compose.material3.Text("OK")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun Counter(
+    count: Int,
+    onIncrement: () -> Unit,
+    onDecrement: () -> Unit
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = onDecrement) {
+            Icon(
+                painterResource(id = R.drawable.minus),
+                contentDescription = "Decrement",
+                modifier = Modifier.padding(bottom = 17.dp),
+                tint = Color.Black
+            )
+        }
+        Box(
+            modifier = Modifier
+                .background(purple_400, RoundedCornerShape(4.dp))
+                .padding(horizontal = 4.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = count.toString(),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = sallonColor,
+            )
+        }
+        IconButton(onClick = onIncrement) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Increment",
+                tint = Color.Black
             )
         }
     }
 }
+
 
 @Composable
 fun BookingScreenShopPreviewCard(
     shopName: String,
     shopAddress: String,
     ratings: Double,
+    isOpen: Boolean,
     numberOfReviews: Int,
     onOpenClick: () -> Unit
 ) {
@@ -932,7 +960,7 @@ fun BookingScreenShopPreviewCard(
                 )
             ) {
                 Text(
-                    text = "Open",
+                    text = if (isOpen) "Open" else "Closed",
                     color = Color(sallonColor.toArgb())
                 )
             }
@@ -989,20 +1017,3 @@ fun BookingScreenShopPreviewCard(
         }
     }
 }
-
-//@Preview
-//@Composable
-//fun PrviewFuncions() {
-//    BigSaloonPreviewCard(
-//        shopName = "fhf",
-//        imageUrl = "shx",
-//        address = "wshbdgsfygrweygywetgyrfdjgruigiuhrehguhfr",
-//        distance = 4.5,
-//        noOfReviews = 2,
-//        rating = 3.0,
-//        onBookNowClick = { /*TODO*/ },
-//        onHeartClick = {},
-//        isFavorite = true,
-//        modifier = Modifier, open = true
-//    )
-//}

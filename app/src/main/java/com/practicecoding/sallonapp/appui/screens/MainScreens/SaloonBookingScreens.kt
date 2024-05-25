@@ -1,17 +1,15 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,12 +18,7 @@ import androidx.compose.material.Card
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,26 +26,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BookingScreenShopPreviewCard
-import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
-import com.practicecoding.sallonapp.appui.components.GenderSelectCard
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.components.HorizontalPagerWithTabs
+import com.practicecoding.sallonapp.appui.components.ShimmerEffectBarber
 import com.practicecoding.sallonapp.appui.components.TransparentTopAppBar
 import com.practicecoding.sallonapp.appui.viewmodel.BarberScreenViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
-import com.practicecoding.sallonapp.data.model.ServiceCat
-import com.practicecoding.sallonapp.data.model.ServiceModel
 import com.practicecoding.sallonapp.ui.theme.purple_200
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
 fun BarberScreen(
@@ -60,10 +46,13 @@ fun BarberScreen(
     onBackClick: () -> Unit,
     onLikeClick: () -> Unit,
     onShareClick: () -> Unit,
-    barber:BarberModel,
+    barber: BarberModel,
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
     barberScreenViewModel: BarberScreenViewModel = hiltViewModel()
 ) {
+    BackHandler {
+        navController.popBackStack()
+    }
     val previewImages = listOf(
         "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
         "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
@@ -72,8 +61,6 @@ fun BarberScreen(
         "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
         "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
     )
-
-
     val screenHeight = LocalContext.current.resources.displayMetrics.heightPixels
     val scope = rememberCoroutineScope()
     LaunchedEffect(key1 = true) {
@@ -81,7 +68,7 @@ fun BarberScreen(
 
     }
     if (barberScreenViewModel.isDialog.value) {
-        CircularProgressWithAppLogo()
+        ShimmerEffectBarber()
     } else {
         Surface(
             modifier = Modifier
@@ -111,13 +98,12 @@ fun BarberScreen(
                             ),
                             contentDescription = null,
                             modifier = Modifier.clip(RoundedCornerShape(16.dp)),
-//                            .aspectRatio(1.0f),
                             contentScale = ContentScale.FillBounds,
-                            )
+                        )
                     }
 
                     TransparentTopAppBar(
-                        onBackClick = { /*TODO*/ },
+                        onBackClick = { navController.popBackStack() },
                         onLikeClick = { /*TODO*/ },
                         onShareClick = { /*TODO*/ },
                         isFavorite = false,
@@ -129,14 +115,12 @@ fun BarberScreen(
                 Box(
                     modifier = Modifier
                         .wrapContentSize()
-//                        .align(Alignment.BottomCenter)
                         .background(purple_200)
                 ) {
                     Column(
                         modifier = Modifier
                             .wrapContentSize()
                             .padding(top = 8.dp)
-//                            .verticalScroll(rememberScrollState())
                             .align(Alignment.TopCenter)
                             .background(purple_200),
                         verticalArrangement = Arrangement.Center,
@@ -158,13 +142,13 @@ fun BarberScreen(
                             ) {
                                 BookingScreenShopPreviewCard(
                                     shopName = barber.shopName.toString(),
-                                    shopAddress = barber.shopStreetAddress.toString() + barber?.city.toString() + barber?.state.toString(),
+                                    shopAddress = barber.shopStreetAddress.toString() + barber.city.toString() + barber.state.toString(),
                                     ratings = barber.rating.toDouble(),
                                     numberOfReviews = barber.noOfReviews!!.toInt(),
+                                    isOpen = barber.open!!
                                 ) {
 
                                 }
-//                                Spacer(modifier = Modifier.height(8.dp))
                                 // Second card
                                 Card(
                                     modifier = Modifier.fillMaxWidth()
@@ -184,8 +168,6 @@ fun BarberScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.White)
-
-//                    .noRippleClickable { onShareClick() }
                     ,
                     elevation = 8.dp,
                     shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
@@ -208,67 +190,6 @@ fun BarberScreen(
                         navController.navigate(Screens.GenderSelection.route)
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun GenderSelectOnBook(navController:NavController,
-                       service: List<ServiceCat>,
-                       barber: BarberModel
-) {
-    var isSelect by remember { mutableStateOf(mutableListOf<Boolean>(false,false,false)) }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = purple_200),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                GenderSelectCard(gender = "Male", isSelect = isSelect,onThis = isSelect[0])
-                Spacer(modifier = Modifier.width(8.dp))
-                GenderSelectCard(gender = "Female", isSelect = isSelect,onThis = isSelect[1])
-            }
-            GenderSelectCard(gender = "Other", isSelect = isSelect,onThis = isSelect[2])
-        }
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter),
-            shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
-            backgroundColor = Color.White,
-            contentColor = Color.Black,
-            elevation = 8.dp
-        ) {
-            GeneralButton(
-                text = "Next",
-                width = 160,
-                height = 80,
-                modifier = Modifier.fillMaxWidth(),
-                roundnessPercent = 45,
-            ) {
-                navController.currentBackStackEntry?.savedStateHandle?.set(
-                    key = "service",
-                    value = service
-                )
-                navController.currentBackStackEntry?.savedStateHandle?.set(
-                    key = "barber",
-                    value = barber
-                )
-                navController.navigate(Screens.serviceSelector.route)
             }
         }
     }

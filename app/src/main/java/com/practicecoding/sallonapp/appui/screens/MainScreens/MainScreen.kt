@@ -1,8 +1,8 @@
-package com.practicecoding.sallonapp.appui.screens.initiatorScreens
+package com.practicecoding.sallonapp.appui.screens.MainScreens
 
 import android.location.Address
 import android.location.Geocoder
-import android.location.Location
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -21,31 +20,23 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BigSaloonPreviewCard
-import com.practicecoding.sallonapp.appui.components.BottomAppNavigationBar
 import com.practicecoding.sallonapp.appui.components.Categories
-import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
 import com.practicecoding.sallonapp.appui.components.OfferCard
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
@@ -54,11 +45,10 @@ import com.practicecoding.sallonapp.appui.viewmodel.LocationViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MainScreenViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.LocationModel
-import com.practicecoding.sallonapp.room.Dao
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
+import com.practicecoding.sallonapp.ui.theme.Purple80
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -97,7 +87,7 @@ fun MainScreen(
             )
         }
 
-        mainScreenViewModel.initializeData(viewModelBarber, mainScreenViewModel.locationDetails.value)
+        mainScreenViewModel.initializeData(viewModelBarber, mainScreenViewModel.locationDetails.value,context)
 
     }
     if (mainScreenViewModel.isDialog.value) {

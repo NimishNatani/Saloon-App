@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -411,14 +410,90 @@ fun ShimmerEffectProfile() {
             }
 
             Spacer(modifier = Modifier.width(16.dp))
-            Surface(
-                shape = CircleShape,
-                color = Color.Red,
+//            Image(
+//                painter = painterResource(id = R.drawable.notificationbell),
+//                contentDescription = "notification bell",
+//                modifier = Modifier
+//                    .size(22.dp)
+//                    )
+        }
+    }
+}
+
+@Composable
+fun ShimmerEffectBarber() {
+    Surface(
+        modifier = Modifier
+            .fillMaxSize(),
+        color = purple_400
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            Box(
                 modifier = Modifier
-                    .size(24.dp)
+                    .height(250.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 15.dp, vertical = 15.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .shimmerEffect()
             ) {
-                /*TODO notification icon*/
+
             }
+            Card(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(topEnd = 10.dp, topStart = 10.dp)),
+                colors = CardColors(Color.White, Color.White, Color.White, Color.White)
+            ) {
+                Spacer(modifier = Modifier.height(20.dp))
+                Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                    Box(
+                        modifier = Modifier
+                            .size(width = 200.dp, height = 45.dp)
+                            .padding(start = 15.dp,end=20.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .shimmerEffect()
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(width = 100.dp, height = 45.dp)
+                            .padding(end=15.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .shimmerEffect()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(width = 150.dp, height = 30.dp)
+                        .padding(start = 15.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .shimmerEffect()
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(width = 100.dp, height = 25.dp)
+                        .padding(start = 15.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .shimmerEffect()
+                )
+                Spacer(modifier = Modifier.height(30.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(width = 300.dp, height = 45.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .clip(RoundedCornerShape(8.dp))
+                        .shimmerEffect()
+                )
+            }
+
         }
     }
 }

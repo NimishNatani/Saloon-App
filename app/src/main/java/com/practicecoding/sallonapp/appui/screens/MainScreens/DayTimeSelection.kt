@@ -1,6 +1,8 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,10 +37,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.components.RowofDate
+import com.practicecoding.sallonapp.appui.viewmodel.RestScreenViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.ui.theme.purple_200
@@ -69,18 +73,23 @@ fun TimeSelection(
     date:LocalDate,
     navController: NavController,
     service: List<Service>,
-    barber:BarberModel
+    barber:BarberModel,
+    genders:List<Int>,
+    restScreenViewModel: RestScreenViewModel = hiltViewModel()
 ) {
+    BackHandler {
+        navController.popBackStack()
+    }
     val context = LocalContext.current
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val slots = generateTimeSlots(startTime, endTime, intervalMinutes, bookedTimes, notAvailableTimes)
-    val selectedSlots = remember { mutableStateListOf<TimeSlot>() }
+//    val selectedSlots = remember { mutableStateListOf<TimeSlot>() }
     var showDialog by remember { mutableStateOf(false) }
     var dialogMessage by remember { mutableStateOf("") }
-    if(selectedSlots.size>ceil(time/30.0).toInt()){
+    if(restScreenViewModel.selectedSlots.size>ceil(time/30.0).toInt()){
         showDialog=true
         dialogMessage= "You doesn't need more than ${ceil(time/30.0).toInt()}"
-        selectedSlots.removeAt(selectedSlots.size - 1)
+        restScreenViewModel.selectedSlots.removeAt(restScreenViewModel.selectedSlots.size - 1)
     }
 
     Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -147,14 +156,14 @@ fun TimeSelection(
                     TimeSlotBox(
                         slot = slot,
                         timeFormatter = timeFormatter,
-                        isSelected = selectedSlots.contains(slot),
+                        isSelected = restScreenViewModel.selectedSlots.contains(slot),
                         onClick = {
                             when (slot.status) {
                                 SlotStatus.AVAILABLE -> {
-                                    if (selectedSlots.contains(slot)) {
-                                        selectedSlots.remove(slot)
+                                    if (restScreenViewModel.selectedSlots.contains(slot)) {
+                                        restScreenViewModel.selectedSlots.remove(slot)
                                     } else {
-                                        selectedSlots.add(slot)
+                                        restScreenViewModel.selectedSlots.add(slot)
                                     }
                                 }
                                 SlotStatus.BOOKED, SlotStatus.NOT_AVAILABLE -> {
@@ -172,7 +181,7 @@ fun TimeSelection(
             }
         }
 
-        if (showDialog) {
+        AnimatedVisibility (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
                 title = { Text("Selection Error") },
@@ -187,7 +196,7 @@ fun TimeSelection(
 
         GeneralButton(text = "Continue", width = 300, modifier = Modifier) {
             // Handle continue button click
-            if(selectedSlots.size < ceil(time.toDouble()/30.00).toInt()){
+            if(restScreenViewModel.selectedSlots.size < ceil(time.toDouble()/30.00).toInt()){
                 showDialog = true
                 dialogMessage = "Your Selected time slot doesn't match the required time for your service "
             }else{
@@ -197,7 +206,7 @@ fun TimeSelection(
                 )
                 navController.currentBackStackEntry?.savedStateHandle?.set(
                     key = "time",
-                    value = selectedSlots.toMutableList()
+                    value = restScreenViewModel.selectedSlots.toMutableList()
                 )
                 navController.currentBackStackEntry?.savedStateHandle?.set(
                     key = "services",
@@ -206,6 +215,10 @@ fun TimeSelection(
                 navController.currentBackStackEntry?.savedStateHandle?.set(
                     key = "barber",
                     value = barber
+                )
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    key="genders",
+                    value = genders
                 )
                 navController.navigate(Screens.Appointment.route)
             }

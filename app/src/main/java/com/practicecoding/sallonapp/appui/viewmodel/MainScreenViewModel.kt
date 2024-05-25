@@ -1,7 +1,10 @@
 package com.practicecoding.sallonapp.appui.viewmodel
 
+import android.content.Context
 import android.location.Location
+import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.practicecoding.sallonapp.data.model.BarberModel
@@ -22,13 +25,13 @@ class MainScreenViewModel : ViewModel() {
     var isDataInitialized2 = mutableStateOf(false)
     var userModel = mutableStateOf(UserModel())
 
-    fun initializeData(viewModelBarber: GetBarberDataViewModel, locationDetails: LocationModel) {
+    fun initializeData(viewModelBarber: GetBarberDataViewModel, locationDetails: LocationModel,context: Context) {
         if (isDataInitialized.value) return
 
         viewModelScope.launch {
             withContext(Dispatchers.Main) {
                 isDialog.value = true
-                delay(500)
+//                delay(500)
                 if (locationDetails.city != null) {
                     val nearbyBarbers =
                         viewModelBarber.getBarberNearby(locationDetails.city.toString(), 6)

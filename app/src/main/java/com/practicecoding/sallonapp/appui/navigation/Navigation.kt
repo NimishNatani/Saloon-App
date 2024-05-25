@@ -1,6 +1,10 @@
 package com.practicecoding.sallonapp.appui.navigation
 
 import android.app.Activity
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,7 +27,7 @@ import com.practicecoding.sallonapp.appui.components.SearchBar
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BarberScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BottomSheet
 import com.practicecoding.sallonapp.appui.screens.MainScreens.DetailScreen
-import com.practicecoding.sallonapp.appui.screens.MainScreens.GenderSelectOnBook
+import com.practicecoding.sallonapp.appui.screens.MainScreens.MainScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.ServiceSelector
 import com.practicecoding.sallonapp.appui.screens.MainScreens.SortBarber
 import com.practicecoding.sallonapp.appui.screens.MainScreens.TimeSelection
@@ -32,7 +36,6 @@ import com.practicecoding.sallonapp.appui.screens.MainScreens.ViewAllScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.daySelection
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.AdvancedSignUpScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.LogoScreen
-import com.practicecoding.sallonapp.appui.screens.initiatorScreens.MainScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OTPVerificationScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingScreen
@@ -46,10 +49,47 @@ import java.time.LocalTime
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController
+    navController: NavHostController,
+    startDestinations: String
 ) {
+    val enterTransition =
+        slideInHorizontally(
+            initialOffsetX = { 1000 },
+            animationSpec = spring(
+                stiffness = Spring.StiffnessVeryLow,
+                dampingRatio = Spring.DampingRatioNoBouncy
+            )
+        )
+
+    val exitTransition =
+        slideOutHorizontally(
+            targetOffsetX = { -1000 },
+            animationSpec = spring(
+                stiffness = Spring.StiffnessVeryLow,
+                dampingRatio = Spring.DampingRatioNoBouncy
+            )
+        )
+
+    val popEnterTransition =
+        slideInHorizontally(
+            initialOffsetX = { -1000 },
+            animationSpec = spring(
+                stiffness = Spring.StiffnessVeryLow,
+                dampingRatio = Spring.DampingRatioNoBouncy
+            )
+        )
+
+    val popExitTransition =
+        slideOutHorizontally(
+            targetOffsetX = { 1000 },
+            animationSpec = spring(
+                stiffness = Spring.StiffnessVeryLow,
+                dampingRatio = Spring.DampingRatioNoBouncy
+            )
+        )
+
     val context = LocalContext.current
-    NavHost(navController = navController, startDestination = Screens.Logo.route) {
+    NavHost(navController = navController, startDestination = startDestinations) {
         composable(Screens.Logo.route) {
             LogoScreen(navController = navController)
         }
@@ -156,7 +196,10 @@ fun AppNavigation(
                 }
             )
         }
-        composable(Screens.MainScreen.route) {
+        composable(Screens.MainScreen.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
             DoubleCard(midCarBody = { SearchBar() },
                 mainScreen = {
                     MainScreen(
@@ -182,33 +225,10 @@ fun AppNavigation(
                 }
             )
         }
-        composable(Screens.BarberScreen.route) {
-            val result =
-                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
-            if (result != null) {
-                BarberScreen(
-                    onBackClick = { navController.popBackStack() }, // Assuming you want to navigate back when back is clicked
-                    onLikeClick = { /* Handle like click */ },
-                    onShareClick = { /* Handle share click */ },
-                    barber = result,
-                    navController = navController
-                )
-            }
-        }
-        composable(Screens.GenderSelection.route) {
-            val service =
-                navController.previousBackStackEntry?.savedStateHandle?.get<List<ServiceCat>>("service")
-            val barber =
-                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
-            if (service != null && barber != null) {
-                GenderSelectOnBook(
-                    navController = navController,
-                    service = service,
-                    barber = barber
-                )
-            }
-        }
-        composable(Screens.ViewAllScreen.route) {
+        composable(Screens.ViewAllScreen.route,enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
             val resultType =
                 navController.previousBackStackEntry?.savedStateHandle?.get<String>("type")
             val resultCity =
@@ -256,20 +276,90 @@ fun AppNavigation(
                     }})
             }
         }
-        composable(Screens.serviceSelector.route) {
-            val services =
-                navController.previousBackStackEntry?.savedStateHandle?.get<List<ServiceCat>>("service")
-            val barber =
-                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
-            if (services != null && barber != null)
+        composable(Screens.BarberScreen.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
+            val result = navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
+            if (result != null) {
+                BarberScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onLikeClick = { /* Handle like click */ },
+                    onShareClick = { /* Handle share click */ },
+                    barber = result,
+                    navController = navController
+                )
+            }
+        }
+        composable(Screens.GenderSelection.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
+            val resultType = navController.previousBackStackEntry?.savedStateHandle?.get<String>("type")
+            val resultCity = navController.previousBackStackEntry?.savedStateHandle?.get<String>("location")
+            val resultLat = navController.previousBackStackEntry?.savedStateHandle?.get<Double>("latitude")
+            val resultLong = navController.previousBackStackEntry?.savedStateHandle?.get<Double>("longitude")
+            if (resultLat != null && resultLong != null && resultCity != null && resultType != null) {
+                var isBottomBar by remember {
+                    mutableStateOf(false)
+                }
+                var sortType by remember {
+                    mutableStateOf(if (resultType == "NearBy") "Distance" else "Rating")
+                }
+                DoubleCard(
+                    midCarBody = { SortBarber(onSortClick = { isBottomBar = true }) },
+                    navController,
+                    mainScreen = {
+                        ViewAllScreen(
+                            type = resultType,
+                            location = resultCity,
+                            latitude = resultLat,
+                            longitude = resultLong,
+                            likedBarberViewModel = LikedBarberViewModel(context),
+                            navController = navController,
+                            sortType = sortType
+
+                        )
+                    },
+                    topAppBar = {
+                        BackButtonTopAppBar(
+                            onBackClick = { navController.popBackStack() },
+                            title = "$resultType Salon"
+                        )
+                    },
+                    bottomAppBar = {
+                        if (isBottomBar) {
+                            BottomSheet(
+                                onDismiss = { isBottomBar = false },
+                                initialSortType = sortType,
+                                onSortTypeChange = { newSortType ->
+                                    sortType = newSortType
+                                }
+                            )
+                        }
+                    })
+            }
+        }
+        composable(Screens.serviceSelector.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
+            val services = navController.previousBackStackEntry?.savedStateHandle?.get<List<ServiceCat>>("service")
+            val barber = navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
+            val numberOfGenders = navController.previousBackStackEntry?.savedStateHandle?.get<List<Int>>("genders")
+            if (services != null && barber != null && numberOfGenders != null)
                 ServiceSelector(
                     navController = navController,
-                    onBackClick = {},
+                    onBackClick = { navController.popBackStack() },
                     services = services,
-                    barber = barber
+                    barber = barber,
+                    genders = numberOfGenders
                 )
         }
-        composable(Screens.DayTimeSelection.route) {
+        composable(Screens.DayTimeSelection.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
             val startTime = LocalTime.of(10, 0)
             val endTime = LocalTime.of(21, 0)
             val intervalMinutes = 30L
@@ -283,12 +373,11 @@ fun AppNavigation(
                 LocalTime.of(16, 0)
             )
             val currentDate = LocalDate.now()
-            val services =
-                navController.previousBackStackEntry?.savedStateHandle?.get<List<Service>>("services")
-            val barber =
-                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
-            if (services != null && barber != null) {
-                val time = services.sumOf { it.time.toString().toInt() }
+            val services = navController.previousBackStackEntry?.savedStateHandle?.get<List<Service>>("services")
+            val barber = navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
+            val genders = navController.previousBackStackEntry?.savedStateHandle?.get<List<Int>>("genders")
+            if (services != null && barber != null && genders != null) {
+                val time = services.sumOf { it.time.toInt() * it.count }
                 var date by remember {
                     mutableStateOf<LocalDate>(currentDate)
                 }
@@ -297,50 +386,47 @@ fun AppNavigation(
                     navController,
                     topAppBar = {
                         BackButtonTopAppBar(
-                            onBackClick = { /*TODO*/ },
+                            onBackClick = { navController.popBackStack() },
                             title = "Select Date & Time"
                         )
                     },
                     bottomAppBar = { },
                     mainScreen = {
-                        TimeSelection(
-                            startTime,
-                            endTime,
-                            intervalMinutes,
-                            bookedTimes,
-                            notAvailableTimes,
-                            time,
-                            date,
-                            navController,
-                            services,
-                            barber
+                        TimeSelection(startTime, endTime, intervalMinutes, bookedTimes, notAvailableTimes, time, date, navController, services, barber, genders
                         )
                     })
             }
         }
-        composable(Screens.Appointment.route) {
-            val time =
-                navController.previousBackStackEntry?.savedStateHandle?.get<List<TimeSlot>>("time")
-            val date =
-                navController.previousBackStackEntry?.savedStateHandle?.get<LocalDate>("date")
-            val barber =
-                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
-            val services =
-                navController.previousBackStackEntry?.savedStateHandle?.get<List<Service>>("services")
-            if (time != null && date != null && barber != null && services != null) {
-                DoubleCard(midCarBody = {
-                    SalonCard(
-                        shopName = barber.shopName!!,
-                        imageUri = barber.imageUri!!,
-                        address = barber.shopStreetAddress!!,
-                        distance = barber.distance!!,
-                    )
-                }, navController, topAppBar = {
-                    BackButtonTopAppBar(
-                        onBackClick = { /*TODO*/ },
-                        title = "Your Appointment"
-                    )
-                }, bottomAppBar = {}, mainScreen = { DetailScreen(time, date, barber, services) })
+        composable(Screens.Appointment.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
+            val time = navController.previousBackStackEntry?.savedStateHandle?.get<List<TimeSlot>>("time")
+            val date = navController.previousBackStackEntry?.savedStateHandle?.get<LocalDate>("date")
+            val barber = navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
+            val services = navController.previousBackStackEntry?.savedStateHandle?.get<List<Service>>("services")
+            val genders = navController.previousBackStackEntry?.savedStateHandle?.get<List<Int>>("genders")
+            if (time != null && date != null && barber != null && services != null && genders != null) {
+                DoubleCard(
+                    midCarBody = {
+                        SalonCard(
+                            shopName = barber.shopName!!,
+                            imageUri = barber.imageUri!!,
+                            address = barber.shopStreetAddress!!,
+                            distance = barber.distance!!,
+                        )
+                    },
+                    navController,
+                    topAppBar = {
+                        BackButtonTopAppBar(
+                            onBackClick = { navController.popBackStack() },
+                            title = "Your Appointment"
+                        )
+                    },
+                    bottomAppBar = {},
+                    mainScreen = {
+                        DetailScreen(time, date, barber, services, genders, navController)
+                    })
             }
         }
     }

@@ -60,6 +60,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage:20.3.0")
     implementation("androidx.compose.material3:material3-android:1.2.1")
     implementation("com.google.android.gms:play-services-location:21.2.0")
+//    implementation("com.google.firebase:firebase-perf-ktx:21.0.0")
     //this is the code for navigation between screens
     val nav_version = "2.7.7"
 

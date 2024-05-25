@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 
 @Composable
-fun GeneralButton(text:String,width:Int,height:Int = 80,modifier: Modifier,roundnessPercent:Int = 15,onClick:()->Unit){
+fun GeneralButton(text:String,width:Int,height:Int = 80,modifier: Modifier=Modifier,roundnessPercent:Int = 15,onClick:()->Unit){
     Box (
         modifier = Modifier
             .width(width.dp)

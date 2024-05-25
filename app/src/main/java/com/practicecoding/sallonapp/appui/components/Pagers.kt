@@ -183,7 +183,7 @@ fun ServicesPage(
                     horizontalAlignment = Alignment.Start
                 ) {
                    service.services.forEach { service ->
-                        ServiceNameAndPriceCard(serviceName = service.name!!, serviceTime = service.time, servicePrice = service.price.toString())
+                        ServiceNameAndPriceCard(serviceName = service.name!!, serviceTime = service.time, servicePrice = service.price.toString(), count = 0)
                     }
                 }
             }

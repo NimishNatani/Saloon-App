@@ -71,7 +71,6 @@ class FirestoreDbRespositoryImpl @Inject constructor(
 
         }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun getUser(): UserModel {
         var userModel = UserModel(
             "User",
@@ -90,7 +89,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             }
         }
 
-        delay(500)
+//        delay(500)
         return userModel
     }
 
@@ -115,12 +114,13 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     long = document.getDouble("long")!!.toDouble(),
                     noOfReviews = document.getString("noOfReviews"),
                     open = document.getBoolean("open")!!,
-                    aboutUs = document.getString("aboutUs").toString()
+                    aboutUs = document.getString("aboutUs").toString(),
+                    saloonType = document.getString("saloonType").toString()
 
 
                 )
             }.toMutableList()
-            delay(1000)
+//            delay(1000)
             listBarberModel
         }
 
@@ -151,7 +151,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
 
                 )
             }.toMutableList()
-            delay(1000)
+//            delay(1000)
 
             listBarberModel
         }
@@ -217,7 +217,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
 
 
             }.toMutableList()
-            delay(1000)
+//            delay(1000)
             listServiceCat
         }
     }

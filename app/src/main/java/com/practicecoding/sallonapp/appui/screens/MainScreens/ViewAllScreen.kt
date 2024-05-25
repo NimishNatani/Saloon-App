@@ -1,7 +1,6 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
-import android.widget.Toast
-import androidx.compose.foundation.clickable
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,8 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -32,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -65,6 +61,9 @@ fun ViewAllScreen(
     sortType: String
 
 ) {
+    BackHandler {
+        navController.popBackStack()
+    }
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
@@ -76,7 +75,7 @@ fun ViewAllScreen(
             latitude,
             longitude,
 
-        )
+            )
     }
     if (viewAllScreenViewModel.isDialog.value) {
         for (i in 1 until 3) {
@@ -88,14 +87,18 @@ fun ViewAllScreen(
                 viewAllScreenViewModel.barbers.value =
                     viewAllScreenViewModel.barbers.value.sortedBy { it.distance }
             }
+
             "Rating" -> {
 
                 viewAllScreenViewModel.barbers.value =
                     viewAllScreenViewModel.barbers.value.sortedBy { it.rating }.asReversed()
 
             }
-            else -> {viewAllScreenViewModel.barbers.value =
-                viewAllScreenViewModel.barbers.value.sortedBy { it.noOfReviews!!.toInt() }.asReversed()
+
+            else -> {
+                viewAllScreenViewModel.barbers.value =
+                    viewAllScreenViewModel.barbers.value.sortedBy { it.noOfReviews!!.toInt() }
+                        .asReversed()
             }
         }
         Column(
@@ -143,7 +146,8 @@ fun ViewAllScreen(
                     distance = barber.distance!!,
                     open = barber.open!!,
                     width = screenWidth - 50.dp,
-                    height = screenWidth - 85.dp
+                    height = screenWidth - 85.dp,
+                    isFavorite = isLiked
                 )
                 Spacer(modifier = Modifier.height(10.dp))
             }
@@ -163,11 +167,11 @@ fun SortBarber(onSortClick: () -> Unit) {
                 .padding(start = 15.dp, top = 14.dp)
                 .weight(1f)
         )
-        IconButton(onClick =  onSortClick ) {
+        IconButton(onClick = onSortClick) {
             Icon(
                 painter = painterResource(id = R.drawable.sort),
                 contentDescription = "",
-                Modifier.size(24.dp)
+                Modifier.size(24.dp), tint = Color.White
             )
         }
     }
@@ -175,10 +179,11 @@ fun SortBarber(onSortClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomSheet( onDismiss: () -> Unit,
-                 initialSortType: String,
-                 onSortTypeChange: (String) -> Unit) {
-    val coroutineScope = rememberCoroutineScope()
+fun BottomSheet(
+    onDismiss: () -> Unit,
+    initialSortType: String,
+    onSortTypeChange: (String) -> Unit
+) {
     var selectedSortOption by remember { mutableStateOf(initialSortType) }
 
     BottomSheetScaffold(
@@ -192,18 +197,10 @@ fun BottomSheet( onDismiss: () -> Unit,
             }
         },
         sheetPeekHeight = 250.dp
-    ){}
-
+    ) {}
     LaunchedEffect(selectedSortOption) {
         onSortTypeChange(selectedSortOption)
     }
-
-//    LaunchedEffect(key1 = Unit) {
-//        coroutineScope.launch {
-//            onDismiss()
-//        }
-//    }
-
 }
 
 @Composable
@@ -213,7 +210,12 @@ fun BottomSheetContent(selectedSortOption: String, onSortTypeChange: (String) ->
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        Text(text = "Sort By", fontSize = 20.sp, modifier = Modifier.padding(bottom = 8.dp), color = Color.Black)
+        Text(
+            text = "Sort By",
+            fontSize = 20.sp,
+            modifier = Modifier.padding(bottom = 8.dp),
+            color = Color.Black
+        )
         HorizontalDivider()
         SortOption("Distance", selectedSortOption, onSortTypeChange)
         SortOption("Rating", selectedSortOption, onSortTypeChange)
