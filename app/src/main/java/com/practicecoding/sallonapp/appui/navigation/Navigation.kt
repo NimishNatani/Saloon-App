@@ -27,6 +27,7 @@ import com.practicecoding.sallonapp.appui.components.SearchBar
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BarberScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BottomSheet
 import com.practicecoding.sallonapp.appui.screens.MainScreens.DetailScreen
+import com.practicecoding.sallonapp.appui.screens.MainScreens.GenderSelectOnBook
 import com.practicecoding.sallonapp.appui.screens.MainScreens.MainScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.ServiceSelector
 import com.practicecoding.sallonapp.appui.screens.MainScreens.SortBarber
@@ -225,6 +226,39 @@ fun AppNavigation(
                 }
             )
         }
+
+        composable(Screens.BarberScreen.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
+            val result = navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
+            if (result != null) {
+                BarberScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onLikeClick = { /* Handle like click */ },
+                    onShareClick = { /* Handle share click */ },
+                    barber = result,
+                    navController = navController
+                )
+            }
+        }
+        composable(Screens.GenderSelection.route,enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
+            val service =
+                navController.previousBackStackEntry?.savedStateHandle?.get<List<ServiceCat>>("service")
+            val barber =
+                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
+            if (service != null && barber != null) {
+                GenderSelectOnBook(
+                    navController = navController,
+                    service = service,
+                    barber = barber,
+                    onBackClick = {navController.popBackStack()}
+                )
+            }
+        }
         composable(Screens.ViewAllScreen.route,enterTransition = { enterTransition },
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
@@ -274,70 +308,6 @@ fun AppNavigation(
                             }
                         )
                     }})
-            }
-        }
-        composable(Screens.BarberScreen.route, enterTransition = { enterTransition },
-            exitTransition = { exitTransition },
-            popEnterTransition = { popEnterTransition },
-            popExitTransition = { popExitTransition }) {
-            val result = navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
-            if (result != null) {
-                BarberScreen(
-                    onBackClick = { navController.popBackStack() },
-                    onLikeClick = { /* Handle like click */ },
-                    onShareClick = { /* Handle share click */ },
-                    barber = result,
-                    navController = navController
-                )
-            }
-        }
-        composable(Screens.GenderSelection.route, enterTransition = { enterTransition },
-            exitTransition = { exitTransition },
-            popEnterTransition = { popEnterTransition },
-            popExitTransition = { popExitTransition }) {
-            val resultType = navController.previousBackStackEntry?.savedStateHandle?.get<String>("type")
-            val resultCity = navController.previousBackStackEntry?.savedStateHandle?.get<String>("location")
-            val resultLat = navController.previousBackStackEntry?.savedStateHandle?.get<Double>("latitude")
-            val resultLong = navController.previousBackStackEntry?.savedStateHandle?.get<Double>("longitude")
-            if (resultLat != null && resultLong != null && resultCity != null && resultType != null) {
-                var isBottomBar by remember {
-                    mutableStateOf(false)
-                }
-                var sortType by remember {
-                    mutableStateOf(if (resultType == "NearBy") "Distance" else "Rating")
-                }
-                DoubleCard(
-                    midCarBody = { SortBarber(onSortClick = { isBottomBar = true }) },
-                    navController,
-                    mainScreen = {
-                        ViewAllScreen(
-                            type = resultType,
-                            location = resultCity,
-                            latitude = resultLat,
-                            longitude = resultLong,
-                            likedBarberViewModel = LikedBarberViewModel(context),
-                            navController = navController,
-                            sortType = sortType
-
-                        )
-                    },
-                    topAppBar = {
-                        BackButtonTopAppBar(
-                            onBackClick = { navController.popBackStack() },
-                            title = "$resultType Salon"
-                        )
-                    },
-                    bottomAppBar = {
-                        if (isBottomBar) {
-                            BottomSheet(
-                                onDismiss = { isBottomBar = false },
-                                initialSortType = sortType,
-                                onSortTypeChange = { newSortType ->
-                                    sortType = newSortType
-                                }
-                            )
-                        }
-                    })
             }
         }
         composable(Screens.serviceSelector.route, enterTransition = { enterTransition },
