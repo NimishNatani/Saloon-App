@@ -106,6 +106,7 @@ fun AboutUsPage(barberDetails: BarberModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(horizontal = 15.dp, vertical = 15.dp)
             .verticalScroll(scrollState)
                 ,
         verticalArrangement = Arrangement.Top,
@@ -123,6 +124,7 @@ fun AboutUsPage(barberDetails: BarberModel) {
                 )
             }
         }
+        Spacer(modifier = Modifier.height(10.dp))
         ExpandableCard(title = "Open - Closed", expanded = isOpen_ClosedExpanded) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -135,6 +137,8 @@ fun AboutUsPage(barberDetails: BarberModel) {
                 )
             }
         }
+        Spacer(modifier = Modifier.height(10.dp))
+
         ExpandableCard(title = "Contact Us", expanded = isContactUsExpanded) {
             Column(
                 modifier = Modifier
@@ -166,6 +170,7 @@ fun ServicesPage(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(horizontal = 15.dp, vertical = 15.dp)
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -178,7 +183,7 @@ fun ServicesPage(
                     horizontalAlignment = Alignment.Start
                 ) {
                    service.services.forEach { service ->
-                        ServiceNameAndPriceCard(serviceName = service.name!!, serviceTime = service.time, servicePrice = service.price.toString())
+                        ServiceNameAndPriceCard(serviceName = service.name!!, serviceTime = service.time, servicePrice = service.price.toString(), count = 0)
                     }
                 }
             }

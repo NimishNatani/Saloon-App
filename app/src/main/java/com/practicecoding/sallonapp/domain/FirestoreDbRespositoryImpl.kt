@@ -71,7 +71,6 @@ class FirestoreDbRespositoryImpl @Inject constructor(
 
         }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun getUser(): UserModel {
         var userModel = UserModel(
             "User",
@@ -90,15 +89,15 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             }
         }
 
-        delay(500)
+//        delay(500)
         return userModel
     }
 
 
-    override suspend fun getBarberPopular(limit: Long): MutableList<BarberModel> {
+    override suspend fun getBarberPopular(city: String,limit: Long): MutableList<BarberModel> {
         return withContext(Dispatchers.IO) {
             val querySnapshot =
-                barberDb.orderBy("rating", Query.Direction.DESCENDING).limit(limit).get().await()
+                barberDb.whereEqualTo("city",city).orderBy("rating", Query.Direction.DESCENDING).limit(limit).get().await()
             val listBarberModel = querySnapshot.documents.map { document ->
                 BarberModel(
                     name = document.getString("name") ?: "",
@@ -115,12 +114,13 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     long = document.getDouble("long")!!.toDouble(),
                     noOfReviews = document.getString("noOfReviews"),
                     open = document.getBoolean("open")!!,
-                    aboutUs = document.getString("aboutUs").toString()
+                    aboutUs = document.getString("aboutUs").toString(),
+                    saloonType = document.getString("saloonType").toString()
 
 
                 )
             }.toMutableList()
-            delay(1000)
+//            delay(1000)
             listBarberModel
         }
 
@@ -151,7 +151,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
 
                 )
             }.toMutableList()
-            delay(1000)
+//            delay(1000)
 
             listBarberModel
         }
@@ -196,8 +196,8 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                 val data = document.data
                 val listServiceModel = mutableListOf<ServiceModel>()
                 data?.forEach { (serviceName, servicePrice) ->
-                    val time = (servicePrice as? Map<*, *>)?.get("time") as? String ?: ""
-                    val price = (servicePrice as? Map<*, *>)?.get("price").toString()
+                    val time = (servicePrice as? Map<*, *>)?.get("serviceDuration") as? String ?: ""
+                    val price = (servicePrice as? Map<*, *>)?.get("servicePrice").toString()
 
 
                     val serviceModel = ServiceModel(
@@ -217,7 +217,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
 
 
             }.toMutableList()
-            delay(1000)
+//            delay(1000)
             listServiceCat
         }
     }

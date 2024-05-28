@@ -13,13 +13,12 @@ interface FireStoreDbRepository {
     suspend fun addUser(
         userModel: UserModel,
         imageUri: Uri?
-//        name:String,phoneNumber:String,dateOfBirth:String,gender:String,imageUri:String
     ): Flow<Resource<String>>
 
     suspend fun getUser(
     ): UserModel?
 
-    suspend fun getBarberPopular(limit:Long):MutableList<BarberModel>
+    suspend fun getBarberPopular(city: String,limit:Long):MutableList<BarberModel>
     suspend fun getBarberNearby(city:String,limit:Long):MutableList<BarberModel>
 
     suspend fun getBarber(uid:String?):BarberModel?

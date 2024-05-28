@@ -12,12 +12,19 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
+import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.navigation.AppNavigation
 import com.practicecoding.sallonapp.ui.theme.SallonAppTheme
+import com.practicecoding.sallonapp.ui.theme.purple_200
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -28,12 +35,19 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             SallonAppTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                        AppNavigation(navController = navController)
-                }
+//                Surface(
+//                    modifier = Modifier.fillMaxSize(),
+//                    color = purple_200
+//                ) {
+                    val updatedCurrentUser = FirebaseAuth.getInstance().currentUser
+                    var startDestination by remember {
+                        mutableStateOf(Screens.Logo.route)
+                    }
+                    if (updatedCurrentUser != null) {
+                        startDestination=Screens.MainScreen.route
+                    }
+                    AppNavigation(navController = navController,startDestination)
+               // }
             }
             prepLocationUpdates()
         }

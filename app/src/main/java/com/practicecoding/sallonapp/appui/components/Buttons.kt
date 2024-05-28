@@ -2,6 +2,7 @@ package com.practicecoding.sallonapp.appui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 
 @Composable
-fun GeneralButton(text:String,width:Int,height:Int = 80,modifier: Modifier,roundnessPercent:Int = 15,onClick:()->Unit){
+fun GeneralButton(text:String,width:Int,height:Int = 80,modifier: Modifier=Modifier,roundnessPercent:Int = 15,onClick:()->Unit){
     Box (
         modifier = Modifier
             .width(width.dp)

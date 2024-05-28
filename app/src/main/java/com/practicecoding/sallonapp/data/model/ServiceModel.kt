@@ -18,9 +18,9 @@ data class ServiceCat(
 @Parcelize
 data class Service(
     val serviceName: String,
-    var isServiceSelected: Boolean = false,
+    var count: Int = 0,
     var price: String,
-//    val serviceTypeHeading: String,
     val time :String,
     val id: String,
+    val type:String
     ): Parcelable

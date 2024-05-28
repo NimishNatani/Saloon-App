@@ -1,8 +1,9 @@
-package com.practicecoding.sallonapp.appui.screens.initiatorScreens
+package com.practicecoding.sallonapp.appui.screens.MainScreens
 
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -27,36 +27,31 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BigSaloonPreviewCard
-import com.practicecoding.sallonapp.appui.components.BottomAppNavigationBar
 import com.practicecoding.sallonapp.appui.components.Categories
-import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
 import com.practicecoding.sallonapp.appui.components.OfferCard
+import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.LocationViewModel
+import com.practicecoding.sallonapp.appui.viewmodel.MainScreenViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.LocationModel
-import com.practicecoding.sallonapp.room.Dao
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
+import com.practicecoding.sallonapp.ui.theme.Purple80
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -65,65 +60,43 @@ fun MainScreen(
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
     locationViewModel: LocationViewModel = hiltViewModel(),
     likedBarberViewModel: LikedBarberViewModel,
-    navController: NavController
+    navController: NavController,
+    mainScreenViewModel: MainScreenViewModel= hiltViewModel()
 ) {
     val context = LocalContext.current
     locationViewModel.startLocationUpdates()
     val location by locationViewModel.getLocationLiveData().observeAsState()
-    var locationDetails by remember {
-        mutableStateOf(LocationModel(null, null, null, null, null))
-    }
-    val geocoder = Geocoder(context, Locale.getDefault())
-    val addresses: List<Address>? = location?.latitude?.let {
-        geocoder.getFromLocation(
-            it.toDouble(), location!!.longitude!!.toDouble(), 1
-        )
-    }
-    var isDialog by remember {
-        mutableStateOf(true)
-    }
-    if (isDialog) {
-//        CircularProgress()
-        CircularProgressWithAppLogo()
-    }
 
-    if (!addresses.isNullOrEmpty()) {
-        val address = addresses[0]
-        locationDetails = LocationModel(
-            location!!.latitude,
-            location!!.longitude,
-            address.locality,
-            address.adminArea,
-            address.countryName
-        )
-//        Toast.makeText(context,locationDetails.latitude,Toast.LENGTH_SHORT).show()
-    }
+    val geocoder = Geocoder(context, Locale.getDefault())
+
     val scrollStateRowOffer = rememberScrollState()
     val scroll = rememberScrollState()
     val scrollStateRowCategories = rememberScrollState()
     val scrollStateNearbySalon = rememberScrollState()
     val scope = rememberCoroutineScope()
-    var barberPopularModel by initializeMultipleBarber()
-    var barberNearbyModel by initializeMultipleBarber()
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    LaunchedEffect(location) {
+        val addresses: List<Address>? = location?.latitude?.let {
+            geocoder.getFromLocation(it.toDouble(), location!!.longitude!!.toDouble(), 1)
+        }
 
-    LaunchedEffect(key1 = true) {
-        scope.launch(Dispatchers.Main) {
-            isDialog = true
-            delay(500)
-            if (locationDetails.city != null) {
-                barberNearbyModel =
-                    viewModelBarber.getBarberNearby(locationDetails.city.toString(), 6)
-            }
-            barberPopularModel = viewModelBarber.getBarberPopular(6)
-            isDialog = false
-        }.join()
+        if (!addresses.isNullOrEmpty()) {
+            val address = addresses[0]
+            mainScreenViewModel.locationDetails.value = LocationModel(
+                location!!.latitude,
+                location!!.longitude,
+                address.locality,
+                address.adminArea,
+                address.countryName
+            )
+        }
+
+        mainScreenViewModel.initializeData(viewModelBarber, mainScreenViewModel.locationDetails.value,context)
+
     }
-//    Toast.makeText(context,barberPopularModel[0].imageUri,Toast.LENGTH_SHORT).show()
-    if (!isDialog) {
+    if (mainScreenViewModel.isDialog.value) {
+        ShimmerEffectMainScreen()
+    } else {
         Box(modifier = Modifier.fillMaxSize()) {
-
-
             Column(
                 modifier = Modifier
                     .padding(
@@ -132,7 +105,7 @@ fun MainScreen(
                         end = 16.dp,
                         bottom = 64.dp
                     )
-                    .height(screenHeight - 300.dp)
+                    .fillMaxSize()
                     .verticalScroll(scroll)
             ) {
                 Row(
@@ -221,7 +194,16 @@ fun MainScreen(
                         )
                         navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = "location",
-                            value = locationDetails.city.toString()
+                            value = mainScreenViewModel.locationDetails.value.city.toString()
+                        )
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "latitude",
+                            value = mainScreenViewModel.locationDetails.value.latitude!!.toDouble()
+
+                        )
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "longitude",
+                            value = mainScreenViewModel.locationDetails.value.longitude!!.toDouble()
                         )
                         navController.navigate(Screens.ViewAllScreen.route)
                     }) {
@@ -230,42 +212,31 @@ fun MainScreen(
 
                 }
                 Row(modifier = Modifier.horizontalScroll(scrollStateNearbySalon)) {
-                    for (barber in barberNearbyModel) {
+                    for (barber in mainScreenViewModel.barberNearbyModel.value) {
                         var isLiked by remember {
                             mutableStateOf(
                                 false
                             )
                         }
-                        LaunchedEffect(barber.uid) {
+                        LaunchedEffect(isLiked) {
                             scope.launch(Dispatchers.IO) {
                                 isLiked = likedBarberViewModel.isBarberLiked(barber.uid)
                             }
                         }
-
                         BigSaloonPreviewCard(
                             shopName = barber.shopName.toString(),
                             imageUrl = barber.imageUri.toString(),
                             address = barber.shopStreetAddress.toString() + barber.city.toString() + barber.state.toString(),
-                            distance = getLocation(
-                                lat1 = locationDetails.latitude!!.toDouble()?:0.0,
-                                long1 = locationDetails.longitude!!.toDouble()?:0.0,
-                                lat2 = barber.lat,
-                                long2 = barber.long
-                            ),
+                            distance = barber.distance!!,
                             noOfReviews = barber.noOfReviews!!.toInt(),
                             rating = barber.rating,
                             onHeartClick = {
-                                if (isLiked) {
-                                    // Barber is already liked, so unlike
+                                isLiked = if (isLiked) {
                                     likedBarberViewModel.unlikeBarber(barber.uid)
-                                    isLiked = false // Update local state immediately
-
-
+                                    false
                                 } else {
-                                    // Barber is not liked yet, so like
                                     likedBarberViewModel.likeBarber(barber.uid)
-                                    isLiked = true // Update local state immediately
-
+                                    true
                                 }
                             },
                             onBookNowClick = {
@@ -275,17 +246,13 @@ fun MainScreen(
                                 )
                                 navController.navigate(
                                     route = Screens.BarberScreen.route,
-                                    builder = {
-                                        // Specify the popUpTo and popUpToSavedState parameters
-                                        popUpTo(route = Screens.MainScreen.route) {
-                                            inclusive =
-                                                false // Exclude the HomeScreen from the popUpTo
-                                        }
-                                    })
+                                )
                             },
                             isFavorite = isLiked,
                             modifier = Modifier,
-                            open = barber.open!!
+                            open = barber.open!!,
+                            width = 280.dp,
+                            height = 270.dp
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                     }
@@ -316,7 +283,16 @@ fun MainScreen(
                         )
                         navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = "location",
-                            value = locationDetails.city.toString()
+                            value = mainScreenViewModel.locationDetails.value.city.toString()
+                        )
+                     navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "latitude",
+                            value = mainScreenViewModel.locationDetails.value.latitude!!.toDouble()
+
+                        )
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "longitude",
+                            value = mainScreenViewModel.locationDetails.value.longitude!!.toDouble()
                         )
                         navController.navigate(Screens.ViewAllScreen.route)
                     }) {
@@ -324,13 +300,13 @@ fun MainScreen(
                     }
 
                 }
-                for (barber in barberPopularModel) {
+                for (barber in mainScreenViewModel.barberPopularModel.value) {
                     var isLiked by remember {
                         mutableStateOf(
                             false
                         )
                     }
-                    LaunchedEffect(barber.uid) {
+                    LaunchedEffect(isLiked) {
                         scope.launch(Dispatchers.IO) {
                             isLiked = likedBarberViewModel.isBarberLiked(barber.uid)
                         }
@@ -339,12 +315,7 @@ fun MainScreen(
                         shopName = barber.shopName.toString(),
                         imageUri = barber.imageUri.toString(),
                         address = barber.shopStreetAddress.toString() + barber.city.toString() + barber.state.toString(),
-                        distance = getLocation(
-                            lat1 = locationDetails.latitude!!.toDouble(),
-                            long1 = locationDetails.longitude!!.toDouble(),
-                            lat2 = barber.lat,
-                            long2 = barber.long
-                        ),
+                        distance = barber.distance!!,
                         numberOfReviews = barber.noOfReviews!!.toInt(),
                         rating = barber.rating,
                         onBookClick = {
@@ -353,38 +324,21 @@ fun MainScreen(
                                 value = barber
                             )
                             navController.navigate(Screens.BarberScreen.route)
-//                        navController.popBackStack()
                         }, open = barber.open!!,
-                        onHeartClick = { if (isLiked) {
-                            // Barber is already liked, so unlike
-                            likedBarberViewModel.unlikeBarber(barber.uid)
-                            isLiked = false // Update local state immediately
-
-
-                        } else {
-                            // Barber is not liked yet, so like
-                            likedBarberViewModel.likeBarber(barber.uid)
-                            isLiked = true // Update local state immediately
-
-                        }},
-                        isFavorite = isLiked
+                        onHeartClick = {
+                            isLiked = if (isLiked) {
+                                likedBarberViewModel.unlikeBarber(barber.uid)
+                                false
+                            } else {
+                                likedBarberViewModel.likeBarber(barber.uid)
+                                true
+                            }
+                        },
+                        isFavorite = isLiked,
                     )
                 }
 
             }
-//            Column(modifier = Modifier.align(Alignment.BottomCenter)) {
-
-
-            BottomAppNavigationBar(
-                onHomeClick = { /*TODO*/ },
-                onLocationClick = { /*TODO*/ },
-                onBookClick = { /*TODO*/ },
-                onMessageClick = { /*TODO*/ },
-                onProfileClick = {},
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-            )
-            // }
         }
     }
 }
@@ -406,7 +360,8 @@ fun initializeMultipleBarber(): MutableState<List<BarberModel>> {
                     uid = "",
                     lat = 0.0,
                     long = 0.0,
-                    open = true
+                    open = true,
+                    distance = 0.0
                 )
             )
         )
@@ -422,12 +377,4 @@ fun getLocation(lat1: Double, long1: Double, lat2: Double, long2: Double): Doubl
     var solution = distance[0].toDouble() / 1000
     solution = Math.round(solution * 10.0) / 10.0
     return solution
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun AdvancedSignUpScreenPreview() {
-    val context = LocalContext.current
-    val navController = rememberNavController()
 }

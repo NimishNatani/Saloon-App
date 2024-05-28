@@ -135,7 +135,7 @@ fun CircularProgressWithAppLogo() {
         var isPlaying by remember { mutableStateOf(true) }
         val progress by animateLottieCompositionAsState(
             composition = composition,
-            isPlaying = isPlaying,restartOnPlay = true, iterations = 10, speed = 0.75f
+            isPlaying = isPlaying, restartOnPlay = true, iterations = 10, speed = 0.75f
         )
         Column(
             modifier = Modifier
@@ -144,15 +144,18 @@ fun CircularProgressWithAppLogo() {
                     color = Color.White
                 ),
         ) {
-Box(modifier = Modifier.fillMaxSize()){
-            LottieAnimation(
-                composition = composition, progress = { progress }, modifier = Modifier
-                    .size(250.dp)
-                    .padding(start = 100.dp, top = 40.dp)
-                    , alignment = Alignment.Center
-            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier
+                        .size(250.dp)
+                        .padding(start = 100.dp, top = 40.dp),
+                    alignment = Alignment.Center
+                )
+            }
         }
-    }}
+    }
 }
 
 @Composable
@@ -213,14 +216,14 @@ fun IconButtonWithTriangle(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         CurvyTriangleWithCircle(
-            color = if (isSelected) Color(sallonColor.toArgb()) else Color.Transparent,
+            color = if (isSelected) Color.White else Color.Transparent,
             alignment = Alignment.TopStart
         )
 
         androidx.compose.material.Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (isSelected) colorResource(id = R.color.sallon_color) else Color.Gray,
+            tint = if (isSelected) Color.White else Color.Gray,
             modifier = Modifier.size(34.dp)
         )
     }
@@ -339,7 +342,7 @@ fun BottomAppNavigationBar(
     BottomAppBar(
         modifier = modifier.height(56.dp),
         contentPadding = PaddingValues(8.dp),
-        containerColor = colorResource(id = R.color.white),
+        containerColor = sallonColor,
         tonalElevation = 8.dp,
     ) {
         Row(
@@ -513,7 +516,7 @@ fun CircularCheckbox(
     color: Color = Color.Green,
     size: Dp = 48.dp
 ) {
-    var checked by remember { mutableStateOf(false) }
+    var checked by remember { mutableStateOf(isServiceSelected) }
     Box(
         modifier = modifier
             .size(size)
