@@ -21,8 +21,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -35,11 +33,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BigSaloonPreviewCard
@@ -247,8 +247,8 @@ fun MainScreen(
                             imageUrl = barber.imageUri.toString(),
                             address = barber.shopStreetAddress.toString() + barber.city.toString() + barber.state.toString(),
                             distance = getLocation(
-                                lat1 = locationDetails.latitude!!.toDouble(),
-                                long1 = locationDetails.longitude!!.toDouble(),
+                                lat1 = locationDetails.latitude!!.toDouble()?:0.0,
+                                long1 = locationDetails.longitude!!.toDouble()?:0.0,
                                 lat2 = barber.lat,
                                 long2 = barber.long
                             ),
@@ -425,9 +425,9 @@ fun getLocation(lat1: Double, long1: Double, lat2: Double, long2: Double): Doubl
 }
 
 
-//@Preview(showBackground = true)
-//@Composable
-//fun AdvancedSignUpScreenPreview() {
-//    val context = LocalContext.current
-//    MainScreen()
-//}
+@Preview(showBackground = true)
+@Composable
+fun AdvancedSignUpScreenPreview() {
+    val context = LocalContext.current
+    val navController = rememberNavController()
+}

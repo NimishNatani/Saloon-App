@@ -61,6 +61,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage:20.3.0")
     implementation("androidx.compose.material3:material3-android:1.2.1")
     implementation("com.google.android.gms:play-services-location:21.2.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
     //this is the code for navigation between screens
     val nav_version = "2.7.7"
 
@@ -151,6 +152,7 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.9.0")
     implementation("com.exyte:animated-navigation-bar:1.0.0")
 
+//lottie animation
     implementation ( "com.airbnb.android:lottie-compose:6.4.0" )
     implementation("com.exyte:animated-navigation-bar:1.0.0")
 

@@ -147,7 +147,8 @@ fun CircularProgressWithAppLogo() {
 Box(modifier = Modifier.fillMaxSize()){
             LottieAnimation(
                 composition = composition, progress = { progress }, modifier = Modifier
-                    .size(250.dp).padding(start=100.dp,top=40.dp)
+                    .size(250.dp)
+                    .padding(start = 100.dp, top = 40.dp)
                     , alignment = Alignment.Center
             )
         }
@@ -563,6 +564,7 @@ fun LaunchPhotoPicker(singlePhotoPickerLauncher: ManagedActivityResultLauncher<P
 @Composable
 fun Preview() {
     val context = LocalContext.current
-    LoadingAnimation()
+   // CommonDialog()
+    CircularProgressWithAppLogo()
 }
 
