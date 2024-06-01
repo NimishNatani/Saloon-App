@@ -1,12 +1,14 @@
 package com.practicecoding.sallonapp.appui.components
 
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,6 +33,7 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.twotone.List
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,11 +57,11 @@ import com.practicecoding.sallonapp.ui.theme.purple_400
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 
 
-enum class NavigationItem(val icon: ImageVector) {
-    Home(Icons.Default.Home),
-    Book(Icons.AutoMirrored.TwoTone.List),
-    Message(Icons.AutoMirrored.Filled.Send),
-    Profile(Icons.Default.Person)
+enum class NavigationItem(val icon: ImageVector, val iconName:String) {
+    Home(Icons.Default.Home,"Home"),
+    Book(Icons.AutoMirrored.TwoTone.List,"Booking"),
+    Message(Icons.AutoMirrored.Filled.Send,"Chats"),
+    Profile(Icons.Default.Person,"Profile")
 }
 
 fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
@@ -72,20 +75,16 @@ fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
 
 @Composable
 fun BottomAppNavigationBar(
-    onHomeClick: () -> Unit,
-    onBookClick: () -> Unit,
-    onMessageClick: () -> Unit,
-    onProfileClick: () -> Unit,
-    modifier: Modifier
+    selectedItem: NavigationItem,
+    onItemSelected: (NavigationItem) -> Unit
 ) {
-    val bottomBarItems = remember { NavigationItem.values() }
-    var selectedIndex by remember { mutableStateOf(0) }
+    val bottomBarItems = NavigationItem.entries.toTypedArray()
     AnimatedNavigationBar(
-        modifier = modifier
+        modifier = Modifier
             .height(65.dp).background(Color.White)
 //            .clip(shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)).border(0.5.dp, color = Color.LightGray)
         .fillMaxWidth(),
-        selectedIndex = selectedIndex,
+        selectedIndex = selectedItem.ordinal,
         barColor = sallonColor,
         ballAnimation = Parabolic(tween(durationMillis = 300)),
         ballColor = sallonColor,
@@ -96,15 +95,26 @@ fun BottomAppNavigationBar(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .noRippleClickable { selectedIndex = item.ordinal },
+                    .noRippleClickable { onItemSelected(item) },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = item.icon,
-                    contentDescription = "Icon",
-                    modifier = Modifier.size(24.dp),
-                    tint = if (selectedIndex == item.ordinal) Color.White else Color.Gray
-                )
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = "Icon",
+                        modifier = Modifier
+                            .size(42.dp)
+                            .padding(top = 10.dp),
+                        tint = if (selectedItem == item) Color.White else Color.Gray
+                    )
+                    Text(
+                        text = item.iconName, modifier = Modifier,
+                        color = if (selectedItem == item) Color.White else Color.Gray
+                    )
+                }
             }
         }
     }

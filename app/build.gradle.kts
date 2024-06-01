@@ -8,6 +8,14 @@ plugins {
 }
 
 android {
+//    signingConfigs {
+//        create("release") {
+//            storeFile = file("D:\\SallonApp\\app\\build\\jks\\salon.jks")
+//            storePassword = "Nimish@2005"
+//            keyAlias = "key0"
+//            keyPassword = "Nimish@2005"
+//        }
+//    }
     namespace = "com.practicecoding.sallonapp"
     compileSdk = 34
 
@@ -22,6 +30,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        signingConfig = signingConfigs.getByName("debug")
     }
 
     buildTypes {
@@ -31,6 +40,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -101,7 +111,7 @@ dependencies {
     implementation("androidx.compose.animation:animation:1.6.7")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material3:material3:1.2.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -154,5 +164,5 @@ dependencies {
     implementation ( "com.airbnb.android:lottie-compose:6.4.0" )
     implementation("com.exyte:animated-navigation-bar:1.0.0")
 
-
+    implementation ("dev.shreyaspatil.EasyUpiPayment:EasyUpiPayment:3.0.3")
 }

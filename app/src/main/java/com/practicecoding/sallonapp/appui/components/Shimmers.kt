@@ -231,7 +231,6 @@ fun ShimmerEffectMainScreen() {
                     top = 10.dp,
                     start = 16.dp,
                     end = 16.dp,
-                    bottom = 64.dp
                 )
                 .fillMaxSize()
                 .verticalScroll(scroll)
@@ -513,7 +512,8 @@ fun Modifier.shimmerEffect(): Modifier = composed {
         brush = Brush.linearGradient(
             colors = listOf(
                 Color(0xFFD9D7DA),
-                Color(0xFFC3C2C4), Color(0xFFBEBCBC)
+                Color(0xFFC3C2C4),
+//                Color(0xFFBEBCBC)
             ), start = Offset(startOffsetX, 0f),
             end = Offset(startOffsetX + size.width.toFloat(), size.height.toFloat())
         )

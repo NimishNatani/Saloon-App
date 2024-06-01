@@ -85,6 +85,11 @@ import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.delay
 
+
+@Composable
+fun SuccessfullDialog(){
+
+}
 @Composable
 fun CommonDialog() {
 

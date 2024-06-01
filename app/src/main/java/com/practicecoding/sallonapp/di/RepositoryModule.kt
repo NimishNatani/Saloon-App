@@ -3,9 +3,11 @@ package com.practicecoding.sallonapp.di
 import com.practicecoding.sallonapp.data.AuthRepository
 import com.practicecoding.sallonapp.data.FireStoreDbRepository
 import com.practicecoding.sallonapp.data.LocationRepository
+import com.practicecoding.sallonapp.data.SlotsRepository
 import com.practicecoding.sallonapp.domain.AuthRepositoryImpl
 import com.practicecoding.sallonapp.domain.FirestoreDbRespositoryImpl
 import com.practicecoding.sallonapp.domain.LocationRepositoryImpl
+import com.practicecoding.sallonapp.domain.SlotsImpl
 import com.practicecoding.sallonapp.room.Dao
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
 import com.practicecoding.sallonapp.room.Repo
@@ -35,6 +37,10 @@ abstract class RepositoryModule {
         repo: LocationRepositoryImpl
     ): LocationRepository
 
+    @Binds
+    abstract fun provideSlots(
+        repo: SlotsImpl
+    ): SlotsRepository
 
 
 }
