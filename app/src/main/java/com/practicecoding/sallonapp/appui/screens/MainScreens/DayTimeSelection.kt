@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.components.RowofDate
@@ -83,7 +84,7 @@ fun TimeSelection(
     val context = LocalContext.current
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val slots = generateTimeSlots(startTime, endTime, intervalMinutes, bookedTimes, notAvailableTimes)
-//    val selectedSlots = remember { mutableStateListOf<TimeSlot>() }
+    val selectedSlots = remember { mutableStateListOf<TimeSlot>() }
     var showDialog by remember { mutableStateOf(false) }
     var dialogMessage by remember { mutableStateOf("") }
     if(restScreenViewModel.selectedSlots.size>ceil(time/30.0).toInt()){
@@ -326,22 +327,45 @@ fun generateTimeSlots(
 }
 
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewTimeSlotsGrid() {
-//    val startTime = LocalTime.of(10, 0)
-//    val endTime = LocalTime.of(22, 0)
-//    val intervalMinutes = 30L
-//    val bookedTimes = listOf(
-//        LocalTime.of(11, 0),
-//        LocalTime.of(13, 30),
-//        LocalTime.of(15, 0)
-//    )
-//    val notAvailableTimes = listOf(
-//        LocalTime.of(12, 30),
-//        LocalTime.of(16, 0)
-//    )
-//
-//    TimeSelection(startTime, endTime, intervalMinutes, bookedTimes, notAvailableTimes, time = 40, date = LocalDate.now(),)
-//}
+@Preview(showBackground = true)
+@Composable
+fun PreviewTimeSlotsGrid() {
+    val startTime = LocalTime.of(10, 0)
+    val endTime = LocalTime.of(22, 0)
+    val intervalMinutes = 30L
+    val bookedTimes = listOf(
+        LocalTime.of(11, 0),
+        LocalTime.of(13, 30),
+        LocalTime.of(15, 0)
+    )
+    val notAvailableTimes = listOf(
+        LocalTime.of(12, 30),
+        LocalTime.of(16, 0)
+    )
+
+    TimeSelection(startTime, endTime, intervalMinutes, bookedTimes, notAvailableTimes,
+        time = 40, date = LocalDate.now(),
+        service = emptyList(),
+        navController = rememberNavController(),
+        genders = emptyList(),
+        barber = BarberModel(
+            name = "John's Barbershop",
+            shopName = "John's Haircuts",
+            phoneNumber = "123-456-7890",
+            saloonType = "Traditional",
+            imageUri = "http://example.com/image.jpg",
+            shopStreetAddress = "123 Barber St.",
+            city = "Barberville",
+            state = "BS",
+            aboutUs = "We provide the best haircuts in town.",
+            noOfReviews = "25",
+            rating = 4.5,
+            uid = "unique-barber-id-123",
+            lat = 37.7749,
+            long = -122.4194,
+            open = true,
+            distance = 5.5
+        )
+    )
+}
 
