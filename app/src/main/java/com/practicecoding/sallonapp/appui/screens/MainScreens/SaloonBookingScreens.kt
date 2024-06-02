@@ -1,6 +1,16 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +44,7 @@ import com.practicecoding.sallonapp.appui.components.BookingScreenShopPreviewCar
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.components.HorizontalPagerWithTabs
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectBarber
+import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
 import com.practicecoding.sallonapp.appui.components.TransparentTopAppBar
 import com.practicecoding.sallonapp.appui.viewmodel.BarberScreenViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
@@ -67,10 +78,20 @@ fun BarberScreen(
         barberScreenViewModel.initializeData(viewModelBarber, barber.uid)
 
     }
-    if (barberScreenViewModel.isDialog.value) {
+    AnimatedVisibility(
+        barberScreenViewModel.isDialog.value, exit = fadeOut(animationSpec = tween(800, easing = EaseOut))
+    ) {
         ShimmerEffectBarber()
-    } else {
-        Surface(
+    }
+    AnimatedVisibility(
+        !barberScreenViewModel.isDialog.value, enter = fadeIn(
+              animationSpec = spring(
+                stiffness = Spring.StiffnessVeryLow,
+                dampingRatio = Spring.DampingRatioLowBouncy
+            )
+        )
+    ){
+    Surface(
             modifier = Modifier
                 .fillMaxSize(), color = purple_200
         ) {

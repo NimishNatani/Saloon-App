@@ -83,7 +83,7 @@ fun DoubleCard(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 10.dp),
+                    .padding(top = 20.dp),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -93,7 +93,7 @@ fun DoubleCard(
                 Card(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 10.dp)
+                        .padding(top = 20.dp)
 //                        .verticalScroll(scrollState)
                     ,
                     shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
@@ -108,7 +108,8 @@ fun DoubleCard(
                                 .zIndex(1f) // Ensure the BottomAppBar is on top
                         ) {
                             bottomAppBar()
-                        }                    }
+                        }
+                    }
                 }
             }
         }

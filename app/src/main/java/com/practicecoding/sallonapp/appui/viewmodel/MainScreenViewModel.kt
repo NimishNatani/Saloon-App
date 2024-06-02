@@ -64,6 +64,37 @@ class MainScreenViewModel : ViewModel() {
             }
         }
     }
+    fun observeFirebaseUpdates(viewModelBarber: GetBarberDataViewModel, locationDetails: LocationModel) {
+        viewModelScope.launch {
+            if (locationDetails.city != null) {
+                val nearbyBarbers =
+                    viewModelBarber.getBarberNearby(locationDetails.city.toString(), 6)
+                barberNearbyModel.value = nearbyBarbers.map { barber ->
+                    barber.apply {
+                        distance = getLocation(
+                            lat1 = locationDetails.latitude!!.toDouble(),
+                            long1 = locationDetails.longitude!!.toDouble(),
+                            lat2 = barber.lat,
+                            long2 = barber.long
+                        )
+                    }
+                }.sortedBy { it.distance }
+
+                barberPopularModel.value =
+                    viewModelBarber.getBarberPopular(locationDetails.city.toString(), 6)
+                barberPopularModel.value = barberPopularModel.value.map { barber ->
+                    barber.apply {
+                        distance = getLocation(
+                            lat1 = locationDetails.latitude!!.toDouble(),
+                            long1 = locationDetails.longitude!!.toDouble(),
+                            lat2 = barber.lat,
+                            long2 = barber.long
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     fun initializedUser(userDataViewModel: GetUserDataViewModel) {
         if (isDataInitialized2.value) return
@@ -88,4 +119,11 @@ class MainScreenViewModel : ViewModel() {
         solution = Math.round(solution * 10.0) / 10.0
         return solution
     }
-}
+    override fun onCleared() {
+        super.onCleared()
+        // Clear the barber models
+        barberPopularModel.value = emptyList()
+        barberNearbyModel.value = emptyList()
+        isDataInitialized.value = false
+        isDataInitialized2.value = false
+    }}

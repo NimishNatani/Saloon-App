@@ -1,9 +1,21 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
+import android.content.Context
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
-import androidx.compose.foundation.background
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -27,6 +40,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -39,8 +53,14 @@ import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BigSaloonPreviewCard
+import com.practicecoding.sallonapp.appui.components.BottomAppNavigationBar
 import com.practicecoding.sallonapp.appui.components.Categories
+import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
+import com.practicecoding.sallonapp.appui.components.DoubleCard
+import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.OfferCard
+import com.practicecoding.sallonapp.appui.components.ProfileWithNotification
+import com.practicecoding.sallonapp.appui.components.SearchBar
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
@@ -49,19 +69,61 @@ import com.practicecoding.sallonapp.appui.viewmodel.MainScreenViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.LocationModel
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
-import com.practicecoding.sallonapp.ui.theme.Purple80
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
 
 @Composable
+fun MainScreen1(navHostController: NavController,context: Context) {
+
+    var selectedScreen by remember { mutableStateOf(NavigationItem.Home) }
+    Scaffold(
+        bottomBar = {
+            BottomAppNavigationBar(
+                selectedItem = selectedScreen,
+                onItemSelected = { selectedScreen = it }
+            )
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
+            when (selectedScreen) {
+                NavigationItem.Home -> TopScreen(navHostController,context)
+                NavigationItem.Book -> Text("Book Screen")  // Placeholder for BookScreen
+                NavigationItem.Message -> Text("Message Screen")  // Placeholder for MessageScreen
+                NavigationItem.Profile -> Text("Profile Screen")  // Placeholder for ProfileScreen
+            }
+        }
+    }
+}
+@Composable
+fun TopScreen(navController: NavController,context: Context){
+    DoubleCard(midCarBody = { SearchBar() },
+        mainScreen = {
+            MainScreen(
+                navController = navController,
+                likedBarberViewModel = LikedBarberViewModel(context)
+            )
+        },
+        topAppBar = {
+            ProfileWithNotification(
+
+                onProfileClick = { /*TODO*/ },
+                onNotificationClick = { /*TODO*/ },
+            )
+        },
+//        bottomAppBar = {
+//
+//        }
+    )
+}
+@Composable
 fun MainScreen(
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
     locationViewModel: LocationViewModel = hiltViewModel(),
     likedBarberViewModel: LikedBarberViewModel,
     navController: NavController,
-    mainScreenViewModel: MainScreenViewModel= hiltViewModel()
+    mainScreenViewModel: MainScreenViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     locationViewModel.startLocationUpdates()
@@ -90,12 +152,30 @@ fun MainScreen(
             )
         }
 
-        mainScreenViewModel.initializeData(viewModelBarber, mainScreenViewModel.locationDetails.value,context)
+        mainScreenViewModel.initializeData(
+            viewModelBarber,
+            mainScreenViewModel.locationDetails.value,
+            context
+        )
+
+        mainScreenViewModel.observeFirebaseUpdates(viewModelBarber, mainScreenViewModel.locationDetails.value)
+
 
     }
-    if (mainScreenViewModel.isDialog.value) {
+    AnimatedVisibility(
+        mainScreenViewModel.isDialog.value, exit = fadeOut(animationSpec = tween(800, easing = EaseOut))
+    ) {
         ShimmerEffectMainScreen()
-    } else {
+    }
+    AnimatedVisibility(
+        !mainScreenViewModel.isDialog.value, enter = fadeIn(
+            // Slide in from 40 dp from the top.
+              animationSpec = spring(
+                stiffness = Spring.StiffnessVeryLow,
+                dampingRatio = Spring.DampingRatioLowBouncy
+            )
+        )
+    ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
@@ -103,7 +183,7 @@ fun MainScreen(
                         top = 10.dp,
                         start = 16.dp,
                         end = 16.dp,
-                        bottom = 64.dp
+//                        bottom = 64.dp
                     )
                     .fillMaxSize()
                     .verticalScroll(scroll)
@@ -285,7 +365,7 @@ fun MainScreen(
                             key = "location",
                             value = mainScreenViewModel.locationDetails.value.city.toString()
                         )
-                     navController.currentBackStackEntry?.savedStateHandle?.set(
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = "latitude",
                             value = mainScreenViewModel.locationDetails.value.latitude!!.toDouble()
 
@@ -324,7 +404,8 @@ fun MainScreen(
                                 value = barber
                             )
                             navController.navigate(Screens.BarberScreen.route)
-                        }, open = barber.open!!,
+                        },
+                        open = barber.open!!,
                         onHeartClick = {
                             isLiked = if (isLiked) {
                                 likedBarberViewModel.unlikeBarber(barber.uid)
@@ -342,7 +423,6 @@ fun MainScreen(
         }
     }
 }
-
 @Composable
 fun initializeMultipleBarber(): MutableState<List<BarberModel>> {
     return remember {

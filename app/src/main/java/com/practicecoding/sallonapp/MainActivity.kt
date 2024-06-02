@@ -35,10 +35,10 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             SallonAppTheme {
                 // A surface container using the 'background' color from the theme
-//                Surface(
-//                    modifier = Modifier.fillMaxSize(),
-//                    color = purple_200
-//                ) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = purple_200
+                ) {
                     val updatedCurrentUser = FirebaseAuth.getInstance().currentUser
                     var startDestination by remember {
                         mutableStateOf(Screens.Logo.route)
@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
                         startDestination=Screens.MainScreen.route
                     }
                     AppNavigation(navController = navController,startDestination)
-               // }
+                }
             }
             prepLocationUpdates()
         }
@@ -76,6 +76,7 @@ class MainActivity : ComponentActivity() {
     private fun requestLocationUpdates( ) {
 //        locationViewModel.startLocationUpdates()
     }
+
 }
 
 @Composable
