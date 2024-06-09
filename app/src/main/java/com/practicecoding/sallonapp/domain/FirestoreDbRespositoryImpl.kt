@@ -12,6 +12,7 @@ import com.practicecoding.sallonapp.data.Resource
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.ServiceCat
 import com.practicecoding.sallonapp.data.model.ServiceModel
+import com.practicecoding.sallonapp.data.model.Slots
 import com.practicecoding.sallonapp.data.model.UserModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -68,7 +69,6 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             awaitClose {
                 close()
             }
-
         }
 
     override suspend fun getUser(): UserModel {
@@ -88,11 +88,9 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                 continuation.resumeWithException(exception)
             }
         }
-
 //        delay(500)
         return userModel
     }
-
 
     override suspend fun getBarberPopular(city: String,limit: Long): MutableList<BarberModel> {
         return withContext(Dispatchers.IO) {
@@ -116,14 +114,11 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     open = document.getBoolean("open")!!,
                     aboutUs = document.getString("aboutUs").toString(),
                     saloonType = document.getString("saloonType").toString()
-
-
                 )
             }.toMutableList()
 //            delay(1000)
             listBarberModel
         }
-
     }
 
     override suspend fun getBarberNearby(city: String, limit: Long): MutableList<BarberModel> {
@@ -148,11 +143,9 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     noOfReviews = document.getString("noOfReviews"),
                     open = document.getBoolean("open")!!,
                     aboutUs = document.getString("aboutUs").toString()
-
                 )
             }.toMutableList()
 //            delay(1000)
-
             listBarberModel
         }
     }
@@ -198,8 +191,6 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                 data?.forEach { (serviceName, servicePrice) ->
                     val time = (servicePrice as? Map<*, *>)?.get("serviceDuration") as? String ?: ""
                     val price = (servicePrice as? Map<*, *>)?.get("servicePrice").toString()
-
-
                     val serviceModel = ServiceModel(
                         name = serviceName,
                         price = price,
@@ -207,18 +198,28 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     )
                     listServiceModel.add(serviceModel)
                 }
-
-
                 ServiceCat(
                     type = document.id,
                     services = listServiceModel
-
                 )
-
-
             }.toMutableList()
 //            delay(1000)
             listServiceCat
+        }
+    }
+    override suspend fun getTimeSlot(day: String,uid:String): Slots {
+        return withContext(Dispatchers.IO){
+            val documentSnapshot = barberDb.document(uid).collection("Slots").document(day).get().await()
+            val slots = documentSnapshot.let { document->
+                Slots(
+                    StartTime = document.getString("StartTime").toString(),
+                    EndTime = document.getString("EndTime").toString(),
+                    Booked = document.get("Booked") as? List<String>?: emptyList(),
+                    NotAvailable = document.get("NotAvailable") as? List<String>?: emptyList(),
+                    date = document.getString("date").toString()
+                )
+            }
+            slots
         }
     }
 }

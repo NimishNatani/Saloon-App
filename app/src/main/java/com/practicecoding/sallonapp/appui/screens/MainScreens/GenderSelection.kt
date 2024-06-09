@@ -46,7 +46,7 @@ import androidx.navigation.NavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.GeneralButton
-import com.practicecoding.sallonapp.appui.viewmodel.RestScreenViewModel
+import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.ServiceCat
 import com.practicecoding.sallonapp.ui.theme.purple_200
@@ -59,7 +59,7 @@ fun GenderSelectOnBook(
     service: List<ServiceCat>,
     barber: BarberModel,
     onBackClick: () -> Unit,
-    resetScreenViewModel: RestScreenViewModel = hiltViewModel()
+    viewModel: GetBarberDataViewModel= hiltViewModel(),
 ) {
     BackHandler {
         navController.popBackStack()
@@ -125,15 +125,16 @@ fun GenderSelectOnBook(
                         GenderCounter(
                             genderName = "Male",
                             genderImage = R.drawable.salon_app_logo,  // replace with your image resource
-                            count = resetScreenViewModel.genderCounter.value[0],
+                            count =
+                            viewModel.genderCounter.value[0],
                             onIncrement = {
-                                resetScreenViewModel.genderCounter.value =
-                                    resetScreenViewModel.genderCounter.value.toMutableList()
+                                viewModel.genderCounter.value =
+                                    viewModel.genderCounter.value.toMutableList()
                                         .apply { this[0]++ }
                             },
                             onDecrement = {
-                                resetScreenViewModel.genderCounter.value =
-                                    resetScreenViewModel.genderCounter.value.toMutableList()
+                                viewModel.genderCounter.value =
+                                    viewModel.genderCounter.value.toMutableList()
                                         .apply { if (this[0] > 0) this[0]-- }
                             }
                         )
@@ -143,15 +144,15 @@ fun GenderSelectOnBook(
                         GenderCounter(
                             genderName = "Female",
                             genderImage = R.drawable.salon_app_logo,  // replace with your image resource
-                            count = resetScreenViewModel.genderCounter.value[1],
+                            count = viewModel.genderCounter.value[1],
                             onIncrement = {
-                                resetScreenViewModel.genderCounter.value =
-                                    resetScreenViewModel.genderCounter.value.toMutableList()
+                                viewModel.genderCounter.value =
+                                    viewModel.genderCounter.value.toMutableList()
                                         .apply { this[1]++ }
                             },
                             onDecrement = {
-                                resetScreenViewModel.genderCounter.value =
-                                    resetScreenViewModel.genderCounter.value.toMutableList()
+                                viewModel.genderCounter.value =
+                                    viewModel.genderCounter.value.toMutableList()
                                         .apply { if (this[1] > 0) this[1]-- }
                             }
                         )
@@ -159,15 +160,15 @@ fun GenderSelectOnBook(
                     GenderCounter(
                         genderName = "Other",
                         genderImage = R.drawable.salon_app_logo,  // replace with your image resource
-                        count = resetScreenViewModel.genderCounter.value[2],
+                        count = viewModel.genderCounter.value[2],
                         onIncrement = {
-                            resetScreenViewModel.genderCounter.value =
-                                resetScreenViewModel.genderCounter.value.toMutableList()
+                            viewModel.genderCounter.value =
+                                viewModel.genderCounter.value.toMutableList()
                                     .apply { this[2]++ }
                         },
                         onDecrement = {
-                            resetScreenViewModel.genderCounter.value =
-                                resetScreenViewModel.genderCounter.value.toMutableList()
+                            viewModel.genderCounter.value =
+                                viewModel.genderCounter.value.toMutableList()
                                     .apply { if (this[2] > 0) this[2]-- }
                         }
                     )
@@ -176,8 +177,8 @@ fun GenderSelectOnBook(
                         width = 160,
                         height = 80,
                     ) {
-                        if (resetScreenViewModel.genderCounter.value.sum() > 0) {
-                            if (resetScreenViewModel.genderCounter.value.sum() <= 4) {
+                        if (viewModel.genderCounter.value.sum() > 0) {
+                            if (viewModel.genderCounter.value.sum() <= 4) {
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
                                     key = "service",
                                     value = service
@@ -188,7 +189,7 @@ fun GenderSelectOnBook(
                                 )
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
                                     key = "genders",
-                                    value = resetScreenViewModel.genderCounter.value
+                                    value = viewModel.genderCounter.value
                                 )
                                 navController.navigate(Screens.serviceSelector.route)
                             } else {

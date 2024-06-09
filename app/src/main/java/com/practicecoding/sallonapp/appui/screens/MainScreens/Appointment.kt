@@ -1,6 +1,11 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -30,6 +35,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -57,7 +64,7 @@ import java.time.LocalDate
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DetailScreen(
-    time: List<TimeSlot>,
+    time: MutableState<List<TimeSlot>>,
     date: LocalDate,
     barber: BarberModel,
     service: List<Service>,
@@ -111,6 +118,7 @@ fun DetailScreen(
                 colors = CardColors(Color.White, Color.White, Color.White, Color.White),
                 modifier = Modifier
                     .padding(horizontal = 4.dp, vertical = 2.dp)
+                    .border(1.dp, sallonColor, RoundedCornerShape(10.dp))
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -132,16 +140,16 @@ fun DetailScreen(
                 }
                 Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
                     Text(
-                        text = "Time:",
+                        text = "Time Slots:",
                         color = Color.Gray,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
 
                         )
                     Column {
-                        for (times in time) {
+                        for (times in time.value) {
                             Text(
-                                text = "${times.time}  ",
+                                text = "${times.time}",
                                 color = Color.Black,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold
@@ -157,6 +165,7 @@ fun DetailScreen(
                 colors = CardColors(Color.White, Color.White, Color.White, Color.White),
                 modifier = Modifier
                     .padding(horizontal = 4.dp, vertical = 2.dp)
+                    .border(1.dp, sallonColor, RoundedCornerShape(10.dp))
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -203,6 +212,7 @@ fun DetailScreen(
                 colors = CardColors(Color.White, Color.White, Color.White, Color.White),
                 modifier = Modifier
                     .padding(horizontal = 4.dp, vertical = 2.dp)
+                    .border(1.dp, sallonColor, RoundedCornerShape(10.dp))
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -263,6 +273,25 @@ fun PaymentMethodBottomSheet(
     onPaymentMethodSelect: (String) -> Unit,
     onClose: () -> Unit
 ) {
+    AnimatedVisibility(
+        visible = true,
+        enter = slideInVertically(
+            initialOffsetY = { -it },
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessHigh
+            )
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { -it },
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessHigh
+            )
+        )
+    ) {
+
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -283,7 +312,7 @@ fun PaymentMethodBottomSheet(
                 modifier = Modifier.clickable { onClose() })
         }
 
-        Spacer(modifier = Modifier.height(26.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         Card(
             Modifier
                 .fillMaxSize()
@@ -293,7 +322,11 @@ fun PaymentMethodBottomSheet(
             Column(
                 Modifier
                     .fillMaxSize()
-                    .padding(top = 25.dp, start = 20.dp, end = 20.dp)
+                    .padding(top = 15.dp, start = 10.dp, end = 10.dp, bottom = 20.dp)
+                    .border(2.dp, color = sallonColor, shape = RoundedCornerShape(25.dp))
+                    .padding(top = 10.dp, start = 10.dp, end = 10.dp)
+
+
             ) {
 
 
@@ -328,7 +361,8 @@ fun PaymentMethodBottomSheet(
                         text = "Total:\nRs.$totalPrice",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color.Gray
+                        color = Color.Gray, textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(15.dp)
                     )
                     GeneralButton(
                         text = if (selectedPaymentMethod == "Pay Cash") "Confirm Cash Payment" else "Proceed to Pay Online",
@@ -339,7 +373,7 @@ fun PaymentMethodBottomSheet(
                 }
             }
         }
-    }
+    }}
 }
 
 @Composable

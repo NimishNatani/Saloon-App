@@ -45,8 +45,7 @@ import androidx.navigation.NavController
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.components.RowofDate
-import com.practicecoding.sallonapp.appui.viewmodel.RestScreenViewModel
-import com.practicecoding.sallonapp.appui.viewmodel.SlotsViewModel
+import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.TimeSlot
@@ -73,21 +72,22 @@ fun TimeSelection(
     service: List<Service>,
     barber: BarberModel,
     genders: List<Int>,
-    restScreenViewModel: RestScreenViewModel = hiltViewModel(),
-    slotsViewModel: SlotsViewModel = hiltViewModel()
+    viewModel: GetBarberDataViewModel= hiltViewModel()
 ) {
     BackHandler {
         navController.popBackStack()
     }
-    var slotTime by remember {
-        mutableStateOf(restScreenViewModel.slots.value)
-    }
+//    var slotTime by remember {
+//        mutableStateOf(restScreenViewModel.slots.value)
+//    }
     val dayOfWeek = date.dayOfWeek
     val dayNameFull = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val context = LocalContext.current
+    val slotTime = viewModel._slots.value
     LaunchedEffect(date) {
-        slotTime = restScreenViewModel.getSlots(dayNameFull, barber.uid, slotsViewModel)
+//        slotTime = restScreenViewModel.getSlots(dayNameFull, barber.uid, slotsViewModel)
+        viewModel.getSlots(dayNameFull,barber.uid)
     }
     val startTime = LocalTime.parse(slotTime.StartTime, timeFormatter)
     val endTime = LocalTime.parse(slotTime.EndTime, timeFormatter)
@@ -121,10 +121,10 @@ if (date==LocalDate.parse(slotTime.date)) {
 
     val requiredSlots = ceil(time / 30.0).toInt()
 
-    if (restScreenViewModel.selectedSlots.size > requiredSlots) {
+    if (viewModel.selectedSlots.size > requiredSlots) {
         showDialog=true
         dialogMessage= "You doesn't need more than ${ceil(time/30.0).toInt()}"
-        restScreenViewModel.selectedSlots.removeAt(restScreenViewModel.selectedSlots.size - 1)
+        viewModel.selectedSlots.removeAt(viewModel.selectedSlots.size - 1)
     }
 
     Column(
@@ -196,17 +196,17 @@ if (date==LocalDate.parse(slotTime.date)) {
                     TimeSlotBox(
                         slot = slot,
                         timeFormatter = timeFormatter,
-                        isSelected = restScreenViewModel.selectedSlots.contains(slot),
+                        isSelected = viewModel.selectedSlots.contains(slot),
                         onClick = {
                             when (slot.status) {
                                 SlotStatus.AVAILABLE -> {
-                                    if (restScreenViewModel.selectedSlots.contains(slot)) {
-                                        restScreenViewModel.selectedSlots.remove(slot)
-                                    } else if(restScreenViewModel.selectedSlots.size>0&&restScreenViewModel.selectedSlots[0].date!=date){
+                                    if (viewModel.selectedSlots.contains(slot)) {
+                                        viewModel.selectedSlots.remove(slot)
+                                    } else if(viewModel.selectedSlots.size>0&&viewModel.selectedSlots[0].date!=date){
                                         showDialog=true
                                         dialogMessage = "You can select Slot for only one day"
                                     }else {
-                                        restScreenViewModel.selectedSlots.add(slot)
+                                        viewModel.selectedSlots.add(slot)
                                     }
                                 }
 
@@ -240,14 +240,18 @@ if (date==LocalDate.parse(slotTime.date)) {
 
         GeneralButton(text = "Continue", width = 300, modifier = Modifier) {
             // Handle continue button click
-            if (restScreenViewModel.selectedSlots.size < requiredSlots) {
+            if (viewModel.selectedSlots.size < requiredSlots) {
                 showDialog = true
                 dialogMessage =
                     "Your selected time slots don't match the required time for your service."
             } else {
                 navController.currentBackStackEntry?.savedStateHandle?.set(
                     key = "selectedDateSlots",
-                    value = restScreenViewModel.selectedSlots.toList()
+                    value = mutableStateOf(viewModel.selectedSlots.toList())
+                )
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    key = "date",
+                    value = date
                 )
                 navController.currentBackStackEntry?.savedStateHandle?.set(
                     key = "services",

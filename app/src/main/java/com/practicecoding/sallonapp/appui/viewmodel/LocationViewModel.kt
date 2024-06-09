@@ -1,6 +1,7 @@
 package com.practicecoding.sallonapp.appui.viewmodel
 
 import android.app.Application
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import com.practicecoding.sallonapp.data.LocationLiveData

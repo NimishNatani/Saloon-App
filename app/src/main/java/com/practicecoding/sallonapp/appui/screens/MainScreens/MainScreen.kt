@@ -3,18 +3,14 @@ package com.practicecoding.sallonapp.appui.screens.MainScreens
 import android.content.Context
 import android.location.Address
 import android.location.Geocoder
-import androidx.activity.compose.BackHandler
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.EaseIn
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,14 +28,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -52,7 +46,6 @@ import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BigSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.components.BottomAppNavigationBar
 import com.practicecoding.sallonapp.appui.components.Categories
-import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
 import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.OfferCard
@@ -62,9 +55,9 @@ import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.LocationViewModel
-import com.practicecoding.sallonapp.appui.viewmodel.MainScreenViewModel
-import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
 import com.practicecoding.sallonapp.data.model.LocationModel
+import com.practicecoding.sallonapp.data.model.locationObject
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
@@ -109,9 +102,6 @@ fun TopScreen(navController: NavController,context: Context){
                 onNotificationClick = { /*TODO*/ },
             )
         },
-//        bottomAppBar = {
-//
-//        }
     )
 }
 @Composable
@@ -120,7 +110,6 @@ fun MainScreen(
     locationViewModel: LocationViewModel = hiltViewModel(),
     likedBarberViewModel: LikedBarberViewModel,
     navController: NavController,
-    mainScreenViewModel: MainScreenViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     locationViewModel.startLocationUpdates()
@@ -133,6 +122,12 @@ fun MainScreen(
     val scrollStateRowCategories = rememberScrollState()
     val scrollStateNearbySalon = rememberScrollState()
     val scope = rememberCoroutineScope()
+
+    val barberNearby =
+      viewModelBarber._barberNearby.value
+    val barberPopular=
+       viewModelBarber._barberPopular.value
+    var locationDetails = locationObject.locationDetails
     LaunchedEffect(location) {
         val addresses: List<Address>? = location?.latitude?.let {
             geocoder.getFromLocation(it.toDouble(), location!!.longitude!!.toDouble(), 1)
@@ -140,32 +135,39 @@ fun MainScreen(
 
         if (!addresses.isNullOrEmpty()) {
             val address = addresses[0]
-            mainScreenViewModel.locationDetails.value = LocationModel(
+           locationObject.locationDetails = LocationModel(
                 location!!.latitude,
                 location!!.longitude,
                 address.locality,
                 address.adminArea,
                 address.countryName
             )
+            locationDetails = locationObject.locationDetails
         }
-
-        mainScreenViewModel.initializeData(
-            viewModelBarber,
-            mainScreenViewModel.locationDetails.value,
-            context
-        )
-
-        mainScreenViewModel.observeFirebaseUpdates(viewModelBarber, mainScreenViewModel.locationDetails.value)
-
-
+        if(locationDetails.city!=null) {
+            viewModelBarber.onEvent(
+                MainEvent.getBarberNearby(
+                    locationDetails.city!!,
+                    6
+                )
+            )
+            viewModelBarber.onEvent(
+                MainEvent.getBarberPopular(
+                    locationDetails.city!!,
+                    6
+                )
+            )
+        }
     }
     AnimatedVisibility(
-        mainScreenViewModel.isDialog.value, exit = fadeOut(animationSpec = tween(800, easing = EaseOut))
+        (barberNearby.isEmpty()||barberPopular.isEmpty())
+        , exit = fadeOut(animationSpec = tween(800, easing = EaseOut))
     ) {
         ShimmerEffectMainScreen()
     }
     AnimatedVisibility(
-        !mainScreenViewModel.isDialog.value, enter = fadeIn(
+        (barberNearby.isNotEmpty()&&barberPopular.isNotEmpty())
+        , enter = fadeIn(
             // Slide in from 40 dp from the top.
               animationSpec = spring(
                 stiffness = Spring.StiffnessVeryLow,
@@ -271,16 +273,7 @@ fun MainScreen(
                         )
                         navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = "location",
-                            value = mainScreenViewModel.locationDetails.value.city.toString()
-                        )
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "latitude",
-                            value = mainScreenViewModel.locationDetails.value.latitude!!.toDouble()
-
-                        )
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "longitude",
-                            value = mainScreenViewModel.locationDetails.value.longitude!!.toDouble()
+                            value = locationDetails.city.toString()
                         )
                         navController.navigate(Screens.ViewAllScreen.route)
                     }) {
@@ -289,7 +282,7 @@ fun MainScreen(
 
                 }
                 Row(modifier = Modifier.horizontalScroll(scrollStateNearbySalon)) {
-                    for (barber in mainScreenViewModel.barberNearbyModel.value) {
+                    for (barber in barberNearby) {
                         var isLiked by remember {
                             mutableStateOf(
                                 false
@@ -360,16 +353,7 @@ fun MainScreen(
                         )
                         navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = "location",
-                            value = mainScreenViewModel.locationDetails.value.city.toString()
-                        )
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "latitude",
-                            value = mainScreenViewModel.locationDetails.value.latitude!!.toDouble()
-
-                        )
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "longitude",
-                            value = mainScreenViewModel.locationDetails.value.longitude!!.toDouble()
+                            value = locationDetails.city.toString()
                         )
                         navController.navigate(Screens.ViewAllScreen.route)
                     }) {
@@ -377,7 +361,7 @@ fun MainScreen(
                     }
 
                 }
-                for (barber in mainScreenViewModel.barberPopularModel.value) {
+                for (barber in barberPopular) {
                     var isLiked by remember {
                         mutableStateOf(
                             false
