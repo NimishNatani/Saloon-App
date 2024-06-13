@@ -1,10 +1,10 @@
 package com.practicecoding.sallonapp.appui.viewmodel
 
 import android.location.Location
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.practicecoding.sallonapp.data.FireStoreDbRepository
@@ -16,6 +16,7 @@ import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.data.model.locationObject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,9 +47,19 @@ class GetBarberDataViewModel @Inject constructor(
             is MainEvent.getBarberPopular -> getBarberPopular(event.city, event.limit)
             is MainEvent.getServices -> getServices(event.uid)
             is MainEvent.getSlots -> getSlots(event.day, event.uid)
+            is MainEvent.setBooking -> setBooking(
+                event.barberuid,
+                event.useruid,
+                event.service,
+                event.gender,
+                event.date,
+                event.times
+            )
+
             else -> {}
         }
     }
+
     private suspend fun getBarberPopular(city: String, limit: Long) {
         viewModelScope.launch {
             barberPopular.value = repo.getBarberPopular(city, limit)
@@ -125,6 +136,17 @@ class GetBarberDataViewModel @Inject constructor(
         }
     }
 
+    suspend fun setBooking(
+        barberuid: String,
+        useruid: String,
+        service: List<Service>,
+        gender: List<Int>,
+        date: LocalDate,
+        times: MutableState<List<TimeSlot>>
+    ) {
+        repo.setBooking(barberuid,useruid,service,gender,date.toString(), times)
+    }
+
 }
 
 sealed class MainEvent {
@@ -132,4 +154,12 @@ sealed class MainEvent {
     data class getBarberNearby(val city: String, val limit: Long) : MainEvent()
     data class getServices(val uid: String) : MainEvent()
     data class getSlots(val day: String, val uid: String) : MainEvent()
+    data class setBooking(
+        val barberuid: String,
+        val useruid: String,
+        val service: List<Service>,
+        val gender: List<Int>,
+        val date: LocalDate,
+        val times: MutableState<List<TimeSlot>>
+    ) : MainEvent()
 }

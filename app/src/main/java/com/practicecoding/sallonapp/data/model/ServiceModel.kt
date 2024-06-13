@@ -2,7 +2,9 @@ package com.practicecoding.sallonapp.data.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Parcelize
 data class ServiceModel(
     val name: String? = "",
@@ -15,6 +17,7 @@ data class ServiceCat(
     val type: String? = "",
     val services: List<ServiceModel> = emptyList()
 ): Parcelable
+@Serializable
 @Parcelize
 data class Service(
     val serviceName: String,

@@ -59,7 +59,7 @@ fun GenderSelectOnBook(
     service: List<ServiceCat>,
     barber: BarberModel,
     onBackClick: () -> Unit,
-    viewModel: GetBarberDataViewModel= hiltViewModel(),
+    viewModel: GetBarberDataViewModel = hiltViewModel(),
 ) {
     BackHandler {
         navController.popBackStack()
@@ -67,140 +67,146 @@ fun GenderSelectOnBook(
     var showDialog by remember { mutableStateOf(false) }
     var dialogMessage by remember { mutableStateOf("") }
     Surface(modifier = Modifier.fillMaxSize(), color = purple_200) {
-        Column(
-            modifier = Modifier
-                .padding(top = 20.dp)
-                .fillMaxSize()
-        ) {
-            Box {
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .padding(start = 10.dp)
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = Color.White,
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.Black,
-                            modifier = Modifier
-                                .size(30.dp)
-                                .padding(4.dp)
-                        )
-                    }
-                }
-                Text(
-                    text = "Gender Selection",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    textAlign = TextAlign.Center,
-                    color = Color.Black,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 6.dp)
-                )
-            }
-
-            Card(
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(purple_200)) {
+            Column(
                 modifier = Modifier
+                    .padding(top = 20.dp)
                     .fillMaxSize()
-                    .padding(top = 50.dp),
-                shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
-                elevation = 0.dp
             ) {
+                Box {
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .padding(start = 10.dp)
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.White,
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.Black,
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .padding(4.dp)
+                            )
+                        }
+                    }
+                    Text(
+                        text = "Gender Selection",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.Center,
+                        color = Color.Black,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 6.dp)
+                    )
+                }
 
-
-                Column(
+                Card(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 20.dp),
-//                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(top = 50.dp),
+                    shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
+                    elevation = 0.dp
                 ) {
-                    if (barber.saloonType == "Male Salon" || barber.saloonType == "Hybrid Salon") {
-                        GenderCounter(
-                            genderName = "Male",
-                            genderImage = R.drawable.salon_app_logo,  // replace with your image resource
-                            count =
-                            viewModel.genderCounter.value[0],
-                            onIncrement = {
-                                viewModel.genderCounter.value =
-                                    viewModel.genderCounter.value.toMutableList()
-                                        .apply { this[0]++ }
-                            },
-                            onDecrement = {
-                                viewModel.genderCounter.value =
-                                    viewModel.genderCounter.value.toMutableList()
-                                        .apply { if (this[0] > 0) this[0]-- }
-                            }
-                        )
-                    }
-                    if (barber.saloonType == "Female Salon" || barber.saloonType == "Hybrid Salon") {
 
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 20.dp),
+//                    verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (barber.saloonType == "Male Salon" || barber.saloonType == "Hybrid Salon") {
+                            GenderCounter(
+                                genderName = "Male",
+                                genderImage = R.drawable.salon_app_logo,  // replace with your image resource
+                                count =
+                                viewModel.genderCounter.value[0],
+                                onIncrement = {
+                                    viewModel.genderCounter.value =
+                                        viewModel.genderCounter.value.toMutableList()
+                                            .apply { this[0]++ }
+                                },
+                                onDecrement = {
+                                    viewModel.genderCounter.value =
+                                        viewModel.genderCounter.value.toMutableList()
+                                            .apply { if (this[0] > 0) this[0]-- }
+                                }
+                            )
+                        }
+                        if (barber.saloonType == "Female Salon" || barber.saloonType == "Hybrid Salon") {
+
+                            GenderCounter(
+                                genderName = "Female",
+                                genderImage = R.drawable.salon_app_logo,  // replace with your image resource
+                                count = viewModel.genderCounter.value[1],
+                                onIncrement = {
+                                    viewModel.genderCounter.value =
+                                        viewModel.genderCounter.value.toMutableList()
+                                            .apply { this[1]++ }
+                                },
+                                onDecrement = {
+                                    viewModel.genderCounter.value =
+                                        viewModel.genderCounter.value.toMutableList()
+                                            .apply { if (this[1] > 0) this[1]-- }
+                                }
+                            )
+                        }
                         GenderCounter(
-                            genderName = "Female",
+                            genderName = "Other",
                             genderImage = R.drawable.salon_app_logo,  // replace with your image resource
-                            count = viewModel.genderCounter.value[1],
+                            count = viewModel.genderCounter.value[2],
                             onIncrement = {
                                 viewModel.genderCounter.value =
                                     viewModel.genderCounter.value.toMutableList()
-                                        .apply { this[1]++ }
+                                        .apply { this[2]++ }
                             },
                             onDecrement = {
                                 viewModel.genderCounter.value =
                                     viewModel.genderCounter.value.toMutableList()
-                                        .apply { if (this[1] > 0) this[1]-- }
+                                        .apply { if (this[2] > 0) this[2]-- }
                             }
                         )
+
                     }
-                    GenderCounter(
-                        genderName = "Other",
-                        genderImage = R.drawable.salon_app_logo,  // replace with your image resource
-                        count = viewModel.genderCounter.value[2],
-                        onIncrement = {
-                            viewModel.genderCounter.value =
-                                viewModel.genderCounter.value.toMutableList()
-                                    .apply { this[2]++ }
-                        },
-                        onDecrement = {
-                            viewModel.genderCounter.value =
-                                viewModel.genderCounter.value.toMutableList()
-                                    .apply { if (this[2] > 0) this[2]-- }
-                        }
-                    )
-                    GeneralButton(
-                        text = "Next",
-                        width = 160,
-                        height = 80,
-                    ) {
-                        if (viewModel.genderCounter.value.sum() > 0) {
-                            if (viewModel.genderCounter.value.sum() <= 4) {
-                                navController.currentBackStackEntry?.savedStateHandle?.set(
-                                    key = "service",
-                                    value = service
-                                )
-                                navController.currentBackStackEntry?.savedStateHandle?.set(
-                                    key = "barber",
-                                    value = barber
-                                )
-                                navController.currentBackStackEntry?.savedStateHandle?.set(
-                                    key = "genders",
-                                    value = viewModel.genderCounter.value
-                                )
-                                navController.navigate(Screens.serviceSelector.route)
-                            } else {
-                                showDialog = true
-                                dialogMessage = "You can use this services for 4 people at a time"
-                            }
-                        } else {
-                            showDialog = true
-                            dialogMessage = "Please select your gender"
-                        }
+                }
+            }
+            GeneralButton(
+                text = "Next",
+                width = 160,
+                height = 80,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                if (viewModel.genderCounter.value.sum() > 0) {
+                    if (viewModel.genderCounter.value.sum() <= 4) {
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "service",
+                            value = service
+                        )
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "barber",
+                            value = barber
+                        )
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "genders",
+                            value = viewModel.genderCounter.value
+                        )
+                        navController.navigate(Screens.serviceSelector.route)
+                    } else {
+                        showDialog = true
+                        dialogMessage = "You can use this services for 4 people at a time"
                     }
+                } else {
+                    showDialog = true
+                    dialogMessage = "Please select your gender"
                 }
             }
         }

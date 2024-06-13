@@ -33,8 +33,7 @@ import com.practicecoding.sallonapp.appui.viewmodel.LocationViewModel
 import com.practicecoding.sallonapp.ui.theme.SallonAppTheme
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import dagger.hilt.android.AndroidEntryPoint
-import dev.shreyaspatil.easyupipayment.listener.PaymentStatusListener
-import dev.shreyaspatil.easyupipayment.model.TransactionDetails
+
 import javax.inject.Inject
 
 @AndroidEntryPoint

@@ -2,17 +2,24 @@ package com.practicecoding.sallonapp.domain
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
+import com.google.firebase.ktx.Firebase
+import androidx.compose.runtime.MutableState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObject
 import com.google.firebase.storage.FirebaseStorage
 import com.practicecoding.sallonapp.data.FireStoreDbRepository
 import com.practicecoding.sallonapp.data.Resource
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.ServiceCat
 import com.practicecoding.sallonapp.data.model.ServiceModel
 import com.practicecoding.sallonapp.data.model.Slots
+import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.data.model.UserModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -26,6 +33,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Named
 import kotlin.coroutines.resume
@@ -220,6 +231,39 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                 )
             }
             slots
+        }
+    }
+
+    override suspend fun setBooking(
+        barberuid: String,
+        useruid: String,
+        service: List<Service>,
+        gender: List<Int>,
+        date: String,
+        times: MutableState<List<TimeSlot>>
+    ) {
+        val currentDate = Date()
+        val dateFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
+        val formattedDate = dateFormat.format(currentDate)
+
+        val bookingData = hashMapOf(
+            "barberuid" to barberuid,
+            "useruid" to useruid,
+            "service" to service,
+            "gender" to gender,
+            "date" to date.toString(),
+            "times" to times.value,
+            "status" to "pending"
+        )
+        try {
+            Firebase.firestore
+                .collection("booking")
+                .document(formattedDate)
+                .set(bookingData)
+                .await()
+            Log.d("slotbooking","Booking successfully set!")
+        } catch (e: Exception) {
+            Log.d("slotBooking","Error setting booking: ${e.message}")
         }
     }
 }

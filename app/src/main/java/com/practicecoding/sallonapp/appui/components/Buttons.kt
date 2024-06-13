@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.practicecoding.sallonapp.ui.theme.sallonColor
@@ -30,6 +31,6 @@ fun GeneralButton(text:String,width:Int,height:Int = 80,modifier: Modifier=Modif
             .background(color = Color(sallonColor.toArgb()),shape = RoundedCornerShape(percent = roundnessPercent)),
             contentAlignment = Alignment.Center,
     ) {
-        Text(text= text, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
+        Text(text= text, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 20.sp, textAlign = TextAlign.Center)
     }
 }

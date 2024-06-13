@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -127,6 +128,7 @@ if (date==LocalDate.parse(slotTime.date)) {
         viewModel.selectedSlots.removeAt(viewModel.selectedSlots.size - 1)
     }
 
+    Box(modifier = Modifier.fillMaxSize()){
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -202,7 +204,7 @@ if (date==LocalDate.parse(slotTime.date)) {
                                 SlotStatus.AVAILABLE -> {
                                     if (viewModel.selectedSlots.contains(slot)) {
                                         viewModel.selectedSlots.remove(slot)
-                                    } else if(viewModel.selectedSlots.size>0&&viewModel.selectedSlots[0].date!=date){
+                                    } else if(viewModel.selectedSlots.size>0&&viewModel.selectedSlots[0].date!=date.toString()){
                                         showDialog=true
                                         dialogMessage = "You can select Slot for only one day"
                                     }else {
@@ -238,7 +240,16 @@ if (date==LocalDate.parse(slotTime.date)) {
             )
         }
 
-        GeneralButton(text = "Continue", width = 300, modifier = Modifier) {
+
+        Text(
+            text = "Estimated total time you need according to your selection is approx $time mins",
+            color = sallonColor, // Update to match `sallonColor` if defined
+            fontWeight = FontWeight.SemiBold,
+            textDecoration = TextDecoration.Underline,
+            fontSize = 12.sp
+        )
+    }
+        GeneralButton(text = "Continue", width = 300, modifier = Modifier.align(Alignment.BottomCenter)) {
             // Handle continue button click
             if (viewModel.selectedSlots.size < requiredSlots) {
                 showDialog = true
@@ -267,15 +278,7 @@ if (date==LocalDate.parse(slotTime.date)) {
                 )
                 navController.navigate(Screens.Appointment.route)
             }
-        }
-        Text(
-            text = "Estimated total time you need according to your selection is approx $time mins",
-            color = sallonColor, // Update to match `sallonColor` if defined
-            fontWeight = FontWeight.SemiBold,
-            textDecoration = TextDecoration.Underline,
-            fontSize = 12.sp
-        )
-    }
+        }}
 }
 
 
@@ -370,7 +373,7 @@ fun generateTimeSlots(
             bookedTimes.contains(currentTime) -> SlotStatus.BOOKED
             else -> SlotStatus.AVAILABLE
         }
-        slots.add(TimeSlot(currentTime, date,status))
+        slots.add(TimeSlot(currentTime.toString(), date.toString(),status))
         currentTime = currentTime.plus(intervalMinutes, ChronoUnit.MINUTES)
     }
 
