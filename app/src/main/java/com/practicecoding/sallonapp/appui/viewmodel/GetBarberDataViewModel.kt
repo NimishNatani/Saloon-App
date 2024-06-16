@@ -16,6 +16,7 @@ import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.data.model.locationObject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import okhttp3.internal.wait
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -90,7 +91,7 @@ class GetBarberDataViewModel @Inject constructor(
                         long2 = barber.long
                     )
                 }
-            }.sortedBy { it.distance }
+            }.sortedBy { it.distance }.asReversed()
         }
     }
 

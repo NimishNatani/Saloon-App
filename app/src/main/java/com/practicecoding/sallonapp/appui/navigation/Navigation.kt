@@ -307,17 +307,6 @@ fun AppNavigation(
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
-            val startTime = LocalTime.of(10, 0)
-            val endTime = LocalTime.of(21, 0)
-            val bookedTimes = listOf(
-                LocalTime.of(11, 0),
-                LocalTime.of(13, 30),
-                LocalTime.of(15, 0)
-            )
-            val notAvailableTimes = listOf(
-                LocalTime.of(12, 30),
-                LocalTime.of(16, 0)
-            )
             val currentDate = LocalDate.now()
             val services =
                 navController.previousBackStackEntry?.savedStateHandle?.get<List<Service>>("services")
