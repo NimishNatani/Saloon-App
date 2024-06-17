@@ -42,7 +42,7 @@ import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.ExpandableCard
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.components.ServiceAndPriceWithSelectCard
-import com.practicecoding.sallonapp.appui.viewmodel.RestScreenViewModel
+import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.ServiceCat
 import com.practicecoding.sallonapp.ui.theme.purple_200
@@ -52,9 +52,8 @@ fun ServiceSelector(
     navController: NavController,
     services: List<ServiceCat>, barber: BarberModel,
     genders: List<Int>,
-//    viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
+    viewModel: GetBarberDataViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    restScreenViewModel: RestScreenViewModel = hiltViewModel()
 ) {
     BackHandler {
         navController.popBackStack()
@@ -65,11 +64,15 @@ fun ServiceSelector(
         mutableIntStateOf(genders.sum())
     }
     LaunchedEffect(Unit) {
-        restScreenViewModel.initializedServices(services)
+        viewModel.initializedServices(services)
     }
-    Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
+    Surface(modifier = Modifier
+        .fillMaxSize()
+        .background(purple_200), color = Color.White) {
+        Box(modifier = Modifier.fillMaxSize().background(purple_200)){
         Column(
             modifier = Modifier
+                .background(purple_200)
                 .padding(top = 20.dp)
                 .fillMaxSize()
         ) {
@@ -108,9 +111,9 @@ fun ServiceSelector(
             Card(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White)
+                    .background(purple_200)
                     .padding(top = 40.dp),
-                colors = CardColors(purple_200, purple_200, purple_200, purple_200),
+                colors = CardColors(Color.White, Color.White, Color.White, Color.White),
                 shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = 0.dp
@@ -119,9 +122,9 @@ fun ServiceSelector(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 20.dp, start = 15.dp, end = 15.dp)
-                        .verticalScroll(scrollState)
-                        .background(color = purple_200),
+                        .padding(top = 20.dp, start = 15.dp, end = 15.dp, bottom = 65.dp)
+                        .verticalScroll(scrollState),
+//                        .background(color = Color.White),
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -134,14 +137,14 @@ fun ServiceSelector(
                             ) {
                                 serviceCat.services.forEach { serviceModel ->
                                     val service =
-                                        restScreenViewModel.listOfService.value.find { it.id == serviceModel.name }
+                                        viewModel.listOfService.value.find { it.id == serviceModel.name }
                                     if (service != null) {
                                         ServiceAndPriceWithSelectCard(
                                             service = service,
                                             noOfGender = noOfGender,
                                             onServiceSelectedChange = { updatedService ->
                                                 // Update the list of selected services here
-                                                restScreenViewModel.updateService(updatedService)
+                                                viewModel.updateService(updatedService)
                                             }
                                         )
                                     }
@@ -150,29 +153,30 @@ fun ServiceSelector(
                         }
                         Spacer(modifier = Modifier.height(15.dp))
                     }
-                    GeneralButton(text = "Next", width = 180, modifier = Modifier) {
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "services",
-                            value = restScreenViewModel.listOfService.value
+                    Spacer(modifier = Modifier.height(40.dp))
 
-                        )
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "barber",
-                            value = barber
-
-                        )
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "genders",
-                            value = genders
-
-                        )
-                        navController.navigate(Screens.DayTimeSelection.route)
-                    }
                 }
-                Spacer(modifier = Modifier.height(60.dp))
             }
 
         }
+            GeneralButton(text = "Next", width = 180, modifier = Modifier.align(Alignment.BottomCenter)) {
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    key = "services",
+                    value = viewModel.listOfService.value
+
+                )
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    key = "barber",
+                    value = barber
+
+                )
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    key = "genders",
+                    value = genders
+
+                )
+                navController.navigate(Screens.DayTimeSelection.route)
+            }
     }
-    //   }
+       }
 }

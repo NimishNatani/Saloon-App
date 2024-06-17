@@ -9,6 +9,7 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,7 +31,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -42,6 +44,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -74,21 +77,21 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.NavController
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.ui.theme.Purple40
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.delay
 
 
-@Composable
-fun SuccessfullDialog(){
 
-}
 @Composable
 fun CommonDialog() {
 
@@ -128,6 +131,86 @@ fun CommonDialog() {
     }
 
 
+}
+
+@Composable
+fun SuccessfullDialog(navController: NavController) {
+    Dialog(
+        onDismissRequest = { },
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+    ) {
+        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.success))
+        var isPlaying by remember { mutableStateOf(true) }
+        val progress by animateLottieCompositionAsState(
+            composition = composition,
+            isPlaying = isPlaying,
+            restartOnPlay = true,
+            iterations = 1,  // Play once
+            speed = 1.0f
+        )
+        Surface(
+            modifier = Modifier
+                .clip(RoundedCornerShape(15.dp))
+                .size(300.dp, 300.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Slot Booked Successfully!", color = sallonColor, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top=8.dp))
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier
+                        .size(width = 300.dp, height = 130.dp)
+                        ,
+                    alignment = Alignment.Center
+                )
+                Row(horizontalArrangement = Arrangement.SpaceAround) {
+                    Button(
+                        onClick = { navController.navigate(Screens.MainScreen.route){
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        } },
+                        modifier = Modifier
+                            .background(Color.White)
+                            .border(1.dp, sallonColor, RoundedCornerShape(8.dp))
+
+                            ,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                    ) {
+                        Text(text = "Home Screen", color = sallonColor, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                    }
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Button(
+                        onClick = { navController.navigate(Screens.MainScreen.route) {
+                        }
+                                 },
+                        modifier = Modifier
+                            .border(1.dp, sallonColor, RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                sallonColor
+                            )
+                            ,
+                        colors = ButtonDefaults.buttonColors(containerColor = sallonColor),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(text = "View Details", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                    }
+                     }
+                Spacer(modifier = Modifier.height(14.dp))
+                Text(text = "Your slot details are sent to your barber. Please wait or revisit the app to check if the barber has accepted your booking.",color = Color.Red, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, lineHeight = 16.sp)
+
+            }
+        }
+    }
 }
 
 @Composable

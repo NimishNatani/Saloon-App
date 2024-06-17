@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,6 +50,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.ui.theme.purple_200
+import com.practicecoding.sallonapp.ui.theme.sallonColor
 
 @Composable
 fun DoubleCard(
@@ -195,17 +197,13 @@ fun ExpandableCard(
     var isExpanded by remember { mutableStateOf(expanded) }
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-//            .padding(start = 8.dp, end = 8.dp, top = 2.dp),
-        ,
+            .fillMaxWidth(),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Card(
             modifier = Modifier
-                .fillMaxWidth()
-//                .padding(start = 8.dp, end = 8.dp, top = 1.dp),
-            ,
+                .fillMaxWidth().border(1.dp, sallonColor, RoundedCornerShape(10.dp)),
             elevation = 4.dp,
             shape = RoundedCornerShape(10.dp)
         ) {
@@ -233,7 +231,9 @@ fun ExpandableCard(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
+                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+                    .border(1.dp, sallonColor, RoundedCornerShape(10.dp))
+                ,
                 elevation = 4.dp,
                 shape = RoundedCornerShape(10.dp)
             ) {

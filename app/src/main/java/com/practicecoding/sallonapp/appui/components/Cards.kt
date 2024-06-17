@@ -69,7 +69,6 @@ import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingText
 import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
-import com.practicecoding.sallonapp.appui.viewmodel.MainScreenViewModel
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.purple_400
@@ -202,14 +201,13 @@ fun ProfileWithNotification(
     onProfileClick: () -> Unit,
     onNotificationClick: () -> Unit,
     viewModel: GetUserDataViewModel = hiltViewModel(),
-    mainScreenViewModel: MainScreenViewModel = hiltViewModel()
-
 ) {
     val scope = rememberCoroutineScope()
+    val user = viewModel.user.value
     LaunchedEffect(key1 = true) {
-        mainScreenViewModel.initializedUser(viewModel)
+        viewModel.getUser()
     }
-    if (mainScreenViewModel.isDialog2.value) {
+    if (user.name=="") {
         ShimmerEffectProfile()
     } else {
         Surface(
@@ -232,7 +230,7 @@ fun ProfileWithNotification(
                         .clickable { onProfileClick() }) {
                     Image(
                         painter = rememberAsyncImagePainter(
-                            model = mainScreenViewModel.userModel.value.imageUri
+                            model =user.imageUri
                         ),
                         contentDescription = "User Profile Image",
                         modifier = Modifier.fillMaxSize(),
@@ -245,7 +243,7 @@ fun ProfileWithNotification(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = mainScreenViewModel.userModel.value.name!!,
+                        text = user.name!!,
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
                         color = Color.Black,

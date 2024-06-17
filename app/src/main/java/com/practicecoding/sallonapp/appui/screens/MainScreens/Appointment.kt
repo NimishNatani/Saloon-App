@@ -1,10 +1,16 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,6 +36,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,29 +47,38 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
 import com.practicecoding.sallonapp.appui.components.ExpandableCard
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.components.ServiceNameAndPriceCard
+import com.practicecoding.sallonapp.appui.components.SuccessfullDialog
+import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
+import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DetailScreen(
-    time: List<TimeSlot>,
+    time: MutableState<List<TimeSlot>>,
     date: LocalDate,
     barber: BarberModel,
     service: List<Service>,
-    genders: List<Int>,
-    navController: NavController
+    genders: List<Int>,    navController: NavController
+,
+
+    viewModel: GetBarberDataViewModel = hiltViewModel(),
 ) {
     BackHandler {
         navController.popBackStack()
@@ -78,6 +94,12 @@ fun DetailScreen(
     val totalPrice = service.sumOf { it.price.toInt() * it.count }
     val scroll = rememberScrollState()
 
+    var isdialog by remember {
+        mutableStateOf(false)
+    }
+    if (isdialog) {
+        SuccessfullDialog(navController = navController)
+    }
     ModalBottomSheetLayout(
         sheetState = if (!sheetStae) ModalBottomSheetState(ModalBottomSheetValue.Hidden) else ModalBottomSheetState(
             ModalBottomSheetValue.Expanded
@@ -86,16 +108,32 @@ fun DetailScreen(
             PaymentMethodBottomSheet(totalPrice = totalPrice,
                 selectedPaymentMethod = selectedPaymentMethod,
                 onPaymentMethodSelect = { selectedPaymentMethod = it },
-                onClose = { sheetStae = false })
+                onClose = { sheetStae = false }, navController = navController,
+                onCashClick = {
+                    scope.launch(Dispatchers.IO) {
+                        viewModel.onEvent(
+                            MainEvent.setBooking(
+                                barber.uid,
+                                FirebaseAuth.getInstance().currentUser!!.uid,
+                                service,
+                                genders,
+                                date,
+                                time
+                            )
+                        )
+                    }
+                    isdialog=true
+                }, onOnlineClick = {})
         },
         sheetShape = RoundedCornerShape(topEnd = 15.dp, topStart = 15.dp),
         sheetGesturesEnabled = true,
         sheetBackgroundColor = purple_200
     ) {
+        Box(modifier = Modifier.fillMaxSize()){
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 20.dp, top = 20.dp, end = 20.dp)
+                .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 70.dp)
                 .verticalScroll(scroll),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -111,6 +149,7 @@ fun DetailScreen(
                 colors = CardColors(Color.White, Color.White, Color.White, Color.White),
                 modifier = Modifier
                     .padding(horizontal = 4.dp, vertical = 2.dp)
+                    .border(1.dp, sallonColor, RoundedCornerShape(10.dp))
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -132,16 +171,16 @@ fun DetailScreen(
                 }
                 Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
                     Text(
-                        text = "Time:",
+                        text = "Time Slots:",
                         color = Color.Gray,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
 
                         )
                     Column {
-                        for (times in time) {
+                        for (times in time.value) {
                             Text(
-                                text = "${times.time}  ",
+                                text = "${times.time}",
                                 color = Color.Black,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold
@@ -157,6 +196,7 @@ fun DetailScreen(
                 colors = CardColors(Color.White, Color.White, Color.White, Color.White),
                 modifier = Modifier
                     .padding(horizontal = 4.dp, vertical = 2.dp)
+                    .border(1.dp, sallonColor, RoundedCornerShape(10.dp))
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -203,6 +243,7 @@ fun DetailScreen(
                 colors = CardColors(Color.White, Color.White, Color.White, Color.White),
                 modifier = Modifier
                     .padding(horizontal = 4.dp, vertical = 2.dp)
+                    .border(1.dp, sallonColor, RoundedCornerShape(10.dp))
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -244,15 +285,17 @@ fun DetailScreen(
             }
             Spacer(modifier = Modifier.height(35.dp))
 
-            GeneralButton(text = "Pay Now", width = 300) {
-                scope.launch { sheetStae = true }
 
-            }
             Spacer(modifier = Modifier.height(15.dp))
 
 
         }
+            GeneralButton(text = "Pay Now", width = 300, modifier = Modifier.align(Alignment.BottomCenter)) {
+                scope.launch { sheetStae = true }
+
+            }
     }
+       }
 
 }
 
@@ -261,80 +304,111 @@ fun PaymentMethodBottomSheet(
     totalPrice: Int,
     selectedPaymentMethod: String,
     onPaymentMethodSelect: (String) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    onCashClick: () -> Unit,
+    onOnlineClick: () -> Unit,
+    navController: NavController,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 30.dp)
+
+    AnimatedVisibility(
+        visible = true,
+        enter = slideInVertically(
+            initialOffsetY = { -it },
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessHigh
+            )
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { -it },
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessHigh
+            )
+        )
     ) {
-        Row(
+
+
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(top = 30.dp)
         ) {
-            Text(
-                text = "Payment Method", fontSize = 18.sp, fontWeight = FontWeight.SemiBold
-            )
-            Icon(imageVector = Icons.Default.Close,
-                contentDescription = "Close",
-                modifier = Modifier.clickable { onClose() })
-        }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Payment Method", fontSize = 18.sp, fontWeight = FontWeight.SemiBold
+                )
+                Icon(imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    modifier = Modifier.clickable { onClose() })
+            }
 
-        Spacer(modifier = Modifier.height(26.dp))
-        Card(
-            Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)),
-            colors = CardColors(Color.White, Color.White, Color.White, Color.White)
-        ) {
-            Column(
+            Spacer(modifier = Modifier.height(20.dp))
+            Card(
                 Modifier
                     .fillMaxSize()
-                    .padding(top = 25.dp, start = 20.dp, end = 20.dp)
+                    .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)),
+                colors = CardColors(Color.White, Color.White, Color.White, Color.White)
             ) {
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(top = 15.dp, start = 10.dp, end = 10.dp, bottom = 20.dp)
+                        .border(2.dp, color = sallonColor, shape = RoundedCornerShape(25.dp))
+                        .padding(top = 10.dp, start = 10.dp, end = 10.dp)
 
 
-                Text(
-                    text = "Select Payment Method",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.Black
-                )
-
-                Spacer(modifier = Modifier.height(28.dp))
-
-                PaymentOption(text = "Pay Online",
-                    isSelected = selectedPaymentMethod == "Pay Online",
-                    onSelect = { onPaymentMethodSelect("Pay Online") })
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                PaymentOption(text = "Pay Cash",
-                    isSelected = selectedPaymentMethod == "Pay Cash",
-                    onSelect = { onPaymentMethodSelect("Pay Cash") })
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
                 ) {
+
+
                     Text(
-                        text = "Total:\nRs.$totalPrice",
+                        text = "Select Payment Method",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color.Gray
+                        color = Color.Black
                     )
-                    GeneralButton(
-                        text = if (selectedPaymentMethod == "Pay Cash") "Confirm Cash Payment" else "Proceed to Pay Online",
-                        width = 200
+
+                    Spacer(modifier = Modifier.height(28.dp))
+
+                    PaymentOption(text = "Pay Online",
+                        isSelected = selectedPaymentMethod == "Pay Online",
+                        onSelect = { onPaymentMethodSelect("Pay Online") })
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    PaymentOption(text = "Pay Cash",
+                        isSelected = selectedPaymentMethod == "Pay Cash",
+                        onSelect = { onPaymentMethodSelect("Pay Cash") })
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Handle payment action here
+                        Text(
+                            text = "Total:\nRs.$totalPrice",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.Gray, textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(15.dp)
+                        )
+                        GeneralButton(
+                            text = if (selectedPaymentMethod == "Pay Cash") "Confirm Cash Payment" else "Proceed to Pay Online",
+                            width = 200
+                        ) {
+                            if (selectedPaymentMethod == "Pay Cash") {
+                                onCashClick()
+                            } else onOnlineClick()
+                        }
                     }
                 }
             }

@@ -6,11 +6,8 @@ import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -44,10 +41,9 @@ import com.practicecoding.sallonapp.appui.components.BookingScreenShopPreviewCar
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.components.HorizontalPagerWithTabs
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectBarber
-import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
 import com.practicecoding.sallonapp.appui.components.TransparentTopAppBar
-import com.practicecoding.sallonapp.appui.viewmodel.BarberScreenViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
+import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.ui.theme.purple_200
 
@@ -58,8 +54,7 @@ fun BarberScreen(
     onLikeClick: () -> Unit,
     onShareClick: () -> Unit,
     barber: BarberModel,
-    viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
-    barberScreenViewModel: BarberScreenViewModel = hiltViewModel()
+    viewModel: GetBarberDataViewModel = hiltViewModel(),
 ) {
     BackHandler {
         navController.popBackStack()
@@ -74,17 +69,20 @@ fun BarberScreen(
     )
     val screenHeight = LocalContext.current.resources.displayMetrics.heightPixels
     val scope = rememberCoroutineScope()
+
+    val services = viewModel._services.value
+
     LaunchedEffect(key1 = true) {
-        barberScreenViewModel.initializeData(viewModelBarber, barber.uid)
+        viewModel.onEvent(MainEvent.getServices(barber.uid))
 
     }
     AnimatedVisibility(
-        barberScreenViewModel.isDialog.value, exit = fadeOut(animationSpec = tween(800, easing = EaseOut))
+        services.isEmpty(), exit = fadeOut(animationSpec = tween(800, easing = EaseOut))
     ) {
         ShimmerEffectBarber()
     }
     AnimatedVisibility(
-        !barberScreenViewModel.isDialog.value, enter = fadeIn(
+        services.isNotEmpty(), enter = fadeIn(
               animationSpec = spring(
                 stiffness = Spring.StiffnessVeryLow,
                 dampingRatio = Spring.DampingRatioLowBouncy
@@ -176,7 +174,7 @@ fun BarberScreen(
                                 ) {
                                     HorizontalPagerWithTabs(
                                         barber,
-                                        barberScreenViewModel.services.value,
+                                        services,
                                         previewImages
                                     )
 
@@ -202,7 +200,7 @@ fun BarberScreen(
                     ) {
                         navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = "service",
-                            value = barberScreenViewModel.services.value
+                            value = services
                         )
                         navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = "barber",

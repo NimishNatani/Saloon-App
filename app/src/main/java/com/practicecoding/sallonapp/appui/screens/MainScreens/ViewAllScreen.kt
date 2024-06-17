@@ -41,7 +41,7 @@ import com.practicecoding.sallonapp.appui.components.BigSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.components.CircularCheckbox
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectBarberBig
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
-import com.practicecoding.sallonapp.appui.viewmodel.ViewAllScreenViewModel
+import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
 import com.practicecoding.sallonapp.ui.theme.purple_400
 import com.practicecoding.sallonapp.ui.theme.sallonColor
@@ -52,10 +52,7 @@ import kotlinx.coroutines.launch
 fun ViewAllScreen(
     type: String,
     location: String,
-    latitude: Double,
-    longitude: Double,
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
-    viewAllScreenViewModel: ViewAllScreenViewModel = hiltViewModel(),
     likedBarberViewModel: LikedBarberViewModel,
     navController: NavController,
     sortType: String
@@ -67,37 +64,37 @@ fun ViewAllScreen(
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    var barbers =
+        if (type == "NearBy") viewModelBarber._barberNearby.value else viewModelBarber._barberPopular.value
     LaunchedEffect(key1 = true) {
-        viewAllScreenViewModel.initializeBarber(
-            viewModelBarber,
-            location,
-            type,
-            latitude,
-            longitude,
-
-            )
+        viewModelBarber.onEvent(
+            if (type == "NearBy") MainEvent.getBarberNearby(
+                location,
+                15
+            ) else MainEvent.getBarberPopular(location, 15)
+        )
     }
-    if (viewAllScreenViewModel.isDialog.value) {
+    if (barbers.isEmpty()) {
         for (i in 1 until 3) {
             ShimmerEffectBarberBig(screenWidth - 50.dp, screenWidth - 85.dp)
         }
     } else {
         when (sortType) {
             "Distance" -> {
-                viewAllScreenViewModel.barbers.value =
-                    viewAllScreenViewModel.barbers.value.sortedBy { it.distance }
+                barbers =
+                    barbers.sortedBy { it.distance }
             }
 
             "Rating" -> {
 
-                viewAllScreenViewModel.barbers.value =
-                    viewAllScreenViewModel.barbers.value.sortedBy { it.rating }.asReversed()
+                barbers=
+                    barbers.sortedBy { it.rating }.asReversed()
 
             }
 
             else -> {
-                viewAllScreenViewModel.barbers.value =
-                    viewAllScreenViewModel.barbers.value.sortedBy { it.noOfReviews!!.toInt() }
+                barbers=
+                    barbers.sortedBy { it.noOfReviews!!.toInt() }
                         .asReversed()
             }
         }
@@ -107,7 +104,7 @@ fun ViewAllScreen(
                 .verticalScroll(scrollState)
                 .padding(vertical = 20.dp), horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            for (barber in viewAllScreenViewModel.barbers.value) {
+            for (barber in barbers) {
                 var isLiked by remember {
                     mutableStateOf(
                         false

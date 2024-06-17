@@ -1,18 +1,17 @@
 package com.practicecoding.sallonapp.appui.navigation
 
 import android.app.Activity
-import android.widget.Toast
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -39,8 +38,6 @@ import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OTPVerificati
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.PhoneNumberScreen
-import com.practicecoding.sallonapp.appui.viewmodel.RestScreenViewModel
-import com.practicecoding.sallonapp.appui.viewmodel.SlotsViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.ServiceCat
@@ -48,8 +45,6 @@ import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.format.TextStyle
-import java.util.Locale
 
 @Composable
 fun AppNavigation(
@@ -251,11 +246,7 @@ fun AppNavigation(
                 navController.previousBackStackEntry?.savedStateHandle?.get<String>("type")
             val resultCity =
                 navController.previousBackStackEntry?.savedStateHandle?.get<String>("location")
-            val resultLat =
-                navController.previousBackStackEntry?.savedStateHandle?.get<Double>("latitude")
-            val resultLong =
-                navController.previousBackStackEntry?.savedStateHandle?.get<Double>("longitude")
-            if (resultLat != null && resultLong != null && resultCity != null && resultType != null) {
+            if ( resultCity != null && resultType != null) {
                 var isBottomBar by remember {
                     mutableStateOf(false)
                 }
@@ -269,8 +260,6 @@ fun AppNavigation(
                         ViewAllScreen(
                             type = resultType,
                             location = resultCity,
-                            latitude = resultLat,
-                            longitude = resultLong,
                             likedBarberViewModel = LikedBarberViewModel(context),
                             navController = navController,
                             sortType = sortType
@@ -319,17 +308,6 @@ fun AppNavigation(
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
-            val startTime = LocalTime.of(10, 0)
-            val endTime = LocalTime.of(21, 0)
-            val bookedTimes = listOf(
-                LocalTime.of(11, 0),
-                LocalTime.of(13, 30),
-                LocalTime.of(15, 0)
-            )
-            val notAvailableTimes = listOf(
-                LocalTime.of(12, 30),
-                LocalTime.of(16, 0)
-            )
             val currentDate = LocalDate.now()
             val services =
                 navController.previousBackStackEntry?.savedStateHandle?.get<List<Service>>("services")
@@ -369,7 +347,7 @@ fun AppNavigation(
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
             val time =
-                navController.previousBackStackEntry?.savedStateHandle?.get<List<TimeSlot>>("time")
+                navController.previousBackStackEntry?.savedStateHandle?.get<MutableState<List<TimeSlot>>>("selectedDateSlots")
             val date =
                 navController.previousBackStackEntry?.savedStateHandle?.get<LocalDate>("date")
             val barber =
