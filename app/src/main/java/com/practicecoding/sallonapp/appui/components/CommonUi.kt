@@ -66,7 +66,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -335,7 +334,7 @@ private fun CurvyTriangleWithCircle(
 }
 
 @Composable
-fun BottomAppNavigationBar(
+fun BottomAppNavigationBar1(
     currentScreen: BottomNavItems,
     onHomeClick: () -> Unit,
     onLocationClick: () -> Unit,

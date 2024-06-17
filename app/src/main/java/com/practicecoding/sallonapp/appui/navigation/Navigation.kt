@@ -201,7 +201,8 @@ fun AppNavigation(
                 }
             )
         }
-        composable(Screens.MainScreen.route, enterTransition = { enterTransition },
+        composable(Screens.MainScreen.route,
+            enterTransition = { enterTransition },
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
