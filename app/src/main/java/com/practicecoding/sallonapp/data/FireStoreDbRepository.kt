@@ -4,6 +4,8 @@ import android.app.Activity
 import android.net.Uri
 import androidx.compose.runtime.MutableState
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.ChatModel
+import com.practicecoding.sallonapp.data.model.Message
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.ServiceCat
 import com.practicecoding.sallonapp.data.model.ServiceModel
@@ -38,6 +40,9 @@ interface FireStoreDbRepository {
                            date: String,
                            times: MutableState<List<TimeSlot>>
     )
+    suspend fun addChat(message: Message,barberuid: String)
+    suspend fun getChatUser():MutableList<ChatModel>
+    suspend fun messageList(barberuid: String):Flow<List<Message>>
 
 
 

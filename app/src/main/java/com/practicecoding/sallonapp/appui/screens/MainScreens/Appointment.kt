@@ -59,14 +59,20 @@ import com.practicecoding.sallonapp.appui.components.ServiceNameAndPriceCard
 import com.practicecoding.sallonapp.appui.components.SuccessfullDialog
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
+import com.practicecoding.sallonapp.appui.viewmodel.MessageEvent
+import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.Message
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -77,7 +83,7 @@ fun DetailScreen(
     service: List<Service>,
     genders: List<Int>,    navController: NavController
 ,
-
+messageViewModel: MessageViewModel = hiltViewModel(),
     viewModel: GetBarberDataViewModel = hiltViewModel(),
 ) {
     BackHandler {
@@ -121,6 +127,11 @@ fun DetailScreen(
                                 time
                             )
                         )
+                        val currentDate = Date()
+                        val dateFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
+                        val formattedDate = dateFormat.format(currentDate)
+                        val message = Message(false,"Hello Mam/Sir, How are you?",formattedDate)
+                        messageViewModel.onEvent(MessageEvent.AddChat(message,barber.uid))
                     }
                     isdialog=true
                 }, onOnlineClick = {})

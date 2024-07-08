@@ -20,9 +20,11 @@ import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
 import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.HeadingText
+import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.SalonCard
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BarberScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BottomSheet
+import com.practicecoding.sallonapp.appui.screens.MainScreens.ChatScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.DetailScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.GenderSelectOnBook
 import com.practicecoding.sallonapp.appui.screens.MainScreens.MainScreen1
@@ -200,7 +202,8 @@ fun AppNavigation(
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
-            MainScreen1(navController, context)
+            val navigationTo = navController.previousBackStackEntry?.savedStateHandle?.get<NavigationItem>("navigationTo")?:NavigationItem.Home
+            MainScreen1(navController, context,navigationTo)
 
         }
 
@@ -380,6 +383,18 @@ fun AppNavigation(
         }
         composable(Screens.UpiPayment.route) {
             PaymentScreen()
+        }
+        composable(Screens.ChatScreen.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
+            val image =
+                navController.previousBackStackEntry?.savedStateHandle?.get<String>("image").toString()
+            val name =
+                navController.previousBackStackEntry?.savedStateHandle?.get<String>("name").toString()
+            val uid =
+                navController.previousBackStackEntry?.savedStateHandle?.get<String>("uid").toString()
+            ChatScreen(image, name,uid,navController)
         }
     }
 }

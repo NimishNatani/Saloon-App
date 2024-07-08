@@ -96,23 +96,18 @@ import kotlinx.coroutines.delay
 @Composable
 fun CommonDialog() {
 
-    Dialog(onDismissRequest = { }) {
+    Dialog(onDismissRequest = { }, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
 
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            Column(
+
+            Row(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 CircularProgressIndicator(
                     modifier = Modifier
                         .width(50.dp)
-                        .align(Alignment.CenterHorizontally)
+
                         .padding(top = 16.dp, bottom = 16.dp),
                     color = Color(sallonColor.toArgb()),
                     trackColor = Color(purple_200.toArgb()),
@@ -120,7 +115,7 @@ fun CommonDialog() {
                 Text(
                     text = "Loading",
                     modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
+
                         .wrapContentSize()
                         .padding(30.dp),
 
@@ -128,7 +123,7 @@ fun CommonDialog() {
                 )
             }
 
-        }
+
     }
 
 
