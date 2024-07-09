@@ -15,5 +15,6 @@ sealed class Screens(val route: String) {
     object DayTimeSelection:Screens("dayTimeSelection")
     object Appointment:Screens("appointment")
     object UpiPayment:Screens("upi_payment")
+    object ChatScreen:Screens("chat_screen")
 
 }

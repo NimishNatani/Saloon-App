@@ -12,10 +12,10 @@ plugins {
 android {
 //    signingConfigs {
 //        create("release") {
-//            storeFile = file("D:\\SallonApp\\app\\build\\jks\\salon.jks")
-//            storePassword = "Nimish@2005"
+//            storeFile = file("F:\\android_studio_projects_kotlin\\Saloon-App\\app\\build\\jks\\salon.jks")
+//            storePassword = "Yash@2004"
 //            keyAlias = "key0"
-//            keyPassword = "Nimish@2005"
+//            keyPassword = "Yash@2004"
 //        }
 //    }
     namespace = "com.practicecoding.sallonapp"

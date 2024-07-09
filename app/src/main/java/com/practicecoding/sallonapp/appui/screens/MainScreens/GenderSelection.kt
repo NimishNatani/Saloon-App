@@ -124,7 +124,7 @@ fun GenderSelectOnBook(
 //                    verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        if (barber.saloonType == "Male Salon" || barber.saloonType == "Hybrid Salon") {
+                        if (barber.saloonType == "Male Salon" || barber.saloonType == "Unisex Salon") {
                             GenderCounter(
                                 genderName = "Male",
                                 genderImage = R.drawable.salon_app_logo,  // replace with your image resource
@@ -142,7 +142,7 @@ fun GenderSelectOnBook(
                                 }
                             )
                         }
-                        if (barber.saloonType == "Female Salon" || barber.saloonType == "Hybrid Salon") {
+                        if (barber.saloonType == "Female Salon" || barber.saloonType == "Unisex Salon") {
 
                             GenderCounter(
                                 genderName = "Female",

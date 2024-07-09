@@ -1,17 +1,16 @@
 package com.practicecoding.sallonapp.data
 
-import android.app.Activity
 import android.net.Uri
 import androidx.compose.runtime.MutableState
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.ChatModel
+import com.practicecoding.sallonapp.data.model.Message
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.ServiceCat
-import com.practicecoding.sallonapp.data.model.ServiceModel
 import com.practicecoding.sallonapp.data.model.Slots
 import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.data.model.UserModel
 import kotlinx.coroutines.flow.Flow
-import java.time.LocalDate
 
 interface FireStoreDbRepository {
 
@@ -38,6 +37,9 @@ interface FireStoreDbRepository {
                            date: String,
                            times: MutableState<List<TimeSlot>>
     )
+    suspend fun addChat(message: Message, barberUid: String)
+    suspend fun getChatUser():MutableList<ChatModel>
+    suspend fun messageList(barberUid: String):Flow<List<Message>>
 
 
 

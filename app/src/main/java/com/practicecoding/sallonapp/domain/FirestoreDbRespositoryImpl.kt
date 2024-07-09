@@ -3,18 +3,19 @@ package com.practicecoding.sallonapp.domain
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import com.google.firebase.ktx.Firebase
 import androidx.compose.runtime.MutableState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObject
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.practicecoding.sallonapp.data.FireStoreDbRepository
 import com.practicecoding.sallonapp.data.Resource
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.ChatModel
+import com.practicecoding.sallonapp.data.model.Message
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.ServiceCat
 import com.practicecoding.sallonapp.data.model.ServiceModel
@@ -24,7 +25,6 @@ import com.practicecoding.sallonapp.data.model.UserModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +34,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
@@ -103,10 +102,11 @@ class FirestoreDbRespositoryImpl @Inject constructor(
         return userModel
     }
 
-    override suspend fun getBarberPopular(city: String,limit: Long): MutableList<BarberModel> {
+    override suspend fun getBarberPopular(city: String, limit: Long): MutableList<BarberModel> {
         return withContext(Dispatchers.IO) {
             val querySnapshot =
-                barberDb.whereEqualTo("city",city).orderBy("rating", Query.Direction.DESCENDING).limit(limit).get().await()
+                barberDb.whereEqualTo("city", city).orderBy("rating", Query.Direction.DESCENDING)
+                    .limit(limit).get().await()
             val listBarberModel = querySnapshot.documents.map { document ->
                 BarberModel(
                     name = document.getString("name") ?: "",
@@ -187,7 +187,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     long = document.getDouble("long")!!.toDouble(),
                     open = document.getBoolean("open")!!,
 
-                )
+                    )
             }
         }
     }
@@ -218,15 +218,17 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             listServiceCat
         }
     }
-    override suspend fun getTimeSlot(day: String,uid:String): Slots {
-        return withContext(Dispatchers.IO){
-            val documentSnapshot = barberDb.document(uid).collection("Slots").document(day).get().await()
-            val slots = documentSnapshot.let { document->
+
+    override suspend fun getTimeSlot(day: String, uid: String): Slots {
+        return withContext(Dispatchers.IO) {
+            val documentSnapshot =
+                barberDb.document(uid).collection("Slots").document(day).get().await()
+            val slots = documentSnapshot.let { document ->
                 Slots(
-                    StartTime = document.getString("StartTime").toString(),
-                    EndTime = document.getString("EndTime").toString(),
-                    Booked = document.get("Booked") as? List<String>?: emptyList(),
-                    NotAvailable = document.get("NotAvailable") as? List<String>?: emptyList(),
+                    StartTime = document.getString("startTime").toString(),
+                    EndTime = document.getString("endTime").toString(),
+                    Booked = document.get("booked") as? List<String> ?: emptyList(),
+                    NotAvailable = document.get("notAvailable") as? List<String> ?: emptyList(),
                     date = document.getString("date").toString()
                 )
             }
@@ -251,7 +253,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             "useruid" to useruid,
             "service" to service,
             "gender" to gender,
-            "date" to date.toString(),
+            "date" to date,
             "times" to times.value,
             "status" to "pending"
         )
@@ -261,9 +263,79 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                 .document(formattedDate)
                 .set(bookingData)
                 .await()
-            Log.d("slotbooking","Booking successfully set!")
+            Log.d("slotbooking", "Booking successfully set!")
         } catch (e: Exception) {
-            Log.d("slotBooking","Error setting booking: ${e.message}")
+            Log.d("slotBooking", "Error setting booking: ${e.message}")
         }
+    }
+    override suspend fun addChat(message: Message, barberUid: String) {
+        try {
+            Firebase.firestore.collection("Chats").document("${auth.currentUser?.uid}+$barberUid")
+                .set(
+                    mapOf(
+                        "barberuid" to barberUid,
+                        "useruid" to auth.currentUser?.uid.toString(),
+                        "lastmessage" to message
+                    )
+                ).await()
+            Firebase.firestore.collection("Chats").document("${auth.currentUser?.uid}+$barberUid")
+                .collection("Messages").document(message.time).set(message).await()
+        } catch (e: Exception) {
+            Log.d("chat", "Error adding chat: ${e.message}")
+        }
+    }
+
+    override suspend fun getChatUser(): MutableList<ChatModel> {
+        return withContext(Dispatchers.IO) {
+            val querySnapshot = Firebase.firestore.collection("Chats")
+                .whereEqualTo("useruid", auth.currentUser?.uid.toString()).get().await()
+            val chatList = querySnapshot.documents.map { documentSnapshot ->
+                val barberDocument =
+                    barberDb.document(documentSnapshot.getString("barberuid").toString()).get()
+                        .await()
+                val name = barberDocument.getString("name").toString()
+                val image = barberDocument.getString("imageUri")
+                    .toString() // Assuming "image" field contains the URL of the image
+                val message = documentSnapshot.get("lastmessage") as Map<*, *>
+                val lastMessage = Message(
+                    message = message["message"].toString(),
+                    time = message["time"].toString(),
+                    status = message["status"].toString().toBoolean()
+                )
+                ChatModel(
+                    name = name,
+                    image = image, // Add the image URL to ChatModel
+                    message = lastMessage,
+                    uid=documentSnapshot.getString("barberuid").toString()
+                )
+            }.toMutableList()
+            Log.d("userchat", "$chatList")
+            chatList
+        }
+    }
+
+    override suspend fun messageList(barberUid: String): Flow<List<Message>> = callbackFlow {
+        val messageRef = Firebase.firestore.collection("Chats")
+            .document("${auth.currentUser?.uid}+$barberUid")
+            .collection("Messages")
+
+        val subscription = messageRef.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+            if (firebaseFirestoreException != null) {
+                trySend(emptyList()) // Send an empty list on error
+                return@addSnapshotListener
+            }
+
+            val messageList = querySnapshot?.documents?.map { documentSnapshot ->
+                Message(
+                    message = documentSnapshot.getString("message").toString(),
+                    time = documentSnapshot.getString("time").toString(),
+                    status = documentSnapshot.getBoolean("status")!!
+                )
+            } ?: emptyList()
+
+            trySend(messageList)
+        }
+
+        awaitClose { subscription.remove() }
     }
 }

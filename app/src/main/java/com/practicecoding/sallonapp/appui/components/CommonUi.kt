@@ -9,7 +9,6 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,7 +31,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -94,24 +92,16 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun CommonDialog() {
-
-    Dialog(onDismissRequest = { }) {
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            Column(
+    Dialog(onDismissRequest = { }, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
+        Row(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 CircularProgressIndicator(
                     modifier = Modifier
                         .width(50.dp)
-                        .align(Alignment.CenterHorizontally)
+
                         .padding(top = 16.dp, bottom = 16.dp),
                     color = Color(sallonColor.toArgb()),
                     trackColor = Color(purple_200.toArgb()),
@@ -119,7 +109,7 @@ fun CommonDialog() {
                 Text(
                     text = "Loading",
                     modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
+
                         .wrapContentSize()
                         .padding(30.dp),
 
@@ -127,14 +117,14 @@ fun CommonDialog() {
                 )
             }
 
-        }
+
     }
 
 
 }
 
 @Composable
-fun SuccessfullDialog(navController: NavController) {
+fun SuccessfulDialog(navController: NavController) {
     Dialog(
         onDismissRequest = { },
         properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)

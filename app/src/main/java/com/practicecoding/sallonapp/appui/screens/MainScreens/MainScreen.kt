@@ -71,6 +71,7 @@ import java.util.Locale
 fun MainScreen1(
     navHostController: NavController,
     context: Context,
+    navigationItem: NavigationItem,
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
     locationViewModel: LocationViewModel = hiltViewModel(),
 ) {
@@ -111,7 +112,7 @@ fun MainScreen1(
             )
         }
     }
-    var selectedScreen by remember { mutableStateOf(NavigationItem.Home) }
+    var selectedScreen by remember { mutableStateOf(navigationItem) }
     Scaffold(
         bottomBar = {
             BottomAppNavigationBar(
@@ -124,7 +125,7 @@ fun MainScreen1(
             when (selectedScreen) {
                 NavigationItem.Home -> TopScreen(navHostController, context,viewModelBarber)
                 NavigationItem.Book -> Text("Book Screen")  // Placeholder for BookScreen
-                NavigationItem.Message -> Text("Message Screen")  // Placeholder for MessageScreen
+                NavigationItem.Message -> MessageScreen(navHostController)  // Placeholder for MessageScreen
                 NavigationItem.Profile -> ProfileScreen(viewModelBarber)  // Placeholder for ProfileScreen
             }
         }
