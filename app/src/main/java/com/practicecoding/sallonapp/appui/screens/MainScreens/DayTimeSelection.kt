@@ -92,8 +92,8 @@ fun TimeSelection(
 //        slotTime = restScreenViewModel.getSlots(dayNameFull, barber.uid, slotsViewModel)
         viewModel.getSlots(dayNameFull,barber.uid)
     }
-    val startTime = LocalTime.parse(slotTime.StartTime, timeFormatter)
-    val endTime = LocalTime.parse(slotTime.EndTime, timeFormatter)
+    val startTime = LocalTime.parse(slotTime.startTime, timeFormatter)
+    val endTime = LocalTime.parse(slotTime.endTime, timeFormatter)
 
     // Retrieve the booked and not available times for the selected date
     val bookedTimes = remember {
@@ -105,14 +105,14 @@ fun TimeSelection(
     }
 if (date==LocalDate.parse(slotTime.date)) {
     bookedTimes.clear()
-    for (timeString in slotTime.Booked!!) {
+    for (timeString in slotTime.booked!!) {
         val localTime = LocalTime.parse(timeString, timeFormatter)
         bookedTimes.add(localTime)
     }
 }
     if (date==LocalDate.parse(slotTime.date)) {
         notAvailableTimes.clear()
-    for (timeString in slotTime.NotAvailable!!) {
+    for (timeString in slotTime.notAvailable!!) {
         val localTime = LocalTime.parse(timeString, timeFormatter)
         notAvailableTimes.add(localTime)
     }}

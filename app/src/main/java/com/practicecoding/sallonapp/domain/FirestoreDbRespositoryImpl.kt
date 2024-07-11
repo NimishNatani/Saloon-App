@@ -225,10 +225,10 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                 barberDb.document(uid).collection("Slots").document(day).get().await()
             val slots = documentSnapshot.let { document ->
                 Slots(
-                    StartTime = document.getString("startTime").toString(),
-                    EndTime = document.getString("endTime").toString(),
-                    Booked = document.get("booked") as? List<String> ?: emptyList(),
-                    NotAvailable = document.get("notAvailable") as? List<String> ?: emptyList(),
+                    startTime = document.getString("startTime").toString(),
+                    endTime = document.getString("endTime").toString(),
+                    booked = document.get("booked") as? List<String> ?: emptyList(),
+                    notAvailable = document.get("notAvailable") as? List<String> ?: emptyList(),
                     date = document.getString("date").toString()
                 )
             }
@@ -268,17 +268,17 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             Log.d("slotBooking", "Error setting booking: ${e.message}")
         }
     }
-    override suspend fun addChat(message: Message, barberUid: String) {
+    override suspend fun addChat(message: Message, barberuid: String) {
         try {
-            Firebase.firestore.collection("Chats").document("${auth.currentUser?.uid}+$barberUid")
+            Firebase.firestore.collection("Chats").document("${auth.currentUser?.uid}$barberuid")
                 .set(
                     mapOf(
-                        "barberuid" to barberUid,
+                        "barberuid" to barberuid,
                         "useruid" to auth.currentUser?.uid.toString(),
                         "lastmessage" to message
                     )
                 ).await()
-            Firebase.firestore.collection("Chats").document("${auth.currentUser?.uid}+$barberUid")
+            Firebase.firestore.collection("Chats").document("${auth.currentUser?.uid}$barberuid")
                 .collection("Messages").document(message.time).set(message).await()
         } catch (e: Exception) {
             Log.d("chat", "Error adding chat: ${e.message}")
@@ -314,9 +314,9 @@ class FirestoreDbRespositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun messageList(barberUid: String): Flow<List<Message>> = callbackFlow {
+    override suspend fun messageList(barberuid: String): Flow<List<Message>> = callbackFlow {
         val messageRef = Firebase.firestore.collection("Chats")
-            .document("${auth.currentUser?.uid}+$barberUid")
+.document("${auth.currentUser?.uid}$barberuid")
             .collection("Messages")
 
         val subscription = messageRef.addSnapshotListener { querySnapshot, firebaseFirestoreException ->

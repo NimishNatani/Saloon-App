@@ -12,9 +12,9 @@ data class TimeSlot( val time:  String, val date: String, val status: SlotStatus
 data class DateSlots(val date: LocalDate, val slots: List<TimeSlot>) : Parcelable
 
 data class Slots(
-    val StartTime: String,
-    val EndTime: String,
-    val Booked: List<String>? = emptyList(),
-    val NotAvailable: List<String>? = emptyList(),
+    val startTime: String,
+    val endTime: String,
+    val booked: List<String>? = emptyList(),
+    val notAvailable: List<String>? = emptyList(),
     val date: String= LocalDate.now().toString()
 )
