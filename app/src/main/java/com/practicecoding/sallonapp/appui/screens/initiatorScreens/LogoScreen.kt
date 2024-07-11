@@ -30,20 +30,14 @@ fun LogoScreen(
     logoDurationMillis: Long = 1000L // Default duration of 2000 milliseconds (2 seconds)
 
 ) {
-
     val context = LocalContext.current
     LaunchedEffect(true) {
         delay(logoDurationMillis)
-
-
         navController.navigate(Screens.OnBoardingScreens.route) {
             popUpTo(Screens.Logo.route) {
                 inclusive = true
             }
-
         }
-
-
     }
     Surface(
         modifier = Modifier.fillMaxSize(),

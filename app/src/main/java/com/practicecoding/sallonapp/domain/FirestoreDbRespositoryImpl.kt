@@ -332,10 +332,8 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     status = documentSnapshot.getBoolean("status")!!
                 )
             } ?: emptyList()
-
             trySend(messageList)
         }
-
         awaitClose { subscription.remove() }
     }
 }

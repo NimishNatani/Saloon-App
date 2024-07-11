@@ -145,7 +145,6 @@ fun TopScreen(navController: NavController, context: Context,viewModelBarber: Ge
         },
         topAppBar = {
             ProfileWithNotification(
-
                 onProfileClick = { /*TODO*/ },
                 onNotificationClick = { /*TODO*/ },
             )

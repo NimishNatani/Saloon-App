@@ -2,7 +2,12 @@ package com.practicecoding.sallonapp
 
 import android.os.Bundle
 import android.Manifest
+import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.LocationManager
+import android.provider.Settings
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import android.widget.Toast
@@ -34,7 +39,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             SallonAppTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = purple_200
@@ -44,13 +48,64 @@ class MainActivity : ComponentActivity() {
                         mutableStateOf(Screens.Logo.route)
                     }
                     if (updatedCurrentUser != null) {
-                        startDestination=Screens.MainScreen.route
+                        startDestination = Screens.MainScreen.route
                     }
-                    AppNavigation(navController = navController,startDestination)
+                    AppNavigation(navController = navController, startDestinations = startDestination)
                 }
             }
-            prepLocationUpdates()
+            checkAndEnableLocation()
         }
+    }
+    private fun checkAndEnableLocation() {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            if (!isLocationEnabled()) {
+                showEnableLocationDialog()
+            } else {
+                prepLocationUpdates()
+            }
+        } else {
+            requestSinglePermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+    private fun isLocationEnabled(): Boolean {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+    }
+    private fun showEnableLocationDialog() {
+        AlertDialog.Builder(this).apply {
+            setTitle("Enable Location")
+            setMessage("Location access is important to show nearby barbers. Please enable location services.")
+            setCancelable(false)
+            setPositiveButton("OK") { _, _ ->
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivityForResult(intent, REQUEST_LOCATION_ENABLE)
+            }
+            setNegativeButton("Cancel") { _, _ ->
+                finish() // Exit the app
+            }
+            create()
+            show()
+        }
+    }
+
+    private val requestSinglePermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                if (!isLocationEnabled()) {
+                    showEnableLocationDialog()
+                    prepLocationUpdates()
+                } else {
+                    requestLocationUpdates()
+                }
+            } else {
+                Toast.makeText(this, "GPS Unavailable", Toast.LENGTH_LONG).show()
+            }
+        }
+    private fun requestLocationUpdates() {
     }
     private fun prepLocationUpdates() {
         if (ContextCompat.checkSelfPermission(
@@ -63,21 +118,21 @@ class MainActivity : ComponentActivity() {
             requestSinglePermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
-
-    private val requestSinglePermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_LOCATION_ENABLE) {
+            if (isLocationEnabled()) {
                 requestLocationUpdates()
             } else {
-                Toast.makeText(this, "GPS Unavailable", Toast.LENGTH_LONG).show()
+                showEnableLocationDialog()
             }
         }
-
-    private fun requestLocationUpdates( ) {
-//        locationViewModel.startLocationUpdates()
     }
-
+    companion object {
+        private const val REQUEST_LOCATION_ENABLE = 1
+    }
 }
+
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
