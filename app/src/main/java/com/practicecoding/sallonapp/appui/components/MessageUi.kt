@@ -32,7 +32,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun MessageItemBox(navHostController: NavController, message: Message, image: String, name: String, uid: String) {
+fun MessageItemBox(navHostController: NavController, message: Message, image: String, name: String, uid: String,phoneNumber:String) {
     val currentTime = LocalDateTime.now()
     val messageTime = LocalDateTime.parse(message.time, DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
     val duration = Duration.between(messageTime, currentTime)
@@ -60,6 +60,10 @@ fun MessageItemBox(navHostController: NavController, message: Message, image: St
             navHostController.currentBackStackEntry?.savedStateHandle?.set(
                 key = "uid",
                 value = uid
+            )
+            navHostController.currentBackStackEntry?.savedStateHandle?.set(
+                key = "phoneNumber",
+                value = phoneNumber
             )
             navHostController.navigate(Screens.ChatScreen.route) })
     {

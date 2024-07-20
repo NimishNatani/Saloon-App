@@ -41,6 +41,9 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarHalf
+import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -197,6 +200,63 @@ fun SuccessfulDialog(navController: NavController) {
                      }
                 Spacer(modifier = Modifier.height(14.dp))
                 Text(text = "Your slot details are sent to your barber. Please wait or revisit the app to check if the barber has accepted your booking.",color = Color.Red, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, lineHeight = 16.sp)
+
+            }
+        }
+    }
+}
+
+@Composable
+fun SuccessfulDialog() {
+    val showDialog= remember { mutableStateOf(true) }
+
+    Dialog(
+        onDismissRequest = {showDialog.value=false },
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true)
+    ) {
+        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.success))
+        var isPlaying by remember { mutableStateOf(true) }
+        val progress by animateLottieCompositionAsState(
+            composition = composition,
+            isPlaying = isPlaying,
+            restartOnPlay = true,
+            iterations = 1,  // Play once
+            speed = 1.0f
+        )
+        Surface(
+            modifier = Modifier
+                .clip(RoundedCornerShape(15.dp))
+                .size(300.dp, 300.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Slots update Successfully!", color = sallonColor, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top=8.dp))
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier
+                        .size(width = 300.dp, height = 130.dp)
+                    ,
+                    alignment = Alignment.Center
+                )
+
+                Button(
+                    onClick = {showDialog.value=false},
+                    modifier = Modifier
+                        .background(Color.White)
+                        .border(1.dp, sallonColor, RoundedCornerShape(8.dp))
+
+                    ,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                ) {
+                    Text(text = "OK", color = sallonColor, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                }
 
             }
         }
@@ -639,6 +699,40 @@ fun LaunchPhotoPicker(singlePhotoPickerLauncher: ManagedActivityResultLauncher<P
     )
 
 }
+@Composable
+fun RatingBar(
+    modifier: Modifier = Modifier,
+    rating: Double = 0.0,
+    stars: Int = 5,
+    onRatingChanged: (Double) -> Unit,
+    starsColor: Color = Color.Yellow
+) {
+
+    var isHalfStar = (rating % 1) != 0.0
+
+    Row {
+        for (index in 1..stars) {
+            Icon(
+                imageVector =
+                if (index <= rating) {
+                    Icons.Rounded.Star
+                } else {
+                    if (isHalfStar) {
+                        isHalfStar = false
+                        Icons.Rounded.StarHalf
+                    } else {
+                        Icons.Rounded.StarOutline
+                    }
+                },
+                contentDescription = null,
+                tint = starsColor,
+                modifier = modifier
+                    .clickable { onRatingChanged(index.toDouble()) }
+            )
+        }
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable

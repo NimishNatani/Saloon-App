@@ -53,11 +53,13 @@ import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.OfferCard
 import com.practicecoding.sallonapp.appui.components.ProfileWithNotification
 import com.practicecoding.sallonapp.appui.components.SearchBar
+import com.practicecoding.sallonapp.appui.components.ShimmerEffectBarber
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.LocationViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
+import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.LocationModel
 import com.practicecoding.sallonapp.data.model.locationObject
@@ -74,8 +76,8 @@ fun MainScreen1(
     navigationItem: NavigationItem,
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
     locationViewModel: LocationViewModel = hiltViewModel(),
+    orderViewModel: OrderViewModel = hiltViewModel(),
 ) {
-    val context = LocalContext.current
     locationViewModel.startLocationUpdates()
     val location by locationViewModel.getLocationLiveData().observeAsState()
 
@@ -124,9 +126,13 @@ fun MainScreen1(
         Box(modifier = Modifier.padding(paddingValues)) {
             when (selectedScreen) {
                 NavigationItem.Home -> TopScreen(navHostController, context,viewModelBarber)
-                NavigationItem.Book -> Text("Book Screen")  // Placeholder for BookScreen
-                NavigationItem.Message -> MessageScreen(navHostController)  // Placeholder for MessageScreen
-                NavigationItem.Profile -> ProfileScreen(viewModelBarber)  // Placeholder for ProfileScreen
+                NavigationItem.Book -> if (orderViewModel.isLoading.value) {
+                    ShimmerEffectBarber()
+                } else {
+                   UserOrderPage(navController = navHostController, context = context, orderViewModel)
+                }
+                NavigationItem.Message -> MessageScreen(navHostController)
+                NavigationItem.Profile -> ProfileScreen(viewModelBarber)
             }
         }
     }

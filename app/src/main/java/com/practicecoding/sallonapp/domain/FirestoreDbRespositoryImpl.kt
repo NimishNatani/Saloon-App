@@ -16,6 +16,9 @@ import com.practicecoding.sallonapp.data.Resource
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.ChatModel
 import com.practicecoding.sallonapp.data.model.Message
+import com.practicecoding.sallonapp.data.model.OrderModel
+import com.practicecoding.sallonapp.data.model.OrderStatus
+import com.practicecoding.sallonapp.data.model.ReviewModel
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.ServiceCat
 import com.practicecoding.sallonapp.data.model.ServiceModel
@@ -34,7 +37,9 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
+import java.time.LocalTime
 import java.util.Date
+import java.util.Formatter
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Named
@@ -245,8 +250,11 @@ class FirestoreDbRespositoryImpl @Inject constructor(
         times: MutableState<List<TimeSlot>>
     ) {
         val currentDate = Date()
+        val currentTime = Date()
         val dateFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
+        val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
         val formattedDate = dateFormat.format(currentDate)
+        val formattedTime = timeFormat.format(currentTime)
 
         val bookingData = hashMapOf(
             "barberuid" to barberuid,
@@ -254,6 +262,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             "service" to service,
             "gender" to gender,
             "date" to date,
+            "time" to formattedTime,
             "times" to times.value,
             "status" to "pending"
         )
@@ -296,6 +305,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                 val name = barberDocument.getString("name").toString()
                 val image = barberDocument.getString("imageUri")
                     .toString() // Assuming "image" field contains the URL of the image
+                val phoneNumber = barberDocument.getString("phoneNumber").toString()
                 val message = documentSnapshot.get("lastmessage") as Map<*, *>
                 val lastMessage = Message(
                     message = message["message"].toString(),
@@ -306,7 +316,8 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     name = name,
                     image = image, // Add the image URL to ChatModel
                     message = lastMessage,
-                    uid=documentSnapshot.getString("barberuid").toString()
+                    uid=documentSnapshot.getString("barberuid").toString(),
+                    phoneNumber = phoneNumber
                 )
             }.toMutableList()
             Log.d("userchat", "$chatList")
@@ -336,4 +347,105 @@ class FirestoreDbRespositoryImpl @Inject constructor(
         }
         awaitClose { subscription.remove() }
     }
+    override suspend fun getOrders(onOrderUpdate: (List<OrderModel>) -> Unit) {
+        Firebase.firestore.collection("booking")
+            .whereEqualTo("useruid", auth.currentUser?.uid.toString())
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    Log.w("FireStoreDbRepository", "listen:error", e)
+                    return@addSnapshotListener
+                }
+                if (snapshots != null) {
+                    val orders = mutableListOf<OrderModel>()
+                    val scope = CoroutineScope(Dispatchers.IO)
+                    scope.launch {
+                        for (documentSnapshot in snapshots.documents) {
+                            val orderId = documentSnapshot.id
+                            val serviceNames = mutableListOf<String>()
+                            val serviceTypes = mutableListOf<String>()
+                            val timesList = mutableListOf<String>()
+                            val barberDocument = barberDb
+                                .document(documentSnapshot.getString("barberuid").toString()).get().await()
+                            val name = barberDocument.getString("name").toString()
+                            val shopName = barberDocument.getString("shopName").toString()
+                            val image = barberDocument.getString("imageUri").toString()
+                            val phoneNo = barberDocument.getString("phoneNumber").toString()
+                            val services = documentSnapshot.get("service") as? List<Map<*, *>> ?: emptyList()
+                            for (service in services) {
+                                serviceNames.add(service["serviceName"].toString())
+                                serviceTypes.add(service["type"].toString())
+                            }
+                            val times = documentSnapshot.get("times") as? List<Map<String, Any>> ?: emptyList()
+                            for (time in times) {
+                                timesList.add(time["time"].toString())
+                            }
+                            val orderDate = documentSnapshot.getString("date").toString()
+                            val paymentMethod = if (documentSnapshot.contains("paymentMethod")) {
+                                documentSnapshot.getString("paymentMethod").toString()
+                            } else {
+                                "Cash"
+                            }
+                            val orderStatus = when (documentSnapshot.getString("status").toString().lowercase()) {
+                                "declined" -> OrderStatus.DECLINED
+                                "completed" -> OrderStatus.COMPLETED
+                                "accepted" -> OrderStatus.ACCEPTED
+                                else -> OrderStatus.PENDING
+                            }
+                            val orderModel = OrderModel(
+                                imageUrl = image,
+                                orderType = serviceNames,
+                                timeSlot = timesList,
+                                phoneNumber = phoneNo,
+                                barberName = name,
+                                barberShopName = shopName,
+                                paymentMethod = paymentMethod,
+                                orderStatus = orderStatus,
+                                orderId = orderId,
+                                date = orderDate
+                            )
+                            orders.add(orderModel)
+                        }
+                        withContext(Dispatchers.Main) {
+                            onOrderUpdate(orders)
+                        }
+                    }
+                }
+            }
+    }
+    override suspend fun updateOrderStatus(orderId: String, status: String):Flow<Resource<String>> = callbackFlow {
+        trySend(Resource.Loading)
+        try {
+            Firebase.firestore.collection("booking").document(orderId)
+                .update("status", status)
+                .addOnSuccessListener {
+                    trySend(Resource.Success("Order status updated successfully"))
+                }.addOnFailureListener {
+                    trySend(Resource.Failure(it))
+                }
+        } catch (e: Exception) {
+            trySend(Resource.Failure(e))
+        }
+        awaitClose {
+            close()
+        }
+    }
+
+    override suspend fun addReview(orderId: String, review: ReviewModel): Flow<Resource<String>> = callbackFlow{
+        trySend(Resource.Loading)
+        try {
+            Firebase.firestore.collection("booking").document(orderId)
+                .update("review", review)
+                .addOnSuccessListener {
+                    trySend(Resource.Success("Review added successfully"))
+                }.addOnFailureListener {
+                    trySend(Resource.Failure(it))
+                }
+        } catch (e: Exception) {
+            trySend(Resource.Failure(e))
+        }
+        awaitClose {
+            close()
+        }
+    }
+
 }

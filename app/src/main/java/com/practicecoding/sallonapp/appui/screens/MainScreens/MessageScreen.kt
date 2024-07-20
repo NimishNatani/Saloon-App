@@ -114,7 +114,8 @@ viewModel.onEvent(MessageEvent.GetChatUser)
                     message = chatModel.message,
                     image = chatModel.image,
                     name = chatModel.name,
-                    uid = chatModel.uid
+                    uid = chatModel.uid,
+                    phoneNumber = chatModel.phoneNumber
                 )
             }
         }

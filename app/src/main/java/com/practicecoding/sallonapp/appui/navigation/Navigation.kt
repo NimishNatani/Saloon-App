@@ -1,6 +1,7 @@
 package com.practicecoding.sallonapp.appui.navigation
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideInHorizontally
@@ -22,6 +23,7 @@ import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.HeadingText
 import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.SalonCard
+import com.practicecoding.sallonapp.appui.screens.MainScreens.AddReviewScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BarberScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BottomSheet
 import com.practicecoding.sallonapp.appui.screens.MainScreens.ChatScreen
@@ -41,6 +43,8 @@ import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPag
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.PhoneNumberScreen
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.OrderModel
+import com.practicecoding.sallonapp.data.model.OrderStatus
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.ServiceCat
 import com.practicecoding.sallonapp.data.model.TimeSlot
@@ -52,7 +56,6 @@ import java.time.LocalTime
 fun AppNavigation(
     navController: NavHostController,
     startDestinations: String,
-
     ) {
     val enterTransition =
         slideInHorizontally(
@@ -395,7 +398,28 @@ fun AppNavigation(
                 navController.previousBackStackEntry?.savedStateHandle?.get<String>("name").toString()
             val uid =
                 navController.previousBackStackEntry?.savedStateHandle?.get<String>("uid").toString()
-            ChatScreen(image, name,uid,navController)
+            val phoneNumber =
+                navController.previousBackStackEntry?.savedStateHandle?.get<String>("phoneNumber").toString()
+            ChatScreen(image, name,uid,phoneNumber,navController)
+        }
+        composable(Screens.AddReviewScreen.route) {
+            val orderModel = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<OrderModel>("order") ?: OrderModel(
+                imageUrl = "",
+                orderType = listOf(),
+                timeSlot = listOf(),
+                phoneNumber = "",
+                barberName = "",
+                barberShopName = "",
+                paymentMethod = "",
+                orderStatus = OrderStatus.PENDING,
+                isCancelRequested = false,
+                orderId = "",
+                date = ""
+            )
+            Log.d("Navigation", "AppNavigation: $orderModel")
+            AddReviewScreen(order = orderModel, navController = navController)
         }
     }
 }
