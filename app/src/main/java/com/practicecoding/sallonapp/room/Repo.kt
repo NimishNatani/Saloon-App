@@ -13,9 +13,8 @@ class Repo(
     }
 
     fun isBarberLiked(barberUid: String): Boolean {
-
         val likedBarber = likedBarberDao.getLikedBarber(barberUid)
         return likedBarber != null
-
     }
+    fun getLikedBarbers() = likedBarberDao.getLikedBarbers()
 }

@@ -1,6 +1,7 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,8 +27,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
 import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.viewmodel.AuthViewModel
@@ -35,14 +38,17 @@ import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
 
 @Composable
-fun ProfileScreen(viewModel: GetBarberDataViewModel){
-    DoubleCard(midCarBody = { PhotoWithName() }, mainScreen = { ProfileScreenList() }, topAppBar = { BackButtonTopAppBar(
+fun ProfileScreen(
+    viewModel: GetBarberDataViewModel,
+    navController: NavController
+){
+    DoubleCard(midCarBody = { PhotoWithName() }, mainScreen = { ProfileScreenList(navController) }, topAppBar = { BackButtonTopAppBar(
         onBackClick = { /*TODO*/ },
         title = "Profile"
     )})
 }
 @Composable
-fun ProfileScreenList(){
+fun ProfileScreenList(navController: NavController){
     val profileList = listOf(
         Pair( R.drawable.salon_app_logo,"My Profile"),
         Pair( R.drawable.salon_app_logo,"My Booking History"),
@@ -56,9 +62,21 @@ fun ProfileScreenList(){
         .padding(22.dp)
         .verticalScroll(rememberScrollState())) {
 
-          ShowingList(image = R.drawable.salon_app_logo, text = "My Profile"){}
-          ShowingList(image = R.drawable.salon_app_logo, text ="My Booking History"){}
-          ShowingList(image = R.drawable.salon_app_logo, text = "Favorite's Saloon"){}
+          ShowingList(image = R.drawable.salon_app_logo, text = "Edit Profile"){
+              navController.navigate(Screens.UpdateProfileScreen.route){
+                  navController.popBackStack()
+              }
+          }
+          ShowingList(image = R.drawable.salon_app_logo, text ="My Booking History"){
+                navController.navigate(Screens.BookingHistory.route){
+                    navController.popBackStack()
+                }
+          }
+          ShowingList(image = R.drawable.salon_app_logo, text = "Favorite's Saloon"){
+                navController.navigate(Screens.FavBarberList.route){
+                    navController.popBackStack()
+                }
+          }
           ShowingList(image = R.drawable.salon_app_logo, text = "Privacy Policy"){}
           ShowingList(image = R.drawable.salon_app_logo, text ="About Us"){}
           ShowingList(image = R.drawable.salon_app_logo, text ="Log Out"){}
@@ -89,7 +107,9 @@ fun PhotoWithName(viewModel: GetUserDataViewModel= hiltViewModel(),){
 
 @Composable
 fun ShowingList(image:Int,text:String,onClick:()->Unit){
-    Row(verticalAlignment = Alignment.CenterVertically){
+    Row(
+        modifier = Modifier.clickable { onClick() },
+        verticalAlignment = Alignment.CenterVertically){
         Image(painter = painterResource(id =  image), contentDescription = text, modifier = Modifier
             .size(40.dp)
             .clip(CircleShape))

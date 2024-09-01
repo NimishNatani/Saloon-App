@@ -2,6 +2,9 @@ package com.practicecoding.sallonapp.room
 
 import android.app.Application
 import android.content.Context
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,6 +21,10 @@ class LikedBarberViewModel (
         repo=Repo(barberDao)
 
     }
+    private val _likedBarberList: Flow<List<LikedBarber>> = repo.getLikedBarbers()
+    val likedBarberList: Flow<List<LikedBarber>> = _likedBarberList
+
+
     fun likeBarber(barberUid: String) {
         viewModelScope.launch {
             repo.likeBarber(barberUid)

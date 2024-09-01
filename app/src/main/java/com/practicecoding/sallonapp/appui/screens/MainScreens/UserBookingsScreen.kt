@@ -71,7 +71,6 @@ fun UserOrderPage(
                 pendingOrders = orderViewModel.pendingOrderList.value.toMutableList(),
                 acceptedOrders = orderViewModel.acceptedOrderList.value.toMutableList(),
                 completedOrders = orderViewModel.completedOrderList.value.toMutableList(),
-                pendingCancelOrders = orderViewModel.pendingCancelList.value.toMutableList(),
                 navController = navController
             )
         },
@@ -104,16 +103,10 @@ fun OrderList(orders: List<OrderModel>,
                 onCancel = {
                   order.orderStatus = OrderStatus.CANCELLED
                   scope.launch{
-                      orderViewModel.updateOrderStatus(order.orderId, OrderStatus.CANCELLED.name)
+                      orderViewModel.updateOrderStatus(order.orderId, OrderStatus.CANCELLED.status)
                   }
                 },
                 onContactBarber = { },
-                onRequestCancel = {
-                  order.orderStatus = OrderStatus.PENDING_CANCELLATION
-                  scope.launch{
-                      orderViewModel.updateOrderStatus(order.orderId, OrderStatus.PENDING_CANCELLATION.name)
-                  }
-                },
                 onReview = {
                 navController.currentBackStackEntry?.savedStateHandle?.set("order", order)
                 navController.navigate(Screens.AddReviewScreen.route)
@@ -122,6 +115,8 @@ fun OrderList(orders: List<OrderModel>,
                 barberName = order.barberName,
                 barbershopName = order.barberShopName,
                 orderStatus = order.orderStatus,
+                date = order.date,
+                orderID = order.orderId,
                 paymentMethod = order.paymentMethod!!,
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -136,7 +131,6 @@ fun UserBookingScreen(
     pendingOrders: MutableList<OrderModel>,
     acceptedOrders: MutableList<OrderModel>,
     completedOrders: MutableList<OrderModel>,
-    pendingCancelOrders: MutableList<OrderModel>,
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -221,7 +215,6 @@ fun UserBookingScreen(
                     0 -> OrderList(orders = pendingOrders, navController = navController)
                     1 -> OrderList(orders = acceptedOrders, navController = navController)
                     2 -> OrderList(orders = completedOrders, navController = navController)
-                    3 -> OrderList(orders = pendingCancelOrders, navController = navController)
                 }
             }
         }

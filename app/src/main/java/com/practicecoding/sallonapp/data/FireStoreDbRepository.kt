@@ -3,7 +3,8 @@ package com.practicecoding.sallonapp.data
 import android.net.Uri
 import androidx.compose.runtime.MutableState
 import com.practicecoding.sallonapp.data.model.BarberModel
-import com.practicecoding.sallonapp.data.model.ChatModel
+import com.practicecoding.sallonapp.data.model.LastChatModel
+import com.practicecoding.sallonapp.data.model.LastMessage
 import com.practicecoding.sallonapp.data.model.Message
 import com.practicecoding.sallonapp.data.model.OrderModel
 import com.practicecoding.sallonapp.data.model.ReviewModel
@@ -21,11 +22,18 @@ interface FireStoreDbRepository {
         imageUri: Uri?
     ): Flow<Resource<String>>
 
+    suspend fun updateUserInfo(
+        userModel: UserModel,
+        imageUri: Uri?
+    ): Flow<Resource<String>>
+
     suspend fun getUser(
     ): UserModel?
 
     suspend fun getBarberPopular(city: String,limit:Long):MutableList<BarberModel>
     suspend fun getBarberNearby(city:String,limit:Long):MutableList<BarberModel>
+
+    suspend fun getBarberByService(service:String):MutableList<BarberModel>
 
     suspend fun getBarber(uid:String?):BarberModel?
     suspend fun getServices(uid:String?):MutableList<ServiceCat>
@@ -39,10 +47,11 @@ interface FireStoreDbRepository {
                            date: String,
                            times: MutableState<List<TimeSlot>>
     )
-    suspend fun addChat(message: Message, barberUid: String)
-    suspend fun getChatUser():MutableList<ChatModel>
+    suspend fun addChat(message: LastMessage, barberUid: String, status:Boolean)
+    suspend fun getChatUser():Flow<MutableList<LastChatModel>>
     suspend fun messageList(barberUid: String):Flow<List<Message>>
-    suspend fun getOrders(onOrderUpdate: (List<OrderModel>) -> Unit)
+    suspend fun getOrdersFlow(): Flow<List<OrderModel>>
     suspend fun updateOrderStatus(orderId: String, status: String): Flow<Resource<String>>
     suspend fun addReview(orderId: String, review:ReviewModel): Flow<Resource<String>>
+    suspend fun getReview(): Flow<Resource<List<ReviewModel>>>
 }

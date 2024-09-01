@@ -62,6 +62,7 @@ import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
 import com.practicecoding.sallonapp.appui.viewmodel.MessageEvent
 import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.LastMessage
 import com.practicecoding.sallonapp.data.model.Message
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.TimeSlot
@@ -130,7 +131,13 @@ messageViewModel: MessageViewModel = hiltViewModel(),
                         val currentDate = Date()
                         val dateFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
                         val formattedDate = dateFormat.format(currentDate)
-                        val message = Message(false,"Hello Mam/Sir, How are you?",formattedDate)
+                        val message = LastMessage(
+                            status = false,
+                            message = "Hello Sir/Madam How may i Help you",
+                            time = formattedDate,
+                            seenbybarber = true,
+                            seenbyuser = false
+                        )
                         messageViewModel.onEvent(MessageEvent.AddChat(message,barber.uid))
                     }
                     isdialog=true

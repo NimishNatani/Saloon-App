@@ -1,8 +1,6 @@
 package com.practicecoding.sallonapp.appui.viewmodel
 
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,38 +8,49 @@ import com.practicecoding.sallonapp.data.FireStoreDbRepository
 import com.practicecoding.sallonapp.data.model.Message
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.core.content.ContentProviderCompat.requireContext
-import com.practicecoding.sallonapp.data.model.ChatModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import com.practicecoding.sallonapp.data.model.LastChatModel
+import com.practicecoding.sallonapp.data.model.LastMessage
 import javax.inject.Inject
 
 @HiltViewModel
 class MessageViewModel @Inject constructor(    private val repo: FireStoreDbRepository
 ): ViewModel() {
- var userChat = mutableStateOf<List<ChatModel>>(emptyList())
+    var userChat = mutableStateOf<List<LastChatModel>>(emptyList())
     var _messageList = mutableStateListOf<Message>()
     var messageList: SnapshotStateList<Message> = _messageList
-
+    var _count = mutableIntStateOf(0)
+    init {
+        viewModelScope.launch { getChatUser() }
+    }
+    private suspend fun addChat(message: LastMessage, barberuid:String, status:Boolean){
+        viewModelScope.launch {
+            repo.addChat(message,barberuid,status)
+        }
+    }
     suspend fun onEvent(event: MessageEvent) {
         when(event){
-            is MessageEvent.AddChat -> addChat(event.message,event.barberuid)
+            is MessageEvent.AddChat -> addChat(event.message,event.barberuid,event.status)
             is MessageEvent.GetChatUser -> getChatUser()
             is MessageEvent.MessageList -> getmessageList(event.barberuid)
         }
     }
-
-    private suspend fun addChat(message: Message, barberuid:String){
-        viewModelScope.launch {
-            repo.addChat(message,barberuid)
-        }
-    }
     private suspend fun getChatUser(){
         viewModelScope.launch {
-          userChat.value=  repo.getChatUser()
+            repo.getChatUser().collect { chat ->
+                userChat.value = chat
+                _count.value=0
+                for (i in userChat.value) {
+                    if (!i.message.seenbybarber) {
+                        _count.value++
+                    }
+                    if (_count.value > 1) {
+                        break
+                    }
+                }
+            }
         }
         Log.d("uses",userChat.toString())
     }
@@ -57,7 +66,7 @@ class MessageViewModel @Inject constructor(    private val repo: FireStoreDbRepo
 }
 
 sealed class MessageEvent {
-    data class AddChat(val message: Message,val barberuid:String):MessageEvent()
+    data class AddChat(val message: LastMessage,val barberuid:String,val status:Boolean=true):MessageEvent()
     data object GetChatUser:MessageEvent()
     data class MessageList(val barberuid:String):MessageEvent()
 }

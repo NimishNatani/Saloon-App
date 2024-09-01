@@ -30,6 +30,9 @@ class GetBarberDataViewModel @Inject constructor(
     private var barberNearby = mutableStateOf<List<BarberModel>>(emptyList())
     var _barberNearby: State<List<BarberModel>> = barberPopular
 
+    private val _likedBarberList = mutableStateOf<List<BarberModel>>(emptyList())
+    val likedBarberList: State<List<BarberModel>> = _likedBarberList
+
     private var services = mutableStateOf<List<ServiceCat>>(emptyList())
     var _services: State<List<ServiceCat>> = services
 
@@ -95,7 +98,17 @@ class GetBarberDataViewModel @Inject constructor(
         }
     }
 
-    suspend fun getBarber(uid: String?) = repo.getBarber(uid)
+    private suspend fun getBarber(uid: String?): BarberModel? = repo.getBarber(uid)
+
+    suspend fun getBarberListById(uidList: List<String>) {
+        viewModelScope.launch {
+            val barbers = uidList.mapNotNull { uid ->
+                getBarber(uid)
+            }
+            _likedBarberList.value = barbers
+        }
+    }
+
     private suspend fun getServices(uid: String?) {
         viewModelScope.launch { services.value = repo.getServices(uid) }
     }

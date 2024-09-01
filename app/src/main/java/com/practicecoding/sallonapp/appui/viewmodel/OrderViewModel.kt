@@ -1,7 +1,6 @@
 package com.practicecoding.sallonapp.appui.viewmodel
 
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -28,9 +27,11 @@ class OrderViewModel @Inject constructor(
     val pendingOrderList: State<List<OrderModel>> = _pendingOrderList
     private val _completedOrderList = mutableStateOf<List<OrderModel>>(emptyList())
     val completedOrderList: State<List<OrderModel>> = _completedOrderList
-    private val _pendingCancelOrderList = mutableStateOf<List<OrderModel>>(emptyList())
-    val pendingCancelList: State<List<OrderModel>> = _pendingCancelOrderList
     var isLoading = mutableStateOf(false)
+
+    private val _reviewList = mutableStateOf<List<ReviewModel>>(emptyList())
+    val reviewList: State<List<ReviewModel>> = _reviewList
+
     var upcomingOrder = mutableStateOf(OrderModel(
         barberShopName = " ",
         barberName = " ",
@@ -66,28 +67,50 @@ class OrderViewModel @Inject constructor(
         }
     }
 
+    fun getReviewByOrderId(orderId: String): ReviewModel? {
+        val review = _reviewList.value.find { it.orderId == orderId }
+        return if (review != null) {
+            review
+        } else {
+            null
+        }
+    }
+
+    private suspend fun getReviewList() {
+        repo.getReview().collect{
+            when(it){
+                is Resource.Success -> {
+                    _reviewList.value = it.result
+                    Log.d("ReviewModel", "getReviewList: ${it.result}")
+                }
+                is Resource.Failure -> {
+                    Log.d("OrderViewModel", "getReviewList: Error${it.exception}")
+                }
+                else -> {}
+            }
+        }
+    }
+
     private suspend fun getOrders() {
         isLoading.value = true
-        repo.getOrders { orders ->
-            Log.d("OrderViewModel", "getOrders: $orders")
-            Log.d("rOrderViewModel", "getOrders: ${orders.reversed()}")
-            _orderList.value = orders.reversed()
-            _acceptedOrderList.value = orders.filter { it.orderStatus == OrderStatus.ACCEPTED }
-            _pendingOrderList.value = orders.filter { it.orderStatus == OrderStatus.PENDING }
-            _completedOrderList.value = orders.filter { it.orderStatus == OrderStatus.COMPLETED || it.orderStatus == OrderStatus.CANCELLED }
-            _pendingCancelOrderList.value = orders.filter { it.orderStatus == OrderStatus.PENDING_CANCELLATION }
-            upcomingOrder.value = _acceptedOrderList.value.firstOrNull() ?: OrderModel(
-                barberShopName = " ",
-                barberName = " ",
-                imageUrl = " ",
-                orderType = emptyList(),
-                phoneNumber = " ",
-                timeSlot = emptyList(),
-            )
-            Log.d("OrderViewModel", "getOrders: ${upcomingOrder.value}")
-            Log.d("aOrderViewModel", "getOrders: ${acceptedOrderList.value}")
-            Log.d("pOrderViewModel", "getOrders: ${pendingOrderList.value}")
-            isLoading.value = false
+        viewModelScope.launch {
+            repo.getOrdersFlow().collect { orders ->
+                _orderList.value = orders.sortedByDescending { it.date }
+                _acceptedOrderList.value = orders.filter { it.orderStatus == OrderStatus.ACCEPTED }
+                _pendingOrderList.value = orders.filter { it.orderStatus == OrderStatus.PENDING }
+                _completedOrderList.value = orders.filter { it.orderStatus == OrderStatus.COMPLETED || it.orderStatus == OrderStatus.CANCELLED }
+                upcomingOrder.value = _acceptedOrderList.value.firstOrNull() ?: OrderModel(
+                    barberShopName = " ",
+                    barberName = " ",
+                    imageUrl = " ",
+                    orderType = emptyList(),
+                    phoneNumber = " ",
+                    timeSlot = emptyList(),
+                )
+                isLoading.value = false
+
+                getReviewList() // Launching the review fetch without another coroutine scope
+            }
         }
     }
     suspend fun updateOrderStatus(orderId: String, status: String) {

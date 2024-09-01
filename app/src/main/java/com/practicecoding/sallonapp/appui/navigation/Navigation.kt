@@ -25,15 +25,19 @@ import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.SalonCard
 import com.practicecoding.sallonapp.appui.screens.MainScreens.AddReviewScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BarberScreen
+import com.practicecoding.sallonapp.appui.screens.MainScreens.BarberServiceVise
+import com.practicecoding.sallonapp.appui.screens.MainScreens.BookingHistoryScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BottomSheet
 import com.practicecoding.sallonapp.appui.screens.MainScreens.ChatScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.DetailScreen
+import com.practicecoding.sallonapp.appui.screens.MainScreens.FavBarberListScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.GenderSelectOnBook
 import com.practicecoding.sallonapp.appui.screens.MainScreens.MainScreen1
 import com.practicecoding.sallonapp.appui.screens.MainScreens.PaymentScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.ServiceSelector
 import com.practicecoding.sallonapp.appui.screens.MainScreens.SortBarber
 import com.practicecoding.sallonapp.appui.screens.MainScreens.TimeSelection
+import com.practicecoding.sallonapp.appui.screens.MainScreens.UpdateUserInfoScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.ViewAllScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.daySelection
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.AdvancedSignUpScreen
@@ -420,6 +424,33 @@ fun AppNavigation(
             )
             Log.d("Navigation", "AppNavigation: $orderModel")
             AddReviewScreen(order = orderModel, navController = navController)
+        }
+        composable(Screens.UpdateProfileScreen.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }){
+            UpdateUserInfoScreen(navController = navController)
+        }
+        composable(Screens.BookingHistory.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }){
+            BookingHistoryScreen(navController = navController)
+        }
+        composable(Screens.FavBarberList.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }){
+            FavBarberListScreen(likedBarberViewModel = LikedBarberViewModel(context), navController = navController)
+        }
+        composable(Screens.CatBarberList.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }){
+            val service = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<String>("service") ?: "default_service"
+            BarberServiceVise(service = service!!, likedBarberViewModel = LikedBarberViewModel(context), navController = navController)
         }
     }
 }

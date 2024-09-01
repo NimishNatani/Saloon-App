@@ -21,14 +21,13 @@ data class OrderModel(
 data class ReviewModel(
     var rating: Double = 0.0,
     var reviewText: String = "",
+    val orderId: String = "",
 )
 
 @Parcelize
 enum class OrderStatus(val status: String) : Parcelable {
     PENDING("pending"),
     ACCEPTED("accepted"),
-    DECLINED("declined"),
     COMPLETED("completed"),
     CANCELLED("cancelled"),
-    PENDING_CANCELLATION("pending_cancellation"),
 }

@@ -17,5 +17,9 @@ sealed class Screens(val route: String) {
     object UpiPayment:Screens("upi_payment")
     object ChatScreen:Screens("chat_screen")
     object AddReviewScreen:Screens("review_screen")
+    object UpdateProfileScreen:Screens("update_profile_screen")
+    object BookingHistory:Screens("booking_history_screen")
+    object FavBarberList:Screens("fav_barber_list")
+    object CatBarberList:Screens("cat_barber_list")
 
 }

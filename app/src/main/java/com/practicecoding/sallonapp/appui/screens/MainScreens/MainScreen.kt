@@ -4,7 +4,6 @@ import android.content.Context
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.Spring
@@ -21,9 +20,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,13 +33,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -59,12 +62,14 @@ import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.LocationViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
+import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.LocationModel
 import com.practicecoding.sallonapp.data.model.locationObject
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
 import com.practicecoding.sallonapp.ui.theme.sallonColor
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -76,8 +81,12 @@ fun MainScreen1(
     navigationItem: NavigationItem,
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
     locationViewModel: LocationViewModel = hiltViewModel(),
+    chatViewModel: MessageViewModel = hiltViewModel(),
     orderViewModel: OrderViewModel = hiltViewModel(),
 ) {
+    var count by remember {
+        mutableIntStateOf(0)
+    }
     locationViewModel.startLocationUpdates()
     val location by locationViewModel.getLocationLiveData().observeAsState()
 
@@ -119,34 +128,65 @@ fun MainScreen1(
         bottomBar = {
             BottomAppNavigationBar(
                 selectedItem = selectedScreen,
-                onItemSelected = { selectedScreen = it }
+                onItemSelected = { selectedScreen = it },
+                messageCount = chatViewModel._count.value
             )
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
             when (selectedScreen) {
-                NavigationItem.Home -> TopScreen(navHostController, context,viewModelBarber)
+                NavigationItem.Home -> if (orderViewModel.isLoading.value) {
+                    ShimmerEffectBarber()
+                } else {
+                    TopScreen(navHostController, context,viewModelBarber,chatViewModel._count.value)
+                    LaunchedEffect(chatViewModel.userChat.value.size) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            if (chatViewModel.userChat.value.isNotEmpty()) {
+                                count = 0
+                                for (i in chatViewModel.userChat.value) {
+                                    if (!i.message.seenbybarber) {
+                                        count++
+                                    }
+                                    if (count > 1) {
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 NavigationItem.Book -> if (orderViewModel.isLoading.value) {
                     ShimmerEffectBarber()
                 } else {
                    UserOrderPage(navController = navHostController, context = context, orderViewModel)
                 }
-                NavigationItem.Message -> MessageScreen(navHostController)
-                NavigationItem.Profile -> ProfileScreen(viewModelBarber)
+                NavigationItem.Message -> MessageScreen(navHostController,chatViewModel)
+                NavigationItem.Profile -> ProfileScreen(viewModelBarber,navHostController)
+                NavigationItem.More -> MoreScreen()
             }
         }
     }
 }
 
 @Composable
-fun TopScreen(navController: NavController, context: Context,viewModelBarber: GetBarberDataViewModel) {
+fun MoreScreen() {
+    Text(text = "More Screen")
+}
+
+@Composable
+fun TopScreen(navController: NavController,
+              context: Context,
+              viewModelBarber: GetBarberDataViewModel,
+              count: Int
+) {
     DoubleCard(
         midCarBody = { SearchBar() },
         mainScreen = {
             MainScreen(
                 navController = navController,
                 likedBarberViewModel = LikedBarberViewModel(context),
-                viewModelBarber = viewModelBarber
+                viewModelBarber = viewModelBarber,
+                count = count
             )
         },
         topAppBar = {
@@ -160,9 +200,10 @@ fun TopScreen(navController: NavController, context: Context,viewModelBarber: Ge
 
 @Composable
 fun MainScreen(
-viewModelBarber: GetBarberDataViewModel,
+    viewModelBarber: GetBarberDataViewModel,
     likedBarberViewModel: LikedBarberViewModel,
     navController: NavController,
+    count: Int
 ) {
     val scrollStateRowOffer = rememberScrollState()
     val scroll = rememberScrollState()
@@ -259,11 +300,41 @@ viewModelBarber: GetBarberDataViewModel,
 
                 }
                 Row(modifier = Modifier.horizontalScroll(scrollStateRowCategories)) {
-                    Categories(image = R.drawable.haircut, categories = "Hair Cut")
-                    Categories(image = R.drawable.shaving, categories = "Shaving")
-                    Categories(image = R.drawable.makeup, categories = "Make Up")
-                    Categories(image = R.drawable.haircolor, categories = "Hair Color")
-                    Categories(image = R.drawable.nails, categories = "Nail Cut")
+                    Categories(image = R.drawable.haircut, categories = "Hair Cut"){
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "service",
+                            value = "Hair Cut"
+                        )
+                        navController.navigate(Screens.CatBarberList.route)
+                    }
+                    Categories(image = R.drawable.shaving, categories = "Bleach"){
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "service",
+                            value = "Bleach"
+                        )
+                        navController.navigate(Screens.CatBarberList.route)
+                    }
+                    Categories(image = R.drawable.makeup, categories = "Clean Up"){
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "service",
+                            value = "Clean Up"
+                        )
+                        navController.navigate(Screens.CatBarberList.route)
+                    }
+                    Categories(image = R.drawable.haircolor, categories = "Hair Color"){
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "service",
+                            value = "Hair Color"
+                        )
+                        navController.navigate(Screens.CatBarberList.route)
+                    }
+                    Categories(image = R.drawable.nails, categories = "Nail Cut"){
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "service",
+                            value = "Nail Cut"
+                        )
+                        navController.navigate(Screens.CatBarberList.route)
+                    }
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),

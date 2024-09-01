@@ -43,6 +43,7 @@ import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.viewmodel.MessageEvent
 import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
+import com.practicecoding.sallonapp.data.model.LastMessage
 import com.practicecoding.sallonapp.data.model.Message
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
@@ -70,7 +71,6 @@ fun ChatScreen(
     }
     LaunchedEffect(Unit) {
         viewModel.onEvent(MessageEvent.MessageList(uid))
-
     }
     Box(
         modifier = Modifier
@@ -155,7 +155,6 @@ fun TopBar(image: String, name: String,phoneNumber: String) {
 @Composable
 fun ChatMessages(modifier: Modifier = Modifier, viewModel: MessageViewModel) {
     val scrollState = rememberScrollState()
-
     LaunchedEffect(viewModel.messageList) {
         scrollState.animateScrollTo(scrollState.maxValue)
     }
@@ -203,14 +202,14 @@ fun DateSeparator(date: String) {
 @Composable
 fun ChatBubble(message: String, time: String, isSent: Boolean) {
     Row(
-        horizontalArrangement = if (isSent) Arrangement.End else Arrangement.Start,
+        horizontalArrangement = if (!isSent) Arrangement.End else Arrangement.Start,
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                start = if (isSent) {
+                start = if (!isSent) {
                     54.dp
                 } else 16.dp,
-                end = if (isSent) {
+                end = if (!isSent) {
                     16.dp
                 } else {
                     54.dp
@@ -220,8 +219,8 @@ fun ChatBubble(message: String, time: String, isSent: Boolean) {
         Column(
             modifier = Modifier
                 .background(
-                    color = if (isSent) sallonColor else purple_200,
-                    shape = if (isSent) RoundedCornerShape(
+                    color = if (!isSent) sallonColor else purple_200,
+                    shape = if (!isSent) RoundedCornerShape(
                         16.dp,
                         0.dp,
                         16.dp,
@@ -232,7 +231,7 @@ fun ChatBubble(message: String, time: String, isSent: Boolean) {
         ) {
             Text(
                 text = message,
-                color = if (isSent) Color.White else Color.Black,
+                color = if (!isSent) Color.White else Color.Black,
                 fontWeight = FontWeight.Medium
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -258,7 +257,6 @@ fun MessageInput(uid: String, viewModel: MessageViewModel = hiltViewModel()) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-
             value = textState,
             onValueChange = { textState = it },
             modifier = Modifier
@@ -275,7 +273,6 @@ fun MessageInput(uid: String, viewModel: MessageViewModel = hiltViewModel()) {
                 cursorColor = sallonColor,
                 unfocusedPlaceholderColor = Color.Gray,
                 focusedPlaceholderColor = Color.Gray,
-
                 ),
         )
         IconButton(onClick = {
@@ -283,10 +280,9 @@ fun MessageInput(uid: String, viewModel: MessageViewModel = hiltViewModel()) {
                 val currentDate = Date()
                 val dateFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
                 val formattedDate = dateFormat.format(currentDate)
-                val message = Message(true, textState, formattedDate)
+                val message = LastMessage(false, textState, formattedDate,false,true)
                 CoroutineScope(Dispatchers.IO).launch {
                     viewModel.onEvent(MessageEvent.AddChat(message,uid))
-
                 }
                 textState=""
             }

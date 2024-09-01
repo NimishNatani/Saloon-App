@@ -1,6 +1,7 @@
 package com.practicecoding.sallonapp.appui.components
 
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -61,7 +63,8 @@ enum class NavigationItem(val icon: ImageVector, val iconName:String) {
     Home(Icons.Default.Home,"Home"),
     Book(Icons.AutoMirrored.TwoTone.List,"Booking"),
     Message(Icons.AutoMirrored.Filled.Send,"Chats"),
-    Profile(Icons.Default.Person,"Profile")
+    Profile(Icons.Default.Person,"Profile"),
+    More(Icons.Default.Share,"More")
 }
 
 fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
@@ -76,14 +79,16 @@ fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
 @Composable
 fun BottomAppNavigationBar(
     selectedItem: NavigationItem,
-    onItemSelected: (NavigationItem) -> Unit
+    onItemSelected: (NavigationItem) -> Unit,
+    messageCount: Int = 0
 ) {
     val bottomBarItems = NavigationItem.entries.toTypedArray()
     AnimatedNavigationBar(
         modifier = Modifier
-            .height(65.dp).background(Color.White)
+            .height(65.dp)
+            .background(Color.White)
 //            .clip(shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)).border(0.5.dp, color = Color.LightGray)
-        .fillMaxWidth(),
+            .fillMaxWidth(),
         selectedIndex = selectedItem.ordinal,
         barColor = sallonColor,
         ballAnimation = Parabolic(tween(durationMillis = 300)),
@@ -110,6 +115,9 @@ fun BottomAppNavigationBar(
                             .padding(top = 10.dp),
                         tint = if (selectedItem == item) Color.White else Color.Gray
                     )
+                    if (item == NavigationItem.Message && messageCount > 0) {
+                        CircleWithMessageCount(messageCount = messageCount)
+                    }
                     Text(
                         text = item.iconName, modifier = Modifier,
                         color = if (selectedItem == item) Color.White else Color.Gray
@@ -119,7 +127,29 @@ fun BottomAppNavigationBar(
         }
     }
 }
-
+@Composable
+fun CircleWithMessageCount(
+    messageCount: Int
+) {
+    Box(
+        modifier = Modifier
+            .size(20.dp) // Adjust size as needed
+            .background(Color.White, CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        if (messageCount > 0) {
+            Canvas(
+                modifier = Modifier.size(50.dp) // Ensure the canvas size matches the Box
+            ) {
+                drawCircle(
+                    color = Color.Green, // Change color as needed
+                    radius = 6.5.dp.toPx(), // Adjust radius to fit within the Box
+                    center = Offset(size.width / 2, size.height / 2) // Center the circle
+                )
+            }
+        }
+    }
+}
 
 ///*Top App Bars*/
 
@@ -129,19 +159,20 @@ fun TransparentTopAppBar(
     onLikeClick: () -> Unit,
     onShareClick: () -> Unit,
     isFavorite: Boolean,
+    usingInProfile: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp),
-        color = Color.Transparent,
+        color = if(!usingInProfile)Color.Transparent else sallonColor,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = if(!usingInProfile) Arrangement.SpaceBetween else Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
@@ -162,41 +193,43 @@ fun TransparentTopAppBar(
                     )
                 }
             }
-            Row {
-                IconButton(
-                    onClick = onLikeClick,
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = Color.White
+            if(!usingInProfile) {
+                Row {
+                    IconButton(
+                        onClick = onLikeClick,
+                        modifier = Modifier.size(36.dp)
                     ) {
-                        Icon(
-                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = "Like",
-                            tint = Color(sallonColor.toArgb()),
-                            modifier = Modifier
-                                .size(30.dp)
-                                .padding(4.dp)
-                        )
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.White
+                        ) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = "Like",
+                                tint = Color(sallonColor.toArgb()),
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .padding(4.dp)
+                            )
+                        }
                     }
-                }
-                IconButton(
-                    onClick = onShareClick,
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = Color.White
+                    IconButton(
+                        onClick = onShareClick,
+                        modifier = Modifier.size(36.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = "Share",
-                            tint = Color.Black,
-                            modifier = Modifier
-                                .size(30.dp)
-                                .padding(4.dp)
-                        )
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.White
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Share",
+                                tint = Color.Black,
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .padding(4.dp)
+                            )
+                        }
                     }
                 }
             }

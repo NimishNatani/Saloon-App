@@ -47,11 +47,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
 import com.practicecoding.sallonapp.data.model.OrderModel
 import com.practicecoding.sallonapp.data.model.OrderStatus
+import com.practicecoding.sallonapp.data.model.ReviewModel
 import com.practicecoding.sallonapp.ui.theme.Purple80
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import com.vanpra.composematerialdialogs.MaterialDialog
@@ -149,12 +152,14 @@ fun OrderCard(
     phoneNumber: String,
     barbershopName: String,
     barberName: String,
+    date: String,
     paymentMethod: String = "Cash",
-    onRequestCancel: () -> Unit,
     onCancel: () -> Unit,
     onContactBarber: () -> Unit,
     onReview: () -> Unit,
-    orderStatus: OrderStatus
+    orderStatus: OrderStatus,
+    orderID: String,
+    orderViewModel: OrderViewModel = hiltViewModel()
 ) {
     val showInfoDialog = rememberMaterialDialogState()
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
@@ -230,6 +235,12 @@ fun OrderCard(
                             fontFamily = FontFamily.Serif
                         )
                         Text(
+                            text = "Date: $date",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Black,
+                            fontFamily = FontFamily.Serif
+                        )
+                        Text(
                             text = "Time Slot: ${timeSlot.joinToString()}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Black,
@@ -252,17 +263,21 @@ fun OrderCard(
                     ) {
                         if(orderStatus == OrderStatus.COMPLETED || orderStatus == OrderStatus.CANCELLED) {
                             if(orderStatus == OrderStatus.COMPLETED){
-                                Text("Completed", color = Color.Green)
-                                Button(
-                                    modifier = Modifier.padding(start = 8.dp),
-                                    onClick = {
-                                        onReview()
-                                              },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(Purple80.toArgb())
-                                    )
-                                ) {
-                                    Text("Review", color = Color.Black)
+                                val review = orderViewModel.getReviewByOrderId(orderID)
+                                if(review==null){
+                                    Button(
+                                        modifier = Modifier.padding(start = 8.dp),
+                                        onClick = {
+                                            onReview()
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(Purple80.toArgb())
+                                        )
+                                    ) {
+                                        Text("Review", color = Color.Black)
+                                    }
+                                }else{
+                                    ReviewText(review = review)
                                 }
                             }else{
                                 Text("Cancelled", color = Color.Red,
@@ -280,27 +295,17 @@ fun OrderCard(
                                     Text("Cancel", color = Color.Black)
                                 }
                             } else if (orderStatus == OrderStatus.ACCEPTED) {
-                                Button(
-                                    onClick = onRequestCancel,
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(Purple80.toArgb())
-                                    ),
-                                    modifier = Modifier.padding(end = 8.dp),
-                                ) {
-                                    Text("Request Cancellation", color = Color.Black)
-                                }
-                            } else if (orderStatus == OrderStatus.PENDING_CANCELLATION) {
-                                Text("Pending Cancellation", color = Color(sallonColor.toArgb()))
+                                      TODO()
                             }
-                            Button(
-                                modifier = Modifier.padding(start = 8.dp),
-                                onClick = onContactBarber,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(Purple80.toArgb())
-                                )
-                            ) {
-                                Text("Contact $barberName", color = Color.Black)
-                            }
+//                            Button(
+//                                modifier = Modifier.padding(start = 8.dp),
+//                                onClick = onContactBarber,
+//                                colors = ButtonDefaults.buttonColors(
+//                                    containerColor = Color(Purple80.toArgb())
+//                                )
+//                            ) {
+//                                Text("Contact $barberName", color = Color.Black)
+//                            }
                         }
                     }
                 MaterialDialog(
@@ -325,6 +330,20 @@ fun OrderCard(
 }
 
 @Composable
+fun ReviewText(
+    review: ReviewModel
+){
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ){
+        RatingBar(onRatingChanged = { }, rating = review.rating)
+        Text(text = review.reviewText)
+    }
+}
+
+@Composable
 fun UpcomingOrderCard(
     upcomingOrder: MutableState<OrderModel>,
 ){
@@ -338,23 +357,4 @@ fun UpcomingOrderCard(
 //        Text(text = "Upcoming order date: ${upcomingOrder.value.date}")
 //        Text(text = "Upcoming order time: ${upcomingOrder.value.timeSlot[0]}")
     }
-}
-
-@Preview
-@Composable
-fun OrderCardPreview() {
-    OrderCard(
-        imageUrl = "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/profile_image%2FptNTxkdC31NBaSQbJT5cnQQHO2u2.jpg?alt=media&token=ed411c18-99ad-4db2-94ab-23e1c9b2b1b6",
-        orderType = listOf("Haircut", "Shave"),
-        timeSlot = listOf("10:00 AM", "11:00 AM"),
-        phoneNumber = "1234567890",
-        barbershopName = "Barber Shop",
-        barberName = "Barber",
-        paymentMethod = "Cash",
-        onRequestCancel = {},
-        onCancel = {},
-        onContactBarber = {},
-        onReview = {},
-        orderStatus = OrderStatus.PENDING
-    )
 }

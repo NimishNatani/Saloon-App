@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -25,16 +26,32 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.appui.Screens
+import com.practicecoding.sallonapp.appui.viewmodel.MessageEvent
+import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
+import com.practicecoding.sallonapp.data.model.LastMessage
 import com.practicecoding.sallonapp.data.model.Message
 import com.practicecoding.sallonapp.ui.theme.sallonColor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun MessageItemBox(navHostController: NavController, message: Message, image: String, name: String, uid: String,phoneNumber:String) {
+fun MessageItemBox(
+    navHostController: NavController,
+    message: LastMessage,
+    image: String,
+    name: String,
+    uid: String,
+    phoneNumber: String,
+    viewModel: MessageViewModel
+) {
+    val context = LocalContext.current
     val currentTime = LocalDateTime.now()
-    val messageTime = LocalDateTime.parse(message.time, DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+    val messageTime =
+        LocalDateTime.parse(message.time, DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
     val duration = Duration.between(messageTime, currentTime)
     val timePassed = when {
         duration.toDays() > 0 -> "${duration.toDays()} days ago"
@@ -45,10 +62,14 @@ fun MessageItemBox(navHostController: NavController, message: Message, image: St
     Box(modifier = Modifier
         .padding(horizontal = 10.dp, vertical = 4.dp)
         .border(
-            2.dp, sallonColor,
+            2.dp, if(message.seenbyuser) Color.Black else sallonColor,
             RoundedCornerShape(10.dp)
         )
         .clickable {
+            message.seenbyuser = true
+            CoroutineScope(Dispatchers.IO).launch {
+                viewModel.onEvent(MessageEvent.AddChat(message, uid, false))
+            }
             navHostController.currentBackStackEntry?.savedStateHandle?.set(
                 key = "image",
                 value = image
@@ -65,8 +86,10 @@ fun MessageItemBox(navHostController: NavController, message: Message, image: St
                 key = "phoneNumber",
                 value = phoneNumber
             )
-            navHostController.navigate(Screens.ChatScreen.route) })
+            navHostController.navigate(Screens.ChatScreen.route)
+        })
     {
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()

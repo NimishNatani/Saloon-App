@@ -14,6 +14,9 @@ interface Dao {
     @Query("SELECT * FROM likedbarberstable WHERE uid = :uid")
     fun getLikedBarber(uid: String): LikedBarber?
 
+    @Query("SELECT * FROM likedbarberstable")
+    fun getLikedBarbers(): Flow<List<LikedBarber>>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun likeBarber(likedBarber: LikedBarber)
 

@@ -586,7 +586,7 @@ enum class BottomNavItems {
 }
 
 @Composable
-fun Categories(image: Int, categories: String) {
+fun Categories(image: Int, categories: String, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -598,7 +598,7 @@ fun Categories(image: Int, categories: String) {
             contentDescription = "Categories", // We don't need content description for images used as buttons
             modifier = Modifier
                 .size(48.dp)
-                .clickable { /* Your click action */ }
+                .clickable {onClick() }
         )
         Text(
             text = categories,

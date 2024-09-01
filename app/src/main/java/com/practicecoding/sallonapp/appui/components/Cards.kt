@@ -378,8 +378,8 @@ fun BigSaloonPreviewCard(
             .width(width)
             .height(height)
             .padding(),
-        tonalElevation = 14.dp,
-        shadowElevation = 4.dp,
+        tonalElevation = 16.dp,
+        shadowElevation = 5.dp,
         color = purple_400,
         shape = RoundedCornerShape(16.dp),
     ) {
@@ -437,7 +437,6 @@ fun BigSaloonPreviewCard(
                     .background(purple_400)
                     .padding(vertical = 4.dp, horizontal = 16.dp),
             ) {
-
                 Text(
                     text = shopName, fontSize = 18.sp, maxLines = 1
                 )
@@ -724,24 +723,14 @@ fun SmallSaloonPreviewCard(
                                     .size(24.dp)
                                     .padding(end = 8.dp)
                             )
-                            Spacer(modifier = Modifier.padding(end = 8.dp))
                             Text(
-                                text = "($rating)",
+                                text = "$rating",
                                 fontSize = 14.sp,
                             )
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.review),
-                                contentDescription = "Star Icon",
-                                modifier = Modifier
-                                    .size(35.dp)
-                                    .padding(end = 8.dp)
-                            )
+                            Spacer(modifier = Modifier.padding(end = 8.dp))
                             Text(
-                                text = "(${numberOfReviews})", fontSize = 14.sp, color = Color.Gray
+                                text = "($numberOfReviews)",
+                                fontSize = 14.sp,
                             )
                         }
                     }
@@ -859,9 +848,7 @@ fun ServiceAndPriceWithSelectCard(
                 },
                 onDecrement = {
                     if (selectedService.count > 0) {
-                        // Update the count
                         selectedService = selectedService.copy(count = selectedService.count - 1)
-                        // Notify the parent
                         onServiceSelectedChange(selectedService)
                     }
                 }
