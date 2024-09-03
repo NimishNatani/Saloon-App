@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.ads.BannerAds
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
@@ -107,11 +108,12 @@ fun GenderSelectOnBook(
                             .padding(top = 6.dp)
                     )
                 }
+//                BannerAds(modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp))
 
                 Card(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 50.dp),
+                        .padding(top = 25.dp),
                     shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
                     elevation = 0.dp
                 ) {

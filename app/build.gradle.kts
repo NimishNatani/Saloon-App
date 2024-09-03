@@ -174,4 +174,9 @@ dependencies {
     // Extended Icons
     implementation("androidx.compose.material:material-icons-extended:1.5.4")
 
+    //Ads
+    implementation("com.google.android.gms:play-services-ads:23.2.0")
+    implementation ("io.github.farimarwat:admobnative-compose:1.2")
+
+
 }

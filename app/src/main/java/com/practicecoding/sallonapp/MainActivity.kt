@@ -17,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,24 +26,37 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.ads.MobileAds
 import com.google.firebase.auth.FirebaseAuth
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.navigation.AppNavigation
 import com.practicecoding.sallonapp.ui.theme.SallonAppTheme
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+
             val navController = rememberNavController()
             SallonAppTheme {
+               LaunchedEffect(Unit) {
+                   val backgroundScope = CoroutineScope(Dispatchers.IO)
+                   backgroundScope.launch {
+                       // Initialize the Google Mobile Ads SDK on a background thread.
+                       MobileAds.initialize(this@MainActivity) {}
+                   }
+               }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = purple_200
                 ) {
+
                     val updatedCurrentUser = FirebaseAuth.getInstance().currentUser
                     var startDestination by remember {
                         mutableStateOf(Screens.Logo.route)

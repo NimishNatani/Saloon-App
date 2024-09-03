@@ -9,6 +9,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -167,13 +168,17 @@ fun ShimmerEffectBarberBig(
 }
 
 @Composable
-fun ShimmerBigCards(int: Int) {
+fun ShimmerBigCards(int: Int,it: PaddingValues) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize() .fillMaxSize()
+            .padding(it)
+            .clip(shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
+            .background(Color.White),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         items(int) {
+            Spacer(modifier = Modifier.height(15.dp))
             ShimmerEffectBarberBig(300.dp, 300.dp)
         }
     }

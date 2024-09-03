@@ -97,6 +97,7 @@ fun BottomAppNavigationBar(
         indentAnimation = Height(tween(durationMillis = 300)),
     ) {
         bottomBarItems.forEach { item ->
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -107,16 +108,18 @@ fun BottomAppNavigationBar(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = "Icon",
-                        modifier = Modifier
-                            .size(42.dp)
-                            .padding(top = 10.dp),
-                        tint = if (selectedItem == item) Color.White else Color.Gray
-                    )
-                    if (item == NavigationItem.Message && messageCount > 0) {
-                        CircleWithMessageCount(messageCount = messageCount)
+                    Box{
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = "Icon",
+                            modifier = Modifier
+                                .size(42.dp)
+                                .padding(top = 10.dp),
+                            tint = if (selectedItem == item) Color.White else Color.Gray
+                        )
+                        if (item == NavigationItem.Message && messageCount > 0) {
+                            CircleWithMessageCount(messageCount = messageCount)
+                        }
                     }
                     Text(
                         text = item.iconName, modifier = Modifier,
@@ -135,14 +138,14 @@ fun CircleWithMessageCount(
         modifier = Modifier
             .size(20.dp) // Adjust size as needed
             .background(Color.White, CircleShape),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.CenterEnd
     ) {
         if (messageCount > 0) {
             Canvas(
-                modifier = Modifier.size(50.dp) // Ensure the canvas size matches the Box
+                modifier = Modifier.size(50.dp).align(Alignment.TopEnd) // Ensure the canvas size matches the Box
             ) {
                 drawCircle(
-                    color = Color.Green, // Change color as needed
+                    color = sallonColor, // Change color as needed
                     radius = 6.5.dp.toPx(), // Adjust radius to fit within the Box
                     center = Offset(size.width / 2, size.height / 2) // Center the circle
                 )

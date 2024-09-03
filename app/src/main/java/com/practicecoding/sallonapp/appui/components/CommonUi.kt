@@ -301,8 +301,9 @@ fun BackButtonTopAppBar(
     title: String
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start
+        modifier = Modifier.fillMaxWidth().background(purple_200),
+        horizontalArrangement = Arrangement.Start,
+
     ) {
         Surface(
             shape = RoundedCornerShape(50),
@@ -311,7 +312,7 @@ fun BackButtonTopAppBar(
                 .wrapContentSize(align = Alignment.BottomEnd)
                 .clip(RoundedCornerShape(20.dp))
                 .size(width = 40.dp, height = 40.dp),
-            color = MaterialTheme.colorScheme.primary
+            color = purple_200
         ) {
 
             androidx.compose.material.IconButton(
@@ -335,7 +336,8 @@ fun BackButtonTopAppBar(
                 .padding(40.dp, 26.dp),
             textAlign = TextAlign.Center,
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
         )
     }
 }

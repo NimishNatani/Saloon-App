@@ -49,6 +49,7 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.ads.BannerAds
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 
@@ -75,17 +76,18 @@ fun DoubleCard(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         topAppBar()
+//        BannerAds()
         Card(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 30.dp),
+                .padding(top = 10.dp),
             shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
             backgroundColor = colorResource(id = R.color.sallon_color)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 20.dp),
+                    .padding(top = 10.dp),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -95,7 +97,7 @@ fun DoubleCard(
                 Card(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 20.dp)
+                        .padding(top = 10.dp)
 //                        .verticalScroll(scrollState)
                     ,
                     shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
@@ -203,7 +205,8 @@ fun ExpandableCard(
     ) {
         Card(
             modifier = Modifier
-                .fillMaxWidth().border(1.dp, sallonColor, RoundedCornerShape(10.dp)),
+                .fillMaxWidth()
+                .border(1.dp, sallonColor, RoundedCornerShape(10.dp)),
             elevation = 4.dp,
             shape = RoundedCornerShape(10.dp)
         ) {
@@ -211,7 +214,12 @@ fun ExpandableCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .animateContentSize(animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow))
+                        .animateContentSize(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                stiffness = Spring.StiffnessLow
+                            )
+                        )
                         .clickable { isExpanded = !isExpanded }
                         .padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,

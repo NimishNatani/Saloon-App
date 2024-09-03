@@ -63,7 +63,7 @@ fun AppNavigation(
     ) {
     val enterTransition =
         slideInHorizontally(
-            initialOffsetX = { 1000 },
+            initialOffsetX = { it },
             animationSpec = spring(
                 stiffness = Spring.StiffnessVeryLow,
                 dampingRatio = Spring.DampingRatioLowBouncy
@@ -72,7 +72,7 @@ fun AppNavigation(
 
     val exitTransition =
         slideOutHorizontally(
-            targetOffsetX = { -1000 },
+            targetOffsetX = { -it },
             animationSpec = spring(
                 stiffness = Spring.StiffnessVeryLow,
                 dampingRatio = Spring.DampingRatioNoBouncy
@@ -81,7 +81,7 @@ fun AppNavigation(
 
     val popEnterTransition =
         slideInHorizontally(
-            initialOffsetX = { -1000 },
+            initialOffsetX = { -it },
             animationSpec = spring(
                 stiffness = Spring.StiffnessVeryLow,
                 dampingRatio = Spring.DampingRatioLowBouncy
@@ -90,7 +90,7 @@ fun AppNavigation(
 
     val popExitTransition =
         slideOutHorizontally(
-            targetOffsetX = { 1000 },
+            targetOffsetX = { it },
             animationSpec = spring(
                 stiffness = Spring.StiffnessVeryLow,
                 dampingRatio = Spring.DampingRatioNoBouncy
@@ -210,8 +210,7 @@ fun AppNavigation(
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
-            val navigationTo = navController.previousBackStackEntry?.savedStateHandle?.get<NavigationItem>("navigationTo")?:NavigationItem.Home
-            MainScreen1(navController, context,navigationTo)
+            MainScreen1(navController, context)
 
         }
 

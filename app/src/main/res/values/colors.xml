@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#ECE4F6</color>
+    <color name="purple_200">#FFe9ecef</color>
+<!--    #ECE4F6-->
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
+<!--    <color name="black">#FF000000</color>-->
     <color name="white">#FFFFFFFF</color>
-    <color name="sallon_color">#FF6f45ef</color>
-    <color name="sallon_color_light">#FF9f7cf1</color>
+    <color name="sallon_color">
+        #FF000000 </color>
+<!--        #FF6f45ef-->
+
+
+    <color name="sallon_color_light">#FF6c757d</color>
     <color name="grey">#FF8C8C8C</color>
     <color name="grey_light">#FFF5F5F5</color>
     <color name="purple_grad1">#FF8E2DE2</color>

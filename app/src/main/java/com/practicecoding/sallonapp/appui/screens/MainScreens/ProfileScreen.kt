@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -63,19 +64,13 @@ fun ProfileScreenList(navController: NavController){
         .verticalScroll(rememberScrollState())) {
 
           ShowingList(image = R.drawable.salon_app_logo, text = "Edit Profile"){
-              navController.navigate(Screens.UpdateProfileScreen.route){
-                  navController.popBackStack()
-              }
+              navController.navigate(Screens.UpdateProfileScreen.route)
           }
           ShowingList(image = R.drawable.salon_app_logo, text ="My Booking History"){
-                navController.navigate(Screens.BookingHistory.route){
-                    navController.popBackStack()
-                }
+                navController.navigate(Screens.BookingHistory.route)
           }
           ShowingList(image = R.drawable.salon_app_logo, text = "Favorite's Saloon"){
-                navController.navigate(Screens.FavBarberList.route){
-                    navController.popBackStack()
-                }
+                navController.navigate(Screens.FavBarberList.route)
           }
           ShowingList(image = R.drawable.salon_app_logo, text = "Privacy Policy"){}
           ShowingList(image = R.drawable.salon_app_logo, text ="About Us"){}
@@ -93,7 +88,8 @@ fun PhotoWithName(viewModel: GetUserDataViewModel= hiltViewModel(),){
             model =viewModel.user.value.imageUri
         ), contentDescription ="userImage", modifier = Modifier
             .size(100.dp)
-            .clip(CircleShape) )
+            .clip(CircleShape) ,
+            contentScale = ContentScale.FillBounds)
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = viewModel.user.value.name.toString(),

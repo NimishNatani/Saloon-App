@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.practicecoding.sallonapp.ads.BannerAds
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.ExpandableCard
 import com.practicecoding.sallonapp.appui.components.GeneralButton
@@ -69,7 +70,9 @@ fun ServiceSelector(
     Surface(modifier = Modifier
         .fillMaxSize()
         .background(purple_200), color = Color.White) {
-        Box(modifier = Modifier.fillMaxSize().background(purple_200)){
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(purple_200)){
         Column(
             modifier = Modifier
                 .background(purple_200)
@@ -108,11 +111,12 @@ fun ServiceSelector(
                         .padding(top = 4.dp)
                 )
             }
+//            BannerAds(modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp))
             Card(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(purple_200)
-                    .padding(top = 40.dp),
+                    .padding(top = 25.dp),
                 colors = CardColors(Color.White, Color.White, Color.White, Color.White),
                 shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
                 elevation = CardDefaults.cardElevation(

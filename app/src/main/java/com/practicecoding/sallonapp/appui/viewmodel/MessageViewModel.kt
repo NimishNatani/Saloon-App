@@ -43,7 +43,7 @@ class MessageViewModel @Inject constructor(    private val repo: FireStoreDbRepo
                 userChat.value = chat
                 _count.value=0
                 for (i in userChat.value) {
-                    if (!i.message.seenbybarber) {
+                    if (!i.message.seenbyuser) {
                         _count.value++
                     }
                     if (_count.value > 1) {

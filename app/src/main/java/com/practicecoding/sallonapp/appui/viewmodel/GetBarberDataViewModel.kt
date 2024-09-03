@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.data.FireStoreDbRepository
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.Service
@@ -44,6 +45,16 @@ class GetBarberDataViewModel @Inject constructor(
 
     private var slots = mutableStateOf(Slots("08:00", "22:00"))
     var _slots: State<Slots> = slots
+
+    private val _barberList = mutableStateOf<List<BarberModel>>(emptyList())
+    val barberList : State<List<BarberModel>> = _barberList
+
+    var navigationItem = mutableStateOf(NavigationItem.Home)
+
+
+    suspend fun getBarberListByService(service: String){
+        _barberList.value = repo.getBarberByService(service)
+    }
 
     suspend fun onEvent(event: MainEvent) {
         when (event) {

@@ -20,11 +20,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,10 +36,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -56,7 +52,6 @@ import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.OfferCard
 import com.practicecoding.sallonapp.appui.components.ProfileWithNotification
 import com.practicecoding.sallonapp.appui.components.SearchBar
-import com.practicecoding.sallonapp.appui.components.ShimmerEffectBarber
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
@@ -78,7 +73,6 @@ import java.util.Locale
 fun MainScreen1(
     navHostController: NavController,
     context: Context,
-    navigationItem: NavigationItem,
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
     locationViewModel: LocationViewModel = hiltViewModel(),
     chatViewModel: MessageViewModel = hiltViewModel(),
@@ -123,22 +117,27 @@ fun MainScreen1(
             )
         }
     }
-    var selectedScreen by remember { mutableStateOf(navigationItem) }
+//    var selectedScreen by remember { mutableStateOf() }
     Scaffold(
         bottomBar = {
             BottomAppNavigationBar(
-                selectedItem = selectedScreen,
-                onItemSelected = { selectedScreen = it },
+                selectedItem = viewModelBarber.navigationItem.value,
+                onItemSelected = { viewModelBarber.navigationItem.value = it },
                 messageCount = chatViewModel._count.value
             )
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
-            when (selectedScreen) {
-                NavigationItem.Home -> if (orderViewModel.isLoading.value) {
-                    ShimmerEffectBarber()
-                } else {
-                    TopScreen(navHostController, context,viewModelBarber,chatViewModel._count.value)
+            when (viewModelBarber.navigationItem.value) {
+                NavigationItem.Home -> {
+                    viewModelBarber.navigationItem.value = NavigationItem.Home
+
+                    TopScreen(
+                        navHostController,
+                        context,
+                        viewModelBarber,
+                        chatViewModel._count.value
+                    )
                     LaunchedEffect(chatViewModel.userChat.value.size) {
                         CoroutineScope(Dispatchers.IO).launch {
                             if (chatViewModel.userChat.value.isNotEmpty()) {
@@ -155,14 +154,34 @@ fun MainScreen1(
                         }
                     }
                 }
-                NavigationItem.Book -> if (orderViewModel.isLoading.value) {
-                    ShimmerEffectBarber()
-                } else {
-                   UserOrderPage(navController = navHostController, context = context, orderViewModel)
+
+                NavigationItem.Book -> {
+//                if (orderViewModel.isLoading.value) {
+//                    ShimmerEffectBarber()
+//                } else {
+                    viewModelBarber.navigationItem.value = NavigationItem.Book
+
+                    UserOrderPage(
+                        navController = navHostController,
+                        context = context,
+                        orderViewModel
+                    )
+//                }
                 }
-                NavigationItem.Message -> MessageScreen(navHostController,chatViewModel)
-                NavigationItem.Profile -> ProfileScreen(viewModelBarber,navHostController)
-                NavigationItem.More -> MoreScreen()
+                NavigationItem.Message -> {
+                    viewModelBarber.navigationItem.value = NavigationItem.Message
+                    MessageScreen(navHostController, chatViewModel)
+                }
+                NavigationItem.Profile -> {
+                    viewModelBarber.navigationItem.value = NavigationItem.Profile
+
+                    ProfileScreen(viewModelBarber, navHostController)
+                }
+                NavigationItem.More -> {
+                    viewModelBarber.navigationItem.value = NavigationItem.More
+
+                    MoreScreen()
+                }
             }
         }
     }
@@ -174,10 +193,11 @@ fun MoreScreen() {
 }
 
 @Composable
-fun TopScreen(navController: NavController,
-              context: Context,
-              viewModelBarber: GetBarberDataViewModel,
-              count: Int
+fun TopScreen(
+    navController: NavController,
+    context: Context,
+    viewModelBarber: GetBarberDataViewModel,
+    count: Int
 ) {
     DoubleCard(
         midCarBody = { SearchBar() },
@@ -300,35 +320,35 @@ fun MainScreen(
 
                 }
                 Row(modifier = Modifier.horizontalScroll(scrollStateRowCategories)) {
-                    Categories(image = R.drawable.haircut, categories = "Hair Cut"){
+                    Categories(image = R.drawable.haircut, categories = "Hair Cut") {
                         navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = "service",
                             value = "Hair Cut"
                         )
                         navController.navigate(Screens.CatBarberList.route)
                     }
-                    Categories(image = R.drawable.shaving, categories = "Bleach"){
+                    Categories(image = R.drawable.shaving, categories = "Bleach") {
                         navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = "service",
                             value = "Bleach"
                         )
                         navController.navigate(Screens.CatBarberList.route)
                     }
-                    Categories(image = R.drawable.makeup, categories = "Clean Up"){
+                    Categories(image = R.drawable.makeup, categories = "Clean Up") {
                         navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = "service",
                             value = "Clean Up"
                         )
                         navController.navigate(Screens.CatBarberList.route)
                     }
-                    Categories(image = R.drawable.haircolor, categories = "Hair Color"){
+                    Categories(image = R.drawable.haircolor, categories = "Hair Color") {
                         navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = "service",
                             value = "Hair Color"
                         )
                         navController.navigate(Screens.CatBarberList.route)
                     }
-                    Categories(image = R.drawable.nails, categories = "Nail Cut"){
+                    Categories(image = R.drawable.nails, categories = "Nail Cut") {
                         navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = "service",
                             value = "Nail Cut"
@@ -490,6 +510,7 @@ fun MainScreen(
         }
     }
 }
+
 @Composable
 fun initializeMultipleBarber(): MutableState<List<BarberModel>> {
     return remember {

@@ -168,7 +168,7 @@ fun OrderCard(
         elevation = CardDefaults.cardElevation(4.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(2.dp),
+            .padding(10.dp),
         colors = CardColors(
             contentColor = Color.White,
             disabledContainerColor = Color.White,

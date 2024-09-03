@@ -88,14 +88,6 @@ fun TimeSelection(
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val context = LocalContext.current
     val slotTime = viewModel._slots.value
-    LaunchedEffect(date) {
-//        slotTime = restScreenViewModel.getSlots(dayNameFull, barber.uid, slotsViewModel)
-        viewModel.getSlots(dayNameFull,barber.uid)
-    }
-    val startTime = LocalTime.parse(slotTime.startTime, timeFormatter)
-    val endTime = LocalTime.parse(slotTime.endTime, timeFormatter)
-
-    // Retrieve the booked and not available times for the selected date
     val bookedTimes = remember {
         mutableStateListOf<LocalTime>()
     }
@@ -103,6 +95,17 @@ fun TimeSelection(
     val notAvailableTimes = remember {
         mutableStateListOf<LocalTime>()
     }
+    LaunchedEffect(date) {
+//        slotTime = restScreenViewModel.getSlots(dayNameFull, barber.uid, slotsViewModel)
+        viewModel.getSlots(dayNameFull,barber.uid)
+        bookedTimes.clear()
+        notAvailableTimes.clear()
+    }
+    val startTime = LocalTime.parse(slotTime.startTime, timeFormatter)
+    val endTime = LocalTime.parse(slotTime.endTime, timeFormatter)
+
+    // Retrieve the booked and not available times for the selected date
+
 if (date==LocalDate.parse(slotTime.date)) {
     bookedTimes.clear()
     for (timeString in slotTime.booked!!) {
