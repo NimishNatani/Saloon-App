@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -43,10 +44,16 @@ fun ProfileScreen(
     viewModel: GetBarberDataViewModel,
     navController: NavController
 ){
-    DoubleCard(midCarBody = { PhotoWithName() }, mainScreen = { ProfileScreenList(navController) }, topAppBar = { BackButtonTopAppBar(
-        onBackClick = { /*TODO*/ },
-        title = "Profile"
-    )})
+    DoubleCard(midCarBody = { PhotoWithName() }, mainScreen = { ProfileScreenList(navController) }, topAppBar = {
+        Text(
+            text = "Profile",
+            modifier = Modifier.fillMaxWidth().padding(top = 15.dp, bottom = 20.dp),
+            textAlign = TextAlign.Center,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+    })
 }
 @Composable
 fun ProfileScreenList(navController: NavController){

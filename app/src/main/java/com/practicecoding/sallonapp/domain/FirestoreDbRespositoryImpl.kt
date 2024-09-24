@@ -338,7 +338,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
         val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
         val formattedDate = dateFormat.format(currentDate)
         val formattedTime = timeFormat.format(currentTime)
-
+//val selectedService = service.filter { it.count>=1 }
         val bookingData = hashMapOf(
             "barberuid" to barberuid,
             "useruid" to useruid,
@@ -486,6 +486,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                             val orderStatus = when (documentSnapshot.getString("status").toString().lowercase()) {
                                 "completed" -> OrderStatus.COMPLETED
                                 "accepted" -> OrderStatus.ACCEPTED
+                                "cancelled"-> OrderStatus.CANCELLED
                                 else -> OrderStatus.PENDING
                             }
                             val orderModel = OrderModel(
@@ -503,7 +504,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                             orders.add(orderModel)
                         }
                         withContext(Dispatchers.Main) {
-                            trySend(orders).isSuccess
+                            trySend(orders.reversed()).isSuccess
                         }
                     }
                 }

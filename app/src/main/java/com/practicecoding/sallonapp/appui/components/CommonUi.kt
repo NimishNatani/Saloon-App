@@ -332,8 +332,9 @@ fun BackButtonTopAppBar(
         }
         androidx.compose.material.Text(
             text = title,
-            modifier = Modifier
-                .padding(40.dp, 26.dp),
+            modifier = Modifier.fillMaxWidth().align(Alignment.CenterVertically)
+                .padding(end=70.dp)
+            ,
             textAlign = TextAlign.Center,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,

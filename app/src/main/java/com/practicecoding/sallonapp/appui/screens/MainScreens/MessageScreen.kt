@@ -1,8 +1,10 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Tab
@@ -14,25 +16,33 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
 import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.MessageItemBox
+import com.practicecoding.sallonapp.appui.components.NavigationItem
+import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 
 @Composable
-fun MessageScreen(navHostController: NavController,viewModel: MessageViewModel ) {
+fun MessageScreen(navHostController: NavController,viewModel: MessageViewModel ,    viewModelBarber: GetBarberDataViewModel
+) {
     val context = LocalContext.current
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-
+    BackHandler {
+        viewModelBarber.navigationItem.value = NavigationItem.Home
+    }
     DoubleCard(
         midCarBody = {
             TabRow(
@@ -81,7 +91,16 @@ fun MessageScreen(navHostController: NavController,viewModel: MessageViewModel )
             }
         },
         topAppBar = {
-            BackButtonTopAppBar(onBackClick = { /*TODO*/ }, title = "Message")
+            Text(
+                text = "Message",
+                modifier = Modifier.fillMaxWidth().padding(top=15.dp, bottom = 20.dp)
+                ,
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+//            BackButtonTopAppBar(onBackClick = { /*TODO*/ }, title = "Message")
         },
     )
 }
@@ -102,7 +121,7 @@ fun MessageList(navHostController: NavController,viewModel: MessageViewModel ){
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)) {
-            viewModel.userChat.value.forEach { chatModel ->
+            viewModel.userChat.value.reversed().forEach { chatModel ->
                 MessageItemBox(
                     navHostController = navHostController,
                     message = chatModel.message,

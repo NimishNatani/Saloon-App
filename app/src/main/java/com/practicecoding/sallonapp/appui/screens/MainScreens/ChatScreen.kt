@@ -40,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.appui.Screens
+import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
 import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.viewmodel.MessageEvent
 import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
@@ -65,6 +66,7 @@ fun ChatScreen(
     BackHandler {
         navController.popBackStack()
     }
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.onEvent(MessageEvent.MessageList(uid))
     }
@@ -76,9 +78,37 @@ fun ChatScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(purple_200)
+                .background(purple_200),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TopBar(image, name, phoneNumber)
+//            TopBar(image, name, phoneNumber)
+            Box(modifier = Modifier.fillMaxWidth()){
+                BackButtonTopAppBar(onBackClick = { navController.popBackStack() }, title = "Chats")
+                Icon(
+                    imageVector = Icons.Default.Call,
+                    contentDescription = "Call",
+                    tint = sallonColor,
+                    modifier = Modifier.clickable {
+                        val u = Uri.parse("tel:$phoneNumber")
+
+                        // Create the intent and set the data for the
+                        // intent as the phone number.
+                        val i = Intent(Intent.ACTION_DIAL, u)
+                        try {
+
+                            // Launch the Phone app's dialer with a phone
+                            // number to dial a call.
+                            context.startActivity(i)
+                        } catch (s: SecurityException) {
+
+                            // show() method display the toast with
+                            // exception message.
+                            Toast.makeText(context, "An error occurred", Toast.LENGTH_LONG)
+                                .show()
+                        }
+                    }.padding(end=10.dp, bottom = 10.dp).align(Alignment.CenterEnd)
+                )
+            }
             ChatMessages(modifier = Modifier.weight(1f), viewModel)
 
         }
@@ -198,14 +228,14 @@ fun DateSeparator(date: String) {
 @Composable
 fun ChatBubble(message: String, time: String, isSent: Boolean) {
     Row(
-        horizontalArrangement = if (!isSent) Arrangement.End else Arrangement.Start,
+        horizontalArrangement = if (isSent) Arrangement.End else Arrangement.Start,
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                start = if (!isSent) {
+                start = if (isSent) {
                     54.dp
                 } else 16.dp,
-                end = if (!isSent) {
+                end = if (isSent) {
                     16.dp
                 } else {
                     54.dp
@@ -215,8 +245,8 @@ fun ChatBubble(message: String, time: String, isSent: Boolean) {
         Column(
             modifier = Modifier
                 .background(
-                    color = if (!isSent) sallonColor else purple_200,
-                    shape = if (!isSent) RoundedCornerShape(
+                    color = if (isSent) sallonColor else purple_200,
+                    shape = if (isSent) RoundedCornerShape(
                         16.dp,
                         0.dp,
                         16.dp,
@@ -227,7 +257,7 @@ fun ChatBubble(message: String, time: String, isSent: Boolean) {
         ) {
             Text(
                 text = message,
-                color = if (!isSent) Color.White else Color.Black,
+                color = if (isSent) Color.White else Color.Black,
                 fontWeight = FontWeight.Medium
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -276,7 +306,7 @@ fun MessageInput(uid: String, viewModel: MessageViewModel = hiltViewModel()) {
                 val currentDate = Date()
                 val dateFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
                 val formattedDate = dateFormat.format(currentDate)
-                val message = LastMessage(false, textState, formattedDate,false,true)
+                val message = LastMessage(true, textState, formattedDate,false,true)
                 CoroutineScope(Dispatchers.IO).launch {
                     viewModel.onEvent(MessageEvent.AddChat(message,uid))
                 }

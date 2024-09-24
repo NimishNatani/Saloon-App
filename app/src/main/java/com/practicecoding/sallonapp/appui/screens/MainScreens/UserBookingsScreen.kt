@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,13 +38,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
 import com.practicecoding.sallonapp.appui.components.DoubleCard
+import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.OrderCard
 import com.practicecoding.sallonapp.appui.components.ProfileWithNotification
 import com.practicecoding.sallonapp.appui.components.UpcomingOrderCard
@@ -59,8 +65,12 @@ import kotlinx.coroutines.launch
 fun UserOrderPage(
     navController: NavController,
     context: Context,
-    orderViewModel: OrderViewModel = hiltViewModel(),
+    orderViewModel: OrderViewModel ,
+    viewModelBarber:GetBarberDataViewModel
 ){
+    BackHandler {
+        viewModelBarber.navigationItem.value = NavigationItem.Home
+    }
     DoubleCard(
         midCarBody = {
           UpcomingOrderCard(upcomingOrder = orderViewModel.upcomingOrder)
@@ -68,23 +78,33 @@ fun UserOrderPage(
         mainScreen = {
             UserBookingScreen(
                 activity = context as Activity,
-                pendingOrders = orderViewModel.pendingOrderList.value.toMutableList(),
-                acceptedOrders = orderViewModel.acceptedOrderList.value.toMutableList(),
-                completedOrders = orderViewModel.completedOrderList.value.toMutableList(),
+//                pendingOrders = orderViewModel.pendingOrderList.value.toMutableList(),
+//                acceptedOrders = orderViewModel.acceptedOrderList.value.toMutableList(),
+//                completedOrders = orderViewModel.completedOrderList.value.toMutableList(),
+//                cancelledOrders  = orderViewModel.cancelledOrderList.value.toMutableList(),
+                orderViewModel= orderViewModel,
                 navController = navController
             )
         },
         topAppBar = {
-            ProfileWithNotification(
-                onProfileClick = { /*TODO*/ },
-                onNotificationClick = { /*TODO*/ })
+            Text(
+                text = "Booking Status",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 15.dp, bottom = 20.dp)
+                ,
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
         }
     )
 }
 
 @Composable
 fun OrderList(orders: List<OrderModel>,
-              orderViewModel: OrderViewModel = hiltViewModel(),
+              orderViewModel: OrderViewModel,
               navController: NavController,
 ) {
     val scope = rememberCoroutineScope()
@@ -128,9 +148,11 @@ fun OrderList(orders: List<OrderModel>,
 @Composable
 fun UserBookingScreen(
     activity: Activity,
-    pendingOrders: MutableList<OrderModel>,
-    acceptedOrders: MutableList<OrderModel>,
-    completedOrders: MutableList<OrderModel>,
+//    pendingOrders: MutableList<OrderModel>,
+//    acceptedOrders: MutableList<OrderModel>,
+//    completedOrders: MutableList<OrderModel>,
+//    cancelledOrders:MutableList<OrderModel>,
+    orderViewModel: OrderViewModel,
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -160,7 +182,7 @@ fun UserBookingScreen(
                     .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
             ) {
                 Tab(
-                    text = { Text("Pending Orders", color = Color.White) },
+                    text = { Text("Pending", color = Color.White) },
                     selected = selectedTab.value == 0,
                     onClick = {
                         selectedTab.value = 0
@@ -171,7 +193,7 @@ fun UserBookingScreen(
                     modifier = Modifier.clip(CircleShape)
                 )
                 Tab(
-                    text = { Text("Accepted Orders", color = Color.White) },
+                    text = { Text("Accepted", color = Color.White) },
                     selected = selectedTab.value == 1,
                     onClick = {
                         selectedTab.value = 1
@@ -181,7 +203,7 @@ fun UserBookingScreen(
                     }
                 )
                 Tab(
-                    text = { Text("Completed Orders", color = Color.White) },
+                    text = { Text("Completed", color = Color.White) },
                     selected = selectedTab.value == 2,
                     onClick = {
                         selectedTab.value = 2
@@ -191,7 +213,7 @@ fun UserBookingScreen(
                     }
                 )
                 Tab(
-                    text = { Text("Pending Cancellation", color = Color.White) },
+                    text = { Text("Cancelled", color = Color.White) },
                     selected = selectedTab.value == 3,
                     onClick = {
                         selectedTab.value = 3
@@ -212,9 +234,10 @@ fun UserBookingScreen(
                     )
             ) { page ->
                 when (page) {
-                    0 -> OrderList(orders = pendingOrders, navController = navController)
-                    1 -> OrderList(orders = acceptedOrders, navController = navController)
-                    2 -> OrderList(orders = completedOrders, navController = navController)
+                    0 -> OrderList(orders = orderViewModel.pendingOrderList.value, navController = navController, orderViewModel = orderViewModel)
+                    1 -> OrderList(orders = orderViewModel.acceptedOrderList.value, navController = navController, orderViewModel = orderViewModel)
+                    2 -> OrderList(orders = orderViewModel.completedOrderList.value, navController = navController, orderViewModel = orderViewModel)
+                    3 -> OrderList(orders = orderViewModel.cancelledOrderList.value, navController =navController , orderViewModel = orderViewModel)
                 }
             }
         }

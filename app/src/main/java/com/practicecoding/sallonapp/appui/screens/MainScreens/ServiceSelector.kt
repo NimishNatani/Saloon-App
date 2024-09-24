@@ -166,7 +166,7 @@ fun ServiceSelector(
             GeneralButton(text = "Next", width = 180, modifier = Modifier.align(Alignment.BottomCenter)) {
                 navController.currentBackStackEntry?.savedStateHandle?.set(
                     key = "services",
-                    value = viewModel.listOfService.value
+                    value = viewModel.listOfService.value.filter { it.count>=1 }
 
                 )
                 navController.currentBackStackEntry?.savedStateHandle?.set(

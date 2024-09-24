@@ -52,6 +52,7 @@ import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.OfferCard
 import com.practicecoding.sallonapp.appui.components.ProfileWithNotification
 import com.practicecoding.sallonapp.appui.components.SearchBar
+import com.practicecoding.sallonapp.appui.components.ShimmerEffectBarber
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
@@ -156,21 +157,22 @@ fun MainScreen1(
                 }
 
                 NavigationItem.Book -> {
-//                if (orderViewModel.isLoading.value) {
-//                    ShimmerEffectBarber()
-//                } else {
+                if (orderViewModel.isLoading.value) {
+                    ShimmerEffectBarber()
+                } else {
                     viewModelBarber.navigationItem.value = NavigationItem.Book
 
                     UserOrderPage(
                         navController = navHostController,
                         context = context,
-                        orderViewModel
+                        orderViewModel,
+                        viewModelBarber
                     )
-//                }
+                }
                 }
                 NavigationItem.Message -> {
                     viewModelBarber.navigationItem.value = NavigationItem.Message
-                    MessageScreen(navHostController, chatViewModel)
+                    MessageScreen(navHostController, chatViewModel,viewModelBarber)
                 }
                 NavigationItem.Profile -> {
                     viewModelBarber.navigationItem.value = NavigationItem.Profile
