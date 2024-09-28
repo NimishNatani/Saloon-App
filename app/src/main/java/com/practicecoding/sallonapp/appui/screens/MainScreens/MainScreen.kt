@@ -47,6 +47,8 @@ import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BigSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.components.BottomAppNavigationBar
 import com.practicecoding.sallonapp.appui.components.Categories
+import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
+import com.practicecoding.sallonapp.appui.components.CommonDialog
 import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.OfferCard
@@ -55,6 +57,7 @@ import com.practicecoding.sallonapp.appui.components.SearchBar
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectBarber
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
+import com.practicecoding.sallonapp.appui.components.UpcomingFeaturesCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.LocationViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
@@ -132,7 +135,6 @@ fun MainScreen1(
             when (viewModelBarber.navigationItem.value) {
                 NavigationItem.Home -> {
                     viewModelBarber.navigationItem.value = NavigationItem.Home
-
                     TopScreen(
                         navHostController,
                         context,
@@ -161,12 +163,11 @@ fun MainScreen1(
                     ShimmerEffectBarber()
                 } else {
                     viewModelBarber.navigationItem.value = NavigationItem.Book
-
                     UserOrderPage(
                         navController = navHostController,
                         context = context,
-                        orderViewModel,
-                        viewModelBarber
+                        orderViewModel= orderViewModel,
+                        viewModelBarber = viewModelBarber
                     )
                 }
                 }
@@ -316,7 +317,9 @@ fun MainScreen(
                         )
 
                     )
-                    TextButton(onClick = {}) {
+                    TextButton(onClick = {
+                        navController.navigate(Screens.AllCategory.route)
+                    }) {
                         Text(text = "View All", color = Color.Gray)
                     }
 
@@ -507,7 +510,7 @@ fun MainScreen(
                         isFavorite = isLiked,
                     )
                 }
-
+                UpcomingFeaturesCard()
             }
         }
     }

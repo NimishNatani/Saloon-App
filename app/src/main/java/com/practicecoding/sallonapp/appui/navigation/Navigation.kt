@@ -21,13 +21,13 @@ import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
 import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.HeadingText
-import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.SalonCard
 import com.practicecoding.sallonapp.appui.screens.MainScreens.AddReviewScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BarberScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BarberServiceVise
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BookingHistoryScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.BottomSheet
+import com.practicecoding.sallonapp.appui.screens.MainScreens.CategoriesScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.ChatScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.DetailScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.FavBarberListScreen
@@ -54,7 +54,6 @@ import com.practicecoding.sallonapp.data.model.ServiceCat
 import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
 import java.time.LocalDate
-import java.time.LocalTime
 
 @Composable
 fun AppNavigation(
@@ -451,5 +450,11 @@ fun AppNavigation(
                 ?.get<String>("service") ?: "default_service"
             BarberServiceVise(service = service!!, likedBarberViewModel = LikedBarberViewModel(context), navController = navController)
         }
+        composable(Screens.AllCategory.route, enterTransition = { enterTransition },
+        exitTransition = { exitTransition },
+        popEnterTransition = { popEnterTransition },
+        popExitTransition = { popExitTransition }){
+            CategoriesScreen(navController = navController)
     }
-}
+    }
+    }

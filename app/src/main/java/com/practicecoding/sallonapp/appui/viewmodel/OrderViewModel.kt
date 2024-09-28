@@ -30,6 +30,7 @@ class OrderViewModel @Inject constructor(
     private val _cancelledOrderList = mutableStateOf<List<OrderModel>>(emptyList())
     val cancelledOrderList: State<List<OrderModel>> = _cancelledOrderList
     var isLoading = mutableStateOf(false)
+    var isUpdating = mutableStateOf(false)
 
     private val _reviewList = mutableStateOf<List<ReviewModel>>(emptyList())
     val reviewList: State<List<ReviewModel>> = _reviewList
@@ -63,29 +64,25 @@ class OrderViewModel @Inject constructor(
     }
 
     private suspend fun addReview(orderId: String, review: ReviewModel, onCompletion: () -> Unit) {
+        isUpdating.value = true
         repo.addReview(orderId, review).collect {
             when (it) {
                 is Resource.Success -> {
                     Log.d("rOrderViewModel", "addReview: Success")
+                    isUpdating.value = false
                     onCompletion()
                 }
-
                 is Resource.Failure -> {
+                    isUpdating.value = false
                     Log.d("rOrderViewModel", "addReview: Error ${it.exception}")
                 }
-
                 else -> {}
             }
         }
     }
 
     fun getReviewByOrderId(orderId: String): ReviewModel? {
-        val review = _reviewList.value.find { it.orderId == orderId }
-        return if (review != null) {
-            review
-        } else {
-            null
-        }
+        return _reviewList.value.find { it.orderId == orderId }
     }
 
     private suspend fun getReviewList() {
@@ -105,77 +102,62 @@ class OrderViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getOrders() {
-        isLoading.value = true
+    private suspend fun getOrders(isUpdate: Boolean = false) {
+        if(isUpdate) isUpdating.value = true else isLoading.value = true
         val today = LocalDate.now().toString()
         viewModelScope.launch {
             repo.getOrdersFlow().collect { orders ->
-                _orderList.value = orders.sortedByDescending { it.date }
                 val pendingList = mutableListOf<OrderModel>()
                 val acceptedList = mutableListOf<OrderModel>()
                 val completedList = mutableListOf<OrderModel>()
                 val cancelledList = mutableListOf<OrderModel>()
-                orderList.value.forEach{
-                    order->
-                    when(order.orderStatus){
-                        OrderStatus.PENDING->{
+                orders.forEach { order ->
+                    when (order.orderStatus) {
+                        OrderStatus.PENDING -> {
                             if (order.date >= today) {
                                 pendingList.add(order)
-                            }else{
-                                order.orderStatus=OrderStatus.CANCELLED
+                            } else {
+                                order.orderStatus = OrderStatus.CANCELLED
                                 cancelledList.add(order)
-                                viewModelScope.launch {
-                                    updateOrderStatus(order.orderId,OrderStatus.CANCELLED.status)
-                                }
+                                updateOrderStatus(order.orderId, OrderStatus.CANCELLED.status)
                             }
                         }
                         OrderStatus.ACCEPTED -> {
                             if (order.date >= today) {
                                 acceptedList.add(order)
-                            }else{
-                                order.orderStatus=OrderStatus.CANCELLED
+                            } else {
+                                order.orderStatus = OrderStatus.CANCELLED
                                 cancelledList.add(order)
-                                viewModelScope.launch {
-                                    updateOrderStatus(order.orderId,OrderStatus.CANCELLED.status)
-                                }
+                                updateOrderStatus(order.orderId, OrderStatus.CANCELLED.status)
                             }
                         }
                         OrderStatus.COMPLETED -> {
                             completedList.add(order)
                         }
-                        else->{
+                        OrderStatus.CANCELLED -> {
                             cancelledList.add(order)
                         }
                     }
                 }
-                _acceptedOrderList.value=acceptedList
-                _cancelledOrderList.value=cancelledList
-                _pendingOrderList.value=pendingList
-                _completedOrderList.value=completedList
-//                _acceptedOrderList.value = orders.filter {
-//                    it.orderStatus == OrderStatus.ACCEPTED && it.date >= LocalDate.now()
-//                        .toString()
-//                }
-//                _pendingOrderList.value = orders.filter {
-//                    it.orderStatus == OrderStatus.PENDING && it.date >= LocalDate.now().toString()
-//                }
-//                _completedOrderList.value =
-//                    orders.filter { it.orderStatus == OrderStatus.COMPLETED }
-//                _cancelledOrderList.value = orders.filter {
-//                    it.orderStatus == OrderStatus.CANCELLED || (it.date < LocalDate.now()
-//                        .toString() && it.orderStatus != OrderStatus.COMPLETED)
-//                }
+
+                _orderList.value = orders
+                _acceptedOrderList.value = acceptedList
+                _pendingOrderList.value = pendingList
+                _completedOrderList.value = completedList
+                _cancelledOrderList.value = cancelledList
+
+                // Update the upcomingOrder to the first accepted one
                 upcomingOrder.value = _acceptedOrderList.value.firstOrNull() ?: OrderModel(
+                    phoneNumber = " ",
                     barberShopName = " ",
                     barberName = " ",
                     imageUrl = " ",
                     orderType = emptyList(),
-                    phoneNumber = " ",
                     timeSlot = emptyList(),
                 )
-                isLoading.value = false
 
-                getReviewList() // Launching the review fetch without another coroutine scope
+                if(isUpdate) isUpdating.value = false else isLoading.value = false
+                getReviewList()  // Fetch reviews
             }
         }
     }
@@ -186,8 +168,8 @@ class OrderViewModel @Inject constructor(
                 is Resource.Success -> {
                     Log.d("OrderViewModel", "updateOrderStatus: Success")
                     Log.d("OrderViewModel", "updateOrderStatus: ${LocalDate.now()}")
+                    getOrders(isUpdate = true)
                 }
-
                 is Resource.Failure -> {
                     Log.d("OrderViewModel", "updateOrderStatus: Error")
                 }

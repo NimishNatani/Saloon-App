@@ -252,12 +252,12 @@ fun ProfileWithNotification(
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
-                Image(
-                    painter = painterResource(id = R.drawable.notificationbell),
-                    contentDescription = "notification bell",
-                    modifier = Modifier
-                        .size(22.dp)
-                        .clickable { onNotificationClick() })
+//                Image(
+//                    painter = painterResource(id = R.drawable.notificationbell),
+//                    contentDescription = "notification bell",
+//                    modifier = Modifier
+//                        .size(22.dp)
+//                        .clickable { onNotificationClick() })
             }
         }
     }

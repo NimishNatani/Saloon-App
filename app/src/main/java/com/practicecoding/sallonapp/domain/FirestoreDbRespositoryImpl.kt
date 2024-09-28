@@ -512,7 +512,8 @@ class FirestoreDbRespositoryImpl @Inject constructor(
 
         awaitClose { listenerRegistration.remove() }
     }
-    override suspend fun updateOrderStatus(orderId: String, status: String):Flow<Resource<String>> = callbackFlow {
+    override suspend fun updateOrderStatus(orderId: String, status: String)
+    :Flow<Resource<String>> = callbackFlow {
         trySend(Resource.Loading)
         try {
             Firebase.firestore.collection("booking").document(orderId)
@@ -557,7 +558,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                 val newRating = (rating * noOfReviews + review.rating) / (noOfReviews + 1)
 
                 // Update barber's number of reviews and rating
-                barberDb.document(barberUid).update("noOfReviews", noOfReviews + 1).await()
+                barberDb.document(barberUid).update("noOfReviews", "${noOfReviews+1}").await()
                 barberDb.document(barberUid).update("rating", newRating).await()
             }
         } catch (e: Exception) {
@@ -593,7 +594,6 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     trySend(Resource.Success(reviews)).isSuccess
                 }
             }
-
         awaitClose { listenerRegistration.remove() }
     }
 }

@@ -3,7 +3,6 @@ package com.practicecoding.sallonapp.appui.screens.MainScreens
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -27,12 +26,10 @@ import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -44,20 +41,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
+import com.practicecoding.sallonapp.appui.components.CommonDialog
 import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.OrderCard
-import com.practicecoding.sallonapp.appui.components.ProfileWithNotification
-import com.practicecoding.sallonapp.appui.components.UpcomingOrderCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
-import com.practicecoding.sallonapp.data.Resource
 import com.practicecoding.sallonapp.data.model.OrderModel
 import com.practicecoding.sallonapp.data.model.OrderStatus
-import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.launch
 
@@ -68,20 +61,20 @@ fun UserOrderPage(
     orderViewModel: OrderViewModel ,
     viewModelBarber:GetBarberDataViewModel
 ){
+    if(orderViewModel.isUpdating.value){
+        CommonDialog(title = "Updating...")
+    }
     BackHandler {
         viewModelBarber.navigationItem.value = NavigationItem.Home
     }
     DoubleCard(
+        midCardAble = false,
         midCarBody = {
-          UpcomingOrderCard(upcomingOrder = orderViewModel.upcomingOrder)
+          //UpcomingOrderCard(upcomingOrder = orderViewModel.upcomingOrder)
         },
         mainScreen = {
             UserBookingScreen(
                 activity = context as Activity,
-//                pendingOrders = orderViewModel.pendingOrderList.value.toMutableList(),
-//                acceptedOrders = orderViewModel.acceptedOrderList.value.toMutableList(),
-//                completedOrders = orderViewModel.completedOrderList.value.toMutableList(),
-//                cancelledOrders  = orderViewModel.cancelledOrderList.value.toMutableList(),
                 orderViewModel= orderViewModel,
                 navController = navController
             )
@@ -104,7 +97,7 @@ fun UserOrderPage(
 
 @Composable
 fun OrderList(orders: List<OrderModel>,
-              orderViewModel: OrderViewModel,
+              orderViewModel: OrderViewModel = hiltViewModel(),
               navController: NavController,
 ) {
     val scope = rememberCoroutineScope()
@@ -148,20 +141,11 @@ fun OrderList(orders: List<OrderModel>,
 @Composable
 fun UserBookingScreen(
     activity: Activity,
-//    pendingOrders: MutableList<OrderModel>,
-//    acceptedOrders: MutableList<OrderModel>,
-//    completedOrders: MutableList<OrderModel>,
-//    cancelledOrders:MutableList<OrderModel>,
     orderViewModel: OrderViewModel,
     navController: NavController,
 ) {
     val context = LocalContext.current
-    var isLoading by remember { mutableStateOf(false) }
     val screenHeight = LocalContext.current.resources.displayMetrics.heightPixels
-
-    if (isLoading) {
-        CircularProgressWithAppLogo()
-    }
 
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(0, pageCount = {4})
@@ -234,15 +218,14 @@ fun UserBookingScreen(
                     )
             ) { page ->
                 when (page) {
-                    0 -> OrderList(orders = orderViewModel.pendingOrderList.value, navController = navController, orderViewModel = orderViewModel)
-                    1 -> OrderList(orders = orderViewModel.acceptedOrderList.value, navController = navController, orderViewModel = orderViewModel)
-                    2 -> OrderList(orders = orderViewModel.completedOrderList.value, navController = navController, orderViewModel = orderViewModel)
-                    3 -> OrderList(orders = orderViewModel.cancelledOrderList.value, navController =navController , orderViewModel = orderViewModel)
+                    0 -> OrderList(orders = orderViewModel.pendingOrderList.value.toMutableList(), navController = navController,)
+                    1 -> OrderList(orders = orderViewModel.acceptedOrderList.value.toMutableList(), navController = navController,)
+                    2 -> OrderList(orders = orderViewModel.completedOrderList.value.toMutableList(), navController = navController,)
+                    3 -> OrderList(orders = orderViewModel.cancelledOrderList.value.toMutableList(), navController =navController,)
                 }
             }
         }
     }
-
     LaunchedEffect(pagerState.currentPage) {
         if (selectedTab.value != pagerState.currentPage) {
             selectedTab.value = pagerState.currentPage

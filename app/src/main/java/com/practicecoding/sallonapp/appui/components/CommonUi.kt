@@ -94,36 +94,37 @@ import kotlinx.coroutines.delay
 
 
 @Composable
-fun CommonDialog() {
-    Dialog(onDismissRequest = { }, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
-        Row(
-                modifier = Modifier
-                    .fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically
+fun CommonDialog(title: String = "Loading") {
+    Dialog(
+        onDismissRequest = { },
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(200.dp, 120.dp) // Set the size of the dialog
+                .clip(RoundedCornerShape(12.dp)) // Optional: rounded corners
+                .background(Color.White) // Background color of the dialog
+                .padding(16.dp), // Padding inside the dialog
+            contentAlignment = Alignment.Center // Center content
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
                 CircularProgressIndicator(
-                    modifier = Modifier
-                        .width(50.dp)
-
-                        .padding(top = 16.dp, bottom = 16.dp),
+                    modifier = Modifier.size(40.dp),
                     color = Color(sallonColor.toArgb()),
                     trackColor = Color(purple_200.toArgb()),
                 )
+                Spacer(modifier = Modifier.width(16.dp))
                 Text(
-                    text = "Loading",
-                    modifier = Modifier
-
-                        .wrapContentSize()
-                        .padding(30.dp),
-
-                    color = Purple40
+                    text = title,
+                    color = Purple40,
+                    fontSize = 16.sp // Adjust font size for better fit
                 )
             }
-
-
+        }
     }
-
-
 }
 
 @Composable
@@ -593,7 +594,7 @@ fun Categories(image: Int, categories: String, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .padding(horizontal = 8.dp, vertical = 4.dp)
-            .fillMaxWidth(),
+            .wrapContentSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(

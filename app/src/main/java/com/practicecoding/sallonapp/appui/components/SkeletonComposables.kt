@@ -28,7 +28,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,7 +48,6 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.R
-import com.practicecoding.sallonapp.ads.BannerAds
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 
@@ -61,7 +59,8 @@ fun DoubleCard(
     navController: NavController = rememberNavController(),
     mainScreen: @Composable () -> Unit,
     topAppBar: @Composable () -> Unit = {},
-    bottomAppBar: @Composable () -> Unit = {}
+    bottomAppBar: @Composable () -> Unit = {},
+    midCardAble: Boolean = true
 ) {
     val scrollState = rememberScrollState()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -82,7 +81,7 @@ fun DoubleCard(
                 .fillMaxSize()
                 .padding(top = 10.dp),
             shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
-            backgroundColor = colorResource(id = R.color.sallon_color)
+            backgroundColor = if (midCardAble) Color(sallonColor.toArgb()) else Color.White
         ) {
             Column(
                 modifier = Modifier
@@ -91,13 +90,11 @@ fun DoubleCard(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                midCarBody()
-
+                if(midCardAble){ midCarBody() }
                 Card(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 10.dp)
+                        .padding(top = if(midCardAble) 10.dp else 0.dp)
 //                        .verticalScroll(scrollState)
                     ,
                     shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),

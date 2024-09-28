@@ -2,12 +2,12 @@ package com.practicecoding.sallonapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFadb5bd)
+val Purple80 = Color(0xCCadb5bd)
 //    0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+val PurpleGrey80 = Color(0xCCCCC2DC)
+val Pink80 = Color(0xCCEFB8C8)
 val sallonColor = Color(//0xFF6F45EF
-    0xFF000000
+    0xCC000000
 )
 val Purple40 = Color(0xFFB59EF5)
 val PurpleGrey40 = Color(0xFF625b71)

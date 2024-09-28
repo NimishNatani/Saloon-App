@@ -263,8 +263,8 @@ fun OrderCard(
                     ) {
                         if(orderStatus == OrderStatus.COMPLETED || orderStatus == OrderStatus.CANCELLED) {
                             if(orderStatus == OrderStatus.COMPLETED){
-                                val review = orderViewModel.getReviewByOrderId(orderID)
-                                if(review==null){
+                                val review = orderViewModel.getReviewByOrderId(orderID)?:ReviewModel()
+                                if(review.reviewText == "" && review.rating == 0.0){
                                     Button(
                                         modifier = Modifier.padding(start = 8.dp),
                                         onClick = {
@@ -295,7 +295,8 @@ fun OrderCard(
                                     Text("Cancel", color = Color.Black)
                                 }
                             } else if (orderStatus == OrderStatus.ACCEPTED) {
-                                      TODO()
+                                    Text("Accepted", color = Color.Green,
+                                        modifier = Modifier.padding(8.dp))
                             }
 //                            Button(
 //                                modifier = Modifier.padding(start = 8.dp),
@@ -344,17 +345,50 @@ fun ReviewText(
 }
 
 @Composable
-fun UpcomingOrderCard(
-    upcomingOrder: MutableState<OrderModel>,
+fun UpcomingFeaturesCard(
 ){
-    Row(
+Card(
+    shape = RoundedCornerShape(12),
+    modifier = Modifier
+        .fillMaxWidth()
+        .padding(4.dp),
+    colors = CardColors(
+        contentColor = Color(sallonColor.toArgb()),
+        disabledContainerColor = Color(sallonColor.toArgb()),
+        disabledContentColor = Color(sallonColor.toArgb()),
+        containerColor = Color(sallonColor.toArgb())
+    ),
+    border = BorderStroke(0.2.dp, Color(sallonColor.toArgb()))
+) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ){
-//        Text(text = "Upcoming order date: ${upcomingOrder.value.date}")
-//        Text(text = "Upcoming order time: ${upcomingOrder.value.timeSlot[0]}")
+        verticalArrangement = Arrangement.Center
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Upcoming Features",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 8.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "We are working on some amazing features to make your experience better. Stay tuned for more updates.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.White,
+            fontFamily = FontFamily.SansSerif,
+            modifier = Modifier.padding(start = 8.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
     }
+}
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewSalonCard() {
+    UpcomingFeaturesCard()
 }

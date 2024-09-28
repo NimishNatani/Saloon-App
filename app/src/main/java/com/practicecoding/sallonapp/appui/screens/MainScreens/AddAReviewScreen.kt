@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,6 +36,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.practicecoding.sallonapp.appui.Screens
+import com.practicecoding.sallonapp.appui.components.CommonDialog
 import com.practicecoding.sallonapp.appui.components.RatingBar
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
 import com.practicecoding.sallonapp.appui.viewmodel.OrderEvent
@@ -42,6 +44,7 @@ import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
 import com.practicecoding.sallonapp.data.model.OrderModel
 import com.practicecoding.sallonapp.data.model.OrderStatus
 import com.practicecoding.sallonapp.data.model.ReviewModel
+import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -51,13 +54,15 @@ fun AddReviewScreen(
     orderViewModel: OrderViewModel = hiltViewModel(),
     navController: NavController
 ) {
-    var isLoading by remember { mutableStateOf(false) }
     var isReviewAdded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     var rating by remember { mutableStateOf(0.0) }
     var reviewText by remember { mutableStateOf("") }
-    if(isLoading){
-        ShimmerEffectMainScreen()
+    if(orderViewModel.isLoading.value){
+         ShimmerEffectMainScreen()
+    }
+    if(orderViewModel.isUpdating.value){
+        CommonDialog(title = "Adding Review..")
     }
     Column(
         modifier = Modifier
@@ -111,39 +116,36 @@ fun AddReviewScreen(
                 .background(Color.White),
             textStyle = LocalTextStyle.current.copy(color = Color.Black),
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                focusedBorderColor = Color(0xFF6200EE),
+                focusedBorderColor = Color(sallonColor.toArgb()),
                 unfocusedBorderColor = Color.Gray
             )
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Button(
             onClick = {
-                isLoading = true
-                      val review =ReviewModel(
-                            rating = rating,
-                            reviewText = reviewText
-                      )
-                scope.launch(Dispatchers.IO){
-                    orderViewModel.onEvent(OrderEvent.AddReview, orderId = order.orderId, review = review,
+                val review = ReviewModel(
+                    rating = rating,
+                    reviewText = reviewText
+                )
+                scope.launch(Dispatchers.IO) {
+                    orderViewModel.onEvent(
+                        OrderEvent.AddReview,
+                        orderId = order.orderId,
+                        review = review,
                         onCompletion = {
                             isReviewAdded = true
+                            scope.launch(Dispatchers.Main) {
+                                navController.navigate(Screens.MainScreen.route) {
+                                    popUpTo(Screens.AddReviewScreen.route) {
+                                        inclusive = true
+                                    }
+                                }
+                            }
                         }
-                        )
-                }
-                if(isReviewAdded){
-                    isLoading = false
-                    navController.navigate(Screens.MainScreen.route){
-                        popUpTo(Screens.AddReviewScreen.route){
-                            inclusive = true
-                        }
-                    }
-                }else{
-                    //Show error message
+                    )
                 }
             },
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF6200EE)),
+            colors = ButtonDefaults.buttonColors(backgroundColor = Color(sallonColor.toArgb())),
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Text(text = "Submit", color = Color.White)
