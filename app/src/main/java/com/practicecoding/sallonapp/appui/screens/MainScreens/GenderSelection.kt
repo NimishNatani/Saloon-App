@@ -1,5 +1,7 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
+import android.app.AlertDialog
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
@@ -36,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -46,10 +49,11 @@ import androidx.navigation.NavController
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.ads.BannerAds
 import com.practicecoding.sallonapp.appui.Screens
+import com.practicecoding.sallonapp.appui.components.AlertDialogBox
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
-import com.practicecoding.sallonapp.data.model.ServiceCat
+import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.purple_400
 import com.practicecoding.sallonapp.ui.theme.sallonColor
@@ -57,16 +61,22 @@ import com.practicecoding.sallonapp.ui.theme.sallonColor
 @Composable
 fun GenderSelectOnBook(
     navController: NavController,
-    service: List<ServiceCat>,
-    barber: BarberModel,
+    bookingModel: BookingModel,
     onBackClick: () -> Unit,
-    viewModel: GetBarberDataViewModel = hiltViewModel(),
+    getBarberDataViewModel: GetBarberDataViewModel = hiltViewModel(),
 ) {
     BackHandler {
         navController.popBackStack()
     }
-    var showDialog by remember { mutableStateOf(false) }
-    var dialogMessage by remember { mutableStateOf("") }
+    var genderCounter by getBarberDataViewModel.genderCounter
+    val context = LocalContext.current
+    if (getBarberDataViewModel.showDialog.value){
+        AlertDialogBox(
+            getBarberDataViewModel.dialogMessage.value,
+            onDismiss = {getBarberDataViewModel.showDialog.value=false},
+            onClick = {getBarberDataViewModel.showDialog.value = false}
+        )
+    }
     Surface(modifier = Modifier.fillMaxSize(), color = purple_200) {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -126,38 +136,38 @@ fun GenderSelectOnBook(
 //                    verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        if (barber.saloonType == "Male Salon" || barber.saloonType == "Unisex Salon") {
+                        if (bookingModel.barber.saloonType == "Male Salon" || bookingModel.barber.saloonType == "Unisex Salon") {
                             GenderCounter(
                                 genderName = "Male",
                                 genderImage = R.drawable.salon_app_logo,  // replace with your image resource
                                 count =
-                                viewModel.genderCounter.value[0],
+                                genderCounter[0],
                                 onIncrement = {
-                                    viewModel.genderCounter.value =
-                                        viewModel.genderCounter.value.toMutableList()
+                                    genderCounter =
+                                        genderCounter.toMutableList()
                                             .apply { this[0]++ }
                                 },
                                 onDecrement = {
-                                    viewModel.genderCounter.value =
-                                        viewModel.genderCounter.value.toMutableList()
+                                    genderCounter =
+                                        genderCounter.toMutableList()
                                             .apply { if (this[0] > 0) this[0]-- }
                                 }
                             )
                         }
-                        if (barber.saloonType == "Female Salon" || barber.saloonType == "Unisex Salon") {
+                        if (bookingModel.barber.saloonType == "Female Salon" || bookingModel.barber.saloonType == "Unisex Salon") {
 
                             GenderCounter(
                                 genderName = "Female",
                                 genderImage = R.drawable.salon_app_logo,  // replace with your image resource
-                                count = viewModel.genderCounter.value[1],
+                                count = getBarberDataViewModel.genderCounter.value[1],
                                 onIncrement = {
-                                    viewModel.genderCounter.value =
-                                        viewModel.genderCounter.value.toMutableList()
+                                    genderCounter =
+                                        genderCounter.toMutableList()
                                             .apply { this[1]++ }
                                 },
                                 onDecrement = {
-                                    viewModel.genderCounter.value =
-                                        viewModel.genderCounter.value.toMutableList()
+                                    genderCounter =
+                                        genderCounter.toMutableList()
                                             .apply { if (this[1] > 0) this[1]-- }
                                 }
                             )
@@ -165,15 +175,15 @@ fun GenderSelectOnBook(
                         GenderCounter(
                             genderName = "Other",
                             genderImage = R.drawable.salon_app_logo,  // replace with your image resource
-                            count = viewModel.genderCounter.value[2],
+                            count = getBarberDataViewModel.genderCounter.value[2],
                             onIncrement = {
-                                viewModel.genderCounter.value =
-                                    viewModel.genderCounter.value.toMutableList()
+                                genderCounter =
+                                    genderCounter.toMutableList()
                                         .apply { this[2]++ }
                             },
                             onDecrement = {
-                                viewModel.genderCounter.value =
-                                    viewModel.genderCounter.value.toMutableList()
+                                genderCounter =
+                                    genderCounter.toMutableList()
                                         .apply { if (this[2] > 0) this[2]-- }
                             }
                         )
@@ -187,44 +197,27 @@ fun GenderSelectOnBook(
                 height = 80,
                 modifier = Modifier.align(Alignment.BottomCenter)
             ) {
-                if (viewModel.genderCounter.value.sum() > 0) {
-                    if (viewModel.genderCounter.value.sum() <= 4) {
+                if (getBarberDataViewModel.genderCounter.value.sum() > 0) {
+                    if (getBarberDataViewModel.genderCounter.value.sum() <= 4) {
+                        getBarberDataViewModel.genderCounter.value = genderCounter
+                        bookingModel.genderCounter = genderCounter
                         navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "service",
-                            value = service
-                        )
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "barber",
-                            value = barber
-                        )
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "genders",
-                            value = viewModel.genderCounter.value
+                            key = "bookingModel",
+                            value = bookingModel
                         )
                         navController.navigate(Screens.serviceSelector.route)
                     } else {
-                        showDialog = true
-                        dialogMessage = "You can use this services for 4 people at a time"
+                        getBarberDataViewModel.showDialog.value = true
+                        getBarberDataViewModel.dialogMessage.value = listOf("Limit","You can use this services for 4 people at a time")
                     }
                 } else {
-                    showDialog = true
-                    dialogMessage = "Please select your gender"
+                    getBarberDataViewModel.showDialog.value = true
+                    getBarberDataViewModel.dialogMessage.value = listOf("No Selection","Please select your gender")
                 }
             }
         }
     }
-    AnimatedVisibility(showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text(text = "Limit ") },
-            text = { Text(text = dialogMessage) },
-            confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("OK")
-                }
-            }
-        )
-    }
+
 }
 
 @Composable

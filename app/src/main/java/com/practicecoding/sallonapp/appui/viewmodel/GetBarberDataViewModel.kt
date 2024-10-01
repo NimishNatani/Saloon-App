@@ -3,6 +3,7 @@ package com.practicecoding.sallonapp.appui.viewmodel
 import android.location.Location
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -10,14 +11,18 @@ import androidx.lifecycle.viewModelScope
 import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.data.FireStoreDbRepository
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.data.model.Service
-import com.practicecoding.sallonapp.data.model.ServiceCat
+import com.practicecoding.sallonapp.data.model.ServiceCategoryModel
 import com.practicecoding.sallonapp.data.model.Slots
 import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.data.model.locationObject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.internal.wait
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -25,34 +30,38 @@ import javax.inject.Inject
 class GetBarberDataViewModel @Inject constructor(
     private val repo: FireStoreDbRepository
 ) : ViewModel() {
-    private var barberPopular = mutableStateOf<List<BarberModel>>(emptyList())
-    var _barberPopular: State<List<BarberModel>> = barberPopular
+    private var _barberPopular = MutableStateFlow(emptyList<BarberModel>().toMutableList())
+    var barberPopular: StateFlow<MutableList<BarberModel>> = _barberPopular.asStateFlow()
 
-    private var barberNearby = mutableStateOf<List<BarberModel>>(emptyList())
-    var _barberNearby: State<List<BarberModel>> = barberPopular
+    private var _barberNearby = MutableStateFlow(emptyList<BarberModel>().toMutableList())
+    var barberNearby: StateFlow<MutableList<BarberModel>> = _barberNearby.asStateFlow()
 
-    private val _likedBarberList = mutableStateOf<List<BarberModel>>(emptyList())
+    private var _likedBarberList = mutableStateOf<List<BarberModel>>(emptyList())
     val likedBarberList: State<List<BarberModel>> = _likedBarberList
 
-    private var services = mutableStateOf<List<ServiceCat>>(emptyList())
-    var _services: State<List<ServiceCat>> = services
+    private var _services = MutableStateFlow(emptyList<ServiceCategoryModel>().toMutableList())
+    var services: StateFlow<MutableList<ServiceCategoryModel>> = _services.asStateFlow()
 
     var genderCounter = mutableStateOf(value = listOf(0, 0, 0))
 
-    var listOfService = mutableStateOf<List<Service>>(emptyList())
+    private var _listOfService = MutableStateFlow(emptyList<Service>().toMutableList())
+    var listOfService: StateFlow<MutableList<Service>> = _listOfService.asStateFlow()
+
+    private var _slots = MutableStateFlow(Slots("08:00", "22:00"))
+    var slots: StateFlow<Slots> = _slots.asStateFlow()
 
     var selectedSlots = mutableStateListOf<TimeSlot>()
 
-    private var slots = mutableStateOf(Slots("08:00", "22:00"))
-    var _slots: State<Slots> = slots
-
     private val _barberList = mutableStateOf<List<BarberModel>>(emptyList())
-    val barberList : State<List<BarberModel>> = _barberList
+    val barberList: State<List<BarberModel>> = _barberList
 
     var navigationItem = mutableStateOf(NavigationItem.Home)
 
+    var showDialog = mutableStateOf(false)
+    var dialogMessage = mutableStateOf(listOf("", ""))
 
-    suspend fun getBarberListByService(service: String){
+
+    suspend fun getBarberListByService(service: String) {
         _barberList.value = repo.getBarberByService(service)
     }
 
@@ -63,12 +72,7 @@ class GetBarberDataViewModel @Inject constructor(
             is MainEvent.getServices -> getServices(event.uid)
             is MainEvent.getSlots -> getSlots(event.day, event.uid)
             is MainEvent.setBooking -> setBooking(
-                event.barberuid,
-                event.useruid,
-                event.service,
-                event.gender,
-                event.date,
-                event.times
+               event.bookingModel
             )
 
             else -> {}
@@ -76,9 +80,26 @@ class GetBarberDataViewModel @Inject constructor(
     }
 
     private suspend fun getBarberPopular(city: String, limit: Long) {
-        viewModelScope.launch {
-            barberPopular.value = repo.getBarberPopular(city, limit)
-            barberPopular.value = barberPopular.value.map { barber ->
+        viewModelScope.launch(Dispatchers.Default) {
+            _barberPopular.emit(repo.getBarberPopular(city, limit))
+            _barberPopular.emit(barberPopular.value.map { barber ->
+                barber.apply {
+                    val locationDetails = locationObject.locationDetails
+                    distance = getLocation(
+                        lat1 = locationDetails.latitude!!.toDouble(),
+                        long1 = locationDetails.longitude!!.toDouble(),
+                        lat2 = barber.lat,
+                        long2 = barber.long
+                    )
+                }
+            }.toMutableList())
+        }
+    }
+
+    private suspend fun getBarberNearby(city: String, limit: Long) {
+        viewModelScope.launch(Dispatchers.Default) {
+            _barberNearby.emit( repo.getBarberNearby(city, limit))
+            _barberNearby.emit(barberNearby.value.map { barber ->
                 barber.apply {
                     val locationDetails = locationObject.locationDetails
                     distance = getLocation(
@@ -89,23 +110,8 @@ class GetBarberDataViewModel @Inject constructor(
                     )
                 }
             }
-        }
-    }
-
-    private suspend fun getBarberNearby(city: String, limit: Long) {
-        viewModelScope.launch {
-            barberNearby.value = repo.getBarberNearby(city, limit)
-            barberPopular.value = barberNearby.value.map { barber ->
-                barber.apply {
-                    val locationDetails = locationObject.locationDetails
-                    distance = getLocation(
-                        lat1 = locationDetails.latitude!!.toDouble(),
-                        long1 = locationDetails.longitude!!.toDouble(),
-                        lat2 = barber.lat,
-                        long2 = barber.long
-                    )
-                }
-            }.sortedBy { it.distance }.asReversed()
+                .sortedBy { it.distance }
+        .toMutableList())
         }
     }
 
@@ -121,7 +127,7 @@ class GetBarberDataViewModel @Inject constructor(
     }
 
     private suspend fun getServices(uid: String?) {
-        viewModelScope.launch { services.value = repo.getServices(uid) }
+        viewModelScope.launch { _services.emit(repo.getServices(uid)) }
     }
 
     private fun getLocation(lat1: Double, long1: Double, lat2: Double, long2: Double): Double {
@@ -133,43 +139,41 @@ class GetBarberDataViewModel @Inject constructor(
         return solution
     }
 
-    suspend fun getSlots(day: String, uid: String) {
-        viewModelScope.launch { slots.value = repo.getTimeSlot(day, uid) }
+    private suspend fun getSlots(day: String, uid: String) {
+        viewModelScope.launch { _slots.emit(repo.getTimeSlot(day, uid)) }
     }
 
-    fun initializedServices(serviceCat: List<ServiceCat>) {
-        if (listOfService.value.isEmpty()) {
-            val initialServices = serviceCat.flatMap { servicecat ->
-                servicecat.services.map { serviceModel ->
-                    Service(
-                        serviceName = serviceModel.name ?: "",
-                        count = 0, // Initialize count to 0
-                        price = serviceModel.price,
-                        time = serviceModel.time,
-                        id = serviceModel.name ?: "",
-                        type = servicecat.type ?: ""
-                    )
-                }
+    fun initializedServices(serviceCat: List<ServiceCategoryModel>) {
+        viewModelScope.launch(Dispatchers.Default) {
+            if (_listOfService.value.isEmpty()) {
+                _listOfService.emit(serviceCat.flatMap { servicecat ->
+                    servicecat.services.map { serviceModel ->
+                        Service(
+                            serviceName = serviceModel.name ?: "",
+                            count = 0, // Initialize count to 0
+                            price = serviceModel.price,
+                            time = serviceModel.time,
+                            id = serviceModel.name ?: "",
+                            type = servicecat.type ?: ""
+                        )
+                    }
+                }.toMutableList())
             }
-            listOfService.value = initialServices
         }
     }
 
-    fun updateService(updatedService: Service) {
-        listOfService.value = listOfService.value.map {
+     fun updateService(updatedService: Service) {
+         viewModelScope.launch {
+        _listOfService.emit( _listOfService.value.map {
             if (it.id == updatedService.id) updatedService else it
-        }
+        }.toMutableList())}
     }
 
     suspend fun setBooking(
-        barberuid: String,
-        useruid: String,
-        service: List<Service>,
-        gender: List<Int>,
-        date: LocalDate,
-        times: MutableState<List<TimeSlot>>
+        bookingModel: BookingModel
     ) {
-        repo.setBooking(barberuid,useruid,service,gender,date.toString(), times)
+        viewModelScope.launch(Dispatchers.IO) {
+        repo.setBooking(bookingModel)}
     }
 
 }
@@ -180,11 +184,6 @@ sealed class MainEvent {
     data class getServices(val uid: String) : MainEvent()
     data class getSlots(val day: String, val uid: String) : MainEvent()
     data class setBooking(
-        val barberuid: String,
-        val useruid: String,
-        val service: List<Service>,
-        val gender: List<Int>,
-        val date: LocalDate,
-        val times: MutableState<List<TimeSlot>>
+        val bookingModel: BookingModel
     ) : MainEvent()
 }

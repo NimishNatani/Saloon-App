@@ -4,6 +4,7 @@ import android.content.Context
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.Spring
@@ -29,6 +30,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -38,6 +40,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -47,8 +50,6 @@ import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BigSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.components.BottomAppNavigationBar
 import com.practicecoding.sallonapp.appui.components.Categories
-import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
-import com.practicecoding.sallonapp.appui.components.CommonDialog
 import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.OfferCard
@@ -64,6 +65,7 @@ import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
 import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.data.model.LocationModel
 import com.practicecoding.sallonapp.data.model.locationObject
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
@@ -79,17 +81,16 @@ fun MainScreen1(
     context: Context,
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
     locationViewModel: LocationViewModel = hiltViewModel(),
-    chatViewModel: MessageViewModel = hiltViewModel(),
+    messageViewModel: MessageViewModel = hiltViewModel(),
     orderViewModel: OrderViewModel = hiltViewModel(),
 ) {
-    var count by remember {
-        mutableIntStateOf(0)
-    }
+    val newChat by messageViewModel.newChat.collectAsState()
     locationViewModel.startLocationUpdates()
     val location by locationViewModel.getLocationLiveData().observeAsState()
 
     val geocoder = Geocoder(context, Locale.getDefault())
     var locationDetails = locationObject.locationDetails
+    val context = LocalContext.current
     LaunchedEffect(location) {
         val addresses: List<Address>? = location?.latitude?.let {
             geocoder.getFromLocation(it.toDouble(), location!!.longitude!!.toDouble(), 1)
@@ -107,6 +108,7 @@ fun MainScreen1(
             locationDetails = locationObject.locationDetails
         }
         if (locationDetails.city != null) {
+//            Toast.makeText(context,locationDetails.city,Toast.LENGTH_LONG).show()
             viewModelBarber.onEvent(
                 MainEvent.getBarberNearby(
                     locationDetails.city!!,
@@ -127,10 +129,11 @@ fun MainScreen1(
             BottomAppNavigationBar(
                 selectedItem = viewModelBarber.navigationItem.value,
                 onItemSelected = { viewModelBarber.navigationItem.value = it },
-                messageCount = chatViewModel._count.value
+                messageCount =newChat
             )
         }
     ) { paddingValues ->
+
         Box(modifier = Modifier.padding(paddingValues)) {
             when (viewModelBarber.navigationItem.value) {
                 NavigationItem.Home -> {
@@ -138,24 +141,8 @@ fun MainScreen1(
                     TopScreen(
                         navHostController,
                         context,
-                        viewModelBarber,
-                        chatViewModel._count.value
+                        viewModelBarber
                     )
-                    LaunchedEffect(chatViewModel.userChat.value.size) {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            if (chatViewModel.userChat.value.isNotEmpty()) {
-                                count = 0
-                                for (i in chatViewModel.userChat.value) {
-                                    if (!i.message.seenbybarber) {
-                                        count++
-                                    }
-                                    if (count > 1) {
-                                        break
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
 
                 NavigationItem.Book -> {
@@ -165,7 +152,6 @@ fun MainScreen1(
                     viewModelBarber.navigationItem.value = NavigationItem.Book
                     UserOrderPage(
                         navController = navHostController,
-                        context = context,
                         orderViewModel= orderViewModel,
                         viewModelBarber = viewModelBarber
                     )
@@ -173,7 +159,7 @@ fun MainScreen1(
                 }
                 NavigationItem.Message -> {
                     viewModelBarber.navigationItem.value = NavigationItem.Message
-                    MessageScreen(navHostController, chatViewModel,viewModelBarber)
+                    MessageScreen(navHostController, messageViewModel,viewModelBarber)
                 }
                 NavigationItem.Profile -> {
                     viewModelBarber.navigationItem.value = NavigationItem.Profile
@@ -200,7 +186,7 @@ fun TopScreen(
     navController: NavController,
     context: Context,
     viewModelBarber: GetBarberDataViewModel,
-    count: Int
+
 ) {
     DoubleCard(
         midCarBody = { SearchBar() },
@@ -209,7 +195,7 @@ fun TopScreen(
                 navController = navController,
                 likedBarberViewModel = LikedBarberViewModel(context),
                 viewModelBarber = viewModelBarber,
-                count = count
+
             )
         },
         topAppBar = {
@@ -226,18 +212,21 @@ fun MainScreen(
     viewModelBarber: GetBarberDataViewModel,
     likedBarberViewModel: LikedBarberViewModel,
     navController: NavController,
-    count: Int
+
 ) {
     val scrollStateRowOffer = rememberScrollState()
     val scroll = rememberScrollState()
     val scrollStateRowCategories = rememberScrollState()
     val scrollStateNearbySalon = rememberScrollState()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    val barberNearby =
-        viewModelBarber._barberNearby.value
-    val barberPopular =
-        viewModelBarber._barberPopular.value
+    val barberNearby by
+        viewModelBarber.barberNearby.collectAsState()
+    val barberPopular by
+        viewModelBarber.barberPopular.collectAsState()
+    val bookingModel = BookingModel()
+//    Toast.makeText(context,viewModelBarber.barberPopular.collectAsState().value.toString(),Toast.LENGTH_LONG).show()
 
     AnimatedVisibility(
         (barberNearby.isEmpty() || barberPopular.isEmpty()),
@@ -421,9 +410,10 @@ fun MainScreen(
                                 }
                             },
                             onBookNowClick = {
+                                bookingModel.barber = barber
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
-                                    key = "barber",
-                                    value = barber
+                                    key = "bookingModel",
+                                    value = bookingModel
                                 )
                                 navController.navigate(
                                     route = Screens.BarberScreen.route,
@@ -491,11 +481,14 @@ fun MainScreen(
                         numberOfReviews = barber.noOfReviews!!.toInt(),
                         rating = barber.rating,
                         onBookClick = {
+                            bookingModel.barber = barber
                             navController.currentBackStackEntry?.savedStateHandle?.set(
-                                key = "barber",
-                                value = barber
+                                key = "bookingModel",
+                                value = bookingModel
                             )
-                            navController.navigate(Screens.BarberScreen.route)
+                            navController.navigate(
+                                route = Screens.BarberScreen.route,
+                            )
                         },
                         open = barber.open!!,
                         onHeartClick = {
@@ -514,40 +507,4 @@ fun MainScreen(
             }
         }
     }
-}
-
-@Composable
-fun initializeMultipleBarber(): MutableState<List<BarberModel>> {
-    return remember {
-        mutableStateOf(
-            mutableListOf(
-                BarberModel(
-                    shopName = "Salon 1",
-                    state = "Karnataka",
-                    city = "Bangalore",
-                    shopStreetAddress = "Shop No 1, 1st Floor, 1st Cross, 1st Main, 1st Block",
-                    imageUri = "",
-                    aboutUs = "We are the best salon in Bangalore",
-                    noOfReviews = "0",
-                    rating = 4.2,
-                    uid = "",
-                    lat = 0.0,
-                    long = 0.0,
-                    open = true,
-                    distance = 0.0
-                )
-            )
-        )
-    }
-}
-
-@Composable
-fun getLocation(lat1: Double, long1: Double, lat2: Double, long2: Double): Double {
-    val distance by remember {
-        mutableStateOf(FloatArray(1))
-    }
-    Location.distanceBetween(lat1, long1, lat2, long2, distance)
-    var solution = distance[0].toDouble() / 1000
-    solution = Math.round(solution * 10.0) / 10.0
-    return solution
 }

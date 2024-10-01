@@ -11,6 +11,10 @@ import com.practicecoding.sallonapp.data.model.OrderModel
 import com.practicecoding.sallonapp.data.model.OrderStatus
 import com.practicecoding.sallonapp.data.model.ReviewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
@@ -19,35 +23,38 @@ import javax.inject.Inject
 class OrderViewModel @Inject constructor(
     private val repo: FireStoreDbRepository
 ) : ViewModel() {
-    private val _orderList = mutableStateOf<List<OrderModel>>(emptyList())
-    val orderList: State<List<OrderModel>> = _orderList
-    private val _acceptedOrderList = mutableStateOf<List<OrderModel>>(emptyList())
-    val acceptedOrderList: State<List<OrderModel>> = _acceptedOrderList
-    private val _pendingOrderList = mutableStateOf<List<OrderModel>>(emptyList())
-    val pendingOrderList: State<List<OrderModel>> = _pendingOrderList
-    private val _completedOrderList = mutableStateOf<List<OrderModel>>(emptyList())
-    val completedOrderList: State<List<OrderModel>> = _completedOrderList
-    private val _cancelledOrderList = mutableStateOf<List<OrderModel>>(emptyList())
-    val cancelledOrderList: State<List<OrderModel>> = _cancelledOrderList
+    private val _orderList = MutableStateFlow(emptyList<OrderModel>().toMutableList())
+    val orderList: StateFlow<MutableList<OrderModel>> = _orderList.asStateFlow()
+    private val _acceptedOrderList = MutableStateFlow(emptyList<OrderModel>().toMutableList())
+    val acceptedOrderList: StateFlow<MutableList<OrderModel>> = _acceptedOrderList.asStateFlow()
+    private val _pendingOrderList = MutableStateFlow(emptyList<OrderModel>().toMutableList())
+    val pendingOrderList: StateFlow<MutableList<OrderModel>> = _pendingOrderList.asStateFlow()
+    private val _completedOrderList = MutableStateFlow(emptyList<OrderModel>().toMutableList())
+    val completedOrderList: StateFlow<MutableList<OrderModel>> = _completedOrderList.asStateFlow()
+    private val _cancelledOrderList = MutableStateFlow(emptyList<OrderModel>().toMutableList())
+    val cancelledOrderList: StateFlow<MutableList<OrderModel>> = _cancelledOrderList.asStateFlow()
+
     var isLoading = mutableStateOf(false)
     var isUpdating = mutableStateOf(false)
 
     private val _reviewList = mutableStateOf<List<ReviewModel>>(emptyList())
     val reviewList: State<List<ReviewModel>> = _reviewList
 
-    var upcomingOrder = mutableStateOf(
-        OrderModel(
-            barberShopName = " ",
-            barberName = " ",
-            imageUrl = " ",
-            orderType = emptyList(),
-            phoneNumber = " ",
-            timeSlot = emptyList(),
-        )
-    )
+//    var upcomingOrder = mutableStateOf(
+//        OrderModel(
+//            barberShopName = " ",
+//            barberName = " ",
+//            imageUrl = " ",
+//            orderType = emptyList(),
+//            phoneNumber = " ",
+//            timeSlot = emptyList(),
+//        )
+//    )
 
     init {
-        viewModelScope.launch { getOrders() }
+        viewModelScope.launch {
+            getOrders()
+        }
     }
 
     suspend fun onEvent(
@@ -72,10 +79,12 @@ class OrderViewModel @Inject constructor(
                     isUpdating.value = false
                     onCompletion()
                 }
+
                 is Resource.Failure -> {
                     isUpdating.value = false
                     Log.d("rOrderViewModel", "addReview: Error ${it.exception}")
                 }
+
                 else -> {}
             }
         }
@@ -102,81 +111,103 @@ class OrderViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getOrders(isUpdate: Boolean = false) {
-        if(isUpdate) isUpdating.value = true else isLoading.value = true
+    private suspend fun getOrders() {
         val today = LocalDate.now().toString()
         viewModelScope.launch {
-            repo.getOrdersFlow().collect { orders ->
-                val pendingList = mutableListOf<OrderModel>()
-                val acceptedList = mutableListOf<OrderModel>()
-                val completedList = mutableListOf<OrderModel>()
-                val cancelledList = mutableListOf<OrderModel>()
+            repo.getOrder().collect { orders ->
+                _orderList.emit(orders.toMutableList())
+                _pendingOrderList.update { it.toMutableList().apply { clear() } }
+                _acceptedOrderList.update { it.toMutableList().apply { clear() } }
+                _completedOrderList.update { it.toMutableList().apply { clear() } }
+                _cancelledOrderList.update { it.toMutableList().apply { clear() } }
                 orders.forEach { order ->
+                    Log.d("OrderViewModel", "getOrders: ${order.orderStatus}")
+
                     when (order.orderStatus) {
                         OrderStatus.PENDING -> {
                             if (order.date >= today) {
-                                pendingList.add(order)
+                                _pendingOrderList.update {
+                                    it.toMutableList().apply {
+                                        add(order)
+                                    }
+                                }
                             } else {
                                 order.orderStatus = OrderStatus.CANCELLED
-                                cancelledList.add(order)
-                                updateOrderStatus(order.orderId, OrderStatus.CANCELLED.status)
+                                _cancelledOrderList.update {
+                                    it.toMutableList().apply {
+                                        add(order)
+                                    }
+                                }
+                                updateOrderStatus(order, OrderStatus.CANCELLED.status)
                             }
                         }
+
                         OrderStatus.ACCEPTED -> {
                             if (order.date >= today) {
-                                acceptedList.add(order)
+                                _acceptedOrderList.update {
+                                    it.toMutableList().apply {
+                                        add(order)
+                                    }
+                                }
                             } else {
                                 order.orderStatus = OrderStatus.CANCELLED
-                                cancelledList.add(order)
-                                updateOrderStatus(order.orderId, OrderStatus.CANCELLED.status)
+                                _cancelledOrderList.update {
+                                    it.toMutableList().apply {
+                                        add(order)
+                                    }
+                                }
+                                updateOrderStatus(order, OrderStatus.CANCELLED.status)
                             }
                         }
+
                         OrderStatus.COMPLETED -> {
-                            completedList.add(order)
+                            _completedOrderList.update {
+                                it.toMutableList().apply {
+                                    add(order)
+                                }
+                            }
                         }
+
                         OrderStatus.CANCELLED -> {
-                            cancelledList.add(order)
+                            _cancelledOrderList.update {
+                                it.toMutableList().apply {
+                                    add(order)
+                                }
+                            }
                         }
                     }
+                    Log.d("size",_pendingOrderList.value.size.toString()+_cancelledOrderList.value.size.toString()+_acceptedOrderList.value.size.toString()+_completedOrderList.value.size.toString())
                 }
-
-                _orderList.value = orders
-                _acceptedOrderList.value = acceptedList
-                _pendingOrderList.value = pendingList
-                _completedOrderList.value = completedList
-                _cancelledOrderList.value = cancelledList
-
-                // Update the upcomingOrder to the first accepted one
-                upcomingOrder.value = _acceptedOrderList.value.firstOrNull() ?: OrderModel(
-                    phoneNumber = " ",
-                    barberShopName = " ",
-                    barberName = " ",
-                    imageUrl = " ",
-                    orderType = emptyList(),
-                    timeSlot = emptyList(),
-                )
-
-                if(isUpdate) isUpdating.value = false else isLoading.value = false
-                getReviewList()  // Fetch reviews
             }
+
         }
+
     }
 
-    suspend fun updateOrderStatus(orderId: String, status: String) {
-        repo.updateOrderStatus(orderId, status).collect {
-            when (it) {
-                is Resource.Success -> {
-                    Log.d("OrderViewModel", "updateOrderStatus: Success")
-                    Log.d("OrderViewModel", "updateOrderStatus: ${LocalDate.now()}")
-                    getOrders(isUpdate = true)
-                }
-                is Resource.Failure -> {
-                    Log.d("OrderViewModel", "updateOrderStatus: Error")
-                }
+    suspend fun updateOrderStatus(order: OrderModel, status: String) {
 
-                else -> {}
+        viewModelScope.launch {
+            isUpdating.value=true
+            repo.updateOrderStatus(order, status).collect {
+                when (it) {
+                    is Resource.Success -> {
+                        Log.d("OrderViewModel", "updateOrderStatus: Success")
+                        Log.d("OrderViewModel", "updateOrderStatus: ${LocalDate.now()}")
+                        isUpdating.value=false
+//                        getOrders()
+                    }
+
+                    is Resource.Failure -> {
+                        Log.d("OrderViewModel", "updateOrderStatus: Error")
+                        isUpdating.value=false
+                    }
+
+                    else -> {}
+                }
             }
+
         }
+
     }
 }
 

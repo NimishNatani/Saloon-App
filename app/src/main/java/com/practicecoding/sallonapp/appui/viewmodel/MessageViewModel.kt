@@ -1,72 +1,90 @@
 package com.practicecoding.sallonapp.appui.viewmodel
 
 import android.util.Log
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.practicecoding.sallonapp.data.FireStoreDbRepository
+import com.practicecoding.sallonapp.data.model.ChatModel
+import com.practicecoding.sallonapp.data.model.LastMessage
 import com.practicecoding.sallonapp.data.model.Message
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import com.practicecoding.sallonapp.data.model.LastChatModel
-import com.practicecoding.sallonapp.data.model.LastMessage
 import javax.inject.Inject
 
 @HiltViewModel
-class MessageViewModel @Inject constructor(    private val repo: FireStoreDbRepository
-): ViewModel() {
-    var userChat = mutableStateOf<List<LastChatModel>>(emptyList())
-    var _messageList = mutableStateListOf<Message>()
-    var messageList: SnapshotStateList<Message> = _messageList
-    var _count = mutableIntStateOf(0)
+class MessageViewModel @Inject constructor(
+    private val repo: FireStoreDbRepository
+) : ViewModel() {
+    //    private var _userChat = mutableStateListOf<LastChatModel>()
+//    var userChat :SnapshotStateList<LastChatModel> =_userChat
+    private var _userChat = MutableStateFlow(emptyList<ChatModel>().toMutableList())
+    var userChat: StateFlow<MutableList<ChatModel>> = _userChat.asStateFlow()
+
+    //mutableStateOf<List<LastChatModel>>(emptyList())
+//    private var _messageList = mutableStateListOf<Message>()
+//    var messageList: SnapshotStateList<Message> = _messageList
+    private var _messageList = MutableStateFlow(emptyList<Message>().toMutableList())
+    var messageList: StateFlow<MutableList<Message>> = _messageList.asStateFlow()
+
+    //    private
+    private var _newChat = MutableStateFlow(false)
+    var newChat: StateFlow<Boolean> = _newChat.asStateFlow()
+
+    //    var count : SnapshotMutableState<Int> = _count
     init {
         viewModelScope.launch { getChatUser() }
     }
-    private suspend fun addChat(message: LastMessage, barberuid:String, status:Boolean){
-        viewModelScope.launch {
-            repo.addChat(message,barberuid,status)
+
+    private suspend fun addChat(message: LastMessage, barberuid: String, status: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.addChat(message, barberuid, status)
         }
     }
+
     suspend fun onEvent(event: MessageEvent) {
-        when(event){
-            is MessageEvent.AddChat -> addChat(event.message,event.barberuid,event.status)
+        when (event) {
+            is MessageEvent.AddChat -> addChat(event.message, event.barberuid, event.status)
             is MessageEvent.GetChatUser -> getChatUser()
             is MessageEvent.MessageList -> getmessageList(event.barberuid)
         }
     }
-    private suspend fun getChatUser(){
+
+    private suspend fun getChatUser() {
         viewModelScope.launch {
             repo.getChatUser().collect { chat ->
-                userChat.value = chat
-                _count.value=0
-                for (i in userChat.value) {
+                _userChat.emit(chat)
+                _newChat.value = false
+                for (i in _userChat.value) {
                     if (!i.message.seenbyuser) {
-                        _count.value++
-                    }
-                    if (_count.value > 1) {
+                        _newChat.emit(true)
                         break
                     }
                 }
             }
         }
-        Log.d("uses",userChat.toString())
+        Log.d("uses", userChat.toString())
     }
-    private suspend fun getmessageList(barberuid:String){
+
+    private suspend fun getmessageList(barberuid: String) {
         viewModelScope.launch {
-             repo.messageList(barberuid).collect{
-                 message->
-                 _messageList.clear()
-                 _messageList.addAll(message)
-             }
+            repo.messageList(barberuid).collect { message ->
+                _messageList.emit(message)
+            }
         }
     }
 }
 
 sealed class MessageEvent {
-    data class AddChat(val message: LastMessage,val barberuid:String,val status:Boolean=true):MessageEvent()
-    data object GetChatUser:MessageEvent()
-    data class MessageList(val barberuid:String):MessageEvent()
+    data class AddChat(
+        val message: LastMessage,
+        val barberuid: String,
+        val status: Boolean = true
+    ) : MessageEvent()
+
+    data object GetChatUser : MessageEvent()
+    data class MessageList(val barberuid: String) : MessageEvent()
 }

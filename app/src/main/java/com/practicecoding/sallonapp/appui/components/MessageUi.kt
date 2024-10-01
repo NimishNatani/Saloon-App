@@ -28,8 +28,8 @@ import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.viewmodel.MessageEvent
 import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
+import com.practicecoding.sallonapp.data.model.ChatModel
 import com.practicecoding.sallonapp.data.model.LastMessage
-import com.practicecoding.sallonapp.data.model.Message
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,17 +41,13 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun MessageItemBox(
     navHostController: NavController,
-    message: LastMessage,
-    image: String,
-    name: String,
-    uid: String,
-    phoneNumber: String,
-    viewModel: MessageViewModel
+    user: ChatModel,
+    messageViewModel: MessageViewModel
 ) {
     val context = LocalContext.current
     val currentTime = LocalDateTime.now()
     val messageTime =
-        LocalDateTime.parse(message.time, DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+        LocalDateTime.parse(user.message.time, DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
     val duration = Duration.between(messageTime, currentTime)
     val timePassed = when {
         duration.toDays() > 0 -> "${duration.toDays()} days ago"
@@ -62,29 +58,17 @@ fun MessageItemBox(
     Box(modifier = Modifier
         .padding(horizontal = 10.dp, vertical = 4.dp)
         .border(
-            2.dp, if(message.seenbyuser) Color.Black else sallonColor,
+            2.dp, if (user.message.seenbyuser) Color.Black else sallonColor,
             RoundedCornerShape(10.dp)
         )
         .clickable {
-            message.seenbyuser = true
+            user.message.seenbyuser = true
             CoroutineScope(Dispatchers.IO).launch {
-                viewModel.onEvent(MessageEvent.AddChat(message, uid, false))
+                messageViewModel.onEvent(MessageEvent.AddChat(user.message, user.uid, false))
             }
             navHostController.currentBackStackEntry?.savedStateHandle?.set(
-                key = "image",
-                value = image
-            )
-            navHostController.currentBackStackEntry?.savedStateHandle?.set(
-                key = "name",
-                value = name
-            )
-            navHostController.currentBackStackEntry?.savedStateHandle?.set(
-                key = "uid",
-                value = uid
-            )
-            navHostController.currentBackStackEntry?.savedStateHandle?.set(
-                key = "phoneNumber",
-                value = phoneNumber
+                key="user",
+                value = user
             )
             navHostController.navigate(Screens.ChatScreen.route)
         })
@@ -97,7 +81,7 @@ fun MessageItemBox(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = rememberAsyncImagePainter(model = image),
+                painter = rememberAsyncImagePainter(model = user.image),
                 contentDescription = "Avatar",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -106,8 +90,8 @@ fun MessageItemBox(
                     .clip(CircleShape)
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(text = message.message, color = Color.Gray, fontSize = 14.sp)
+                Text(text = user.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(text = user.message.message, color = Color.Gray, fontSize = 14.sp)
             }
             Text(
                 text = timePassed,

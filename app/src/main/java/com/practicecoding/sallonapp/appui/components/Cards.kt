@@ -68,6 +68,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingText
+import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.ui.theme.purple_200
@@ -798,13 +799,18 @@ fun ServiceNameAndPriceCard(
 fun ServiceAndPriceWithSelectCard(
     service: Service,
     noOfGender: Int,
-    onServiceSelectedChange: (Service) -> Unit
+    onServiceSelectedChange: (Service) -> Unit,
+    getBarberDataViewModel: GetBarberDataViewModel
 ) {
     // Remember the state of the service
     var selectedService by remember { mutableStateOf(service) }
-    var showDialog by remember { mutableStateOf(false) }
-    var dialogMessage by remember { mutableStateOf("") }
-
+    if (getBarberDataViewModel.showDialog.value){
+        AlertDialogBox(
+            getBarberDataViewModel.dialogMessage.value,
+            onDismiss = {getBarberDataViewModel.showDialog.value=false},
+            onClick = {getBarberDataViewModel.showDialog.value = false}
+        )
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -837,8 +843,8 @@ fun ServiceAndPriceWithSelectCard(
                 count = selectedService.count,
                 onIncrement = {
                     if (selectedService.count == noOfGender) {
-                        showDialog = true
-                        dialogMessage = "You reach your max for this service"
+                        getBarberDataViewModel.showDialog.value = true
+                        getBarberDataViewModel.dialogMessage.value = listOf("Service","You reach your max for this service")
                     } else {
                         // Update the count
                         selectedService = selectedService.copy(count = selectedService.count + 1)
@@ -854,18 +860,6 @@ fun ServiceAndPriceWithSelectCard(
                 }
             )
         }
-    }
-    AnimatedVisibility(showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { androidx.compose.material3.Text(text = "Limit ") },
-            text = { androidx.compose.material3.Text(text = dialogMessage) },
-            confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    androidx.compose.material3.Text("OK")
-                }
-            }
-        )
     }
 }
 

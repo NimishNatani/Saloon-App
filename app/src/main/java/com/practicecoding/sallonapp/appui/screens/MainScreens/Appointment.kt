@@ -36,7 +36,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,44 +60,36 @@ import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
 import com.practicecoding.sallonapp.appui.viewmodel.MessageEvent
 import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
-import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.data.model.LastMessage
-import com.practicecoding.sallonapp.data.model.Message
-import com.practicecoding.sallonapp.data.model.Service
-import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DetailScreen(
-    time: MutableState<List<TimeSlot>>,
-    date: LocalDate,
-    barber: BarberModel,
-    service: List<Service>,
-    genders: List<Int>,    navController: NavController
-,
-messageViewModel: MessageViewModel = hiltViewModel(),
-    viewModel: GetBarberDataViewModel = hiltViewModel(),
+    bookingModel: BookingModel,
+    navController: NavController,
+    messageViewModel: MessageViewModel = hiltViewModel(),
+    getBarberDataViewModel: GetBarberDataViewModel = hiltViewModel(),
 ) {
     BackHandler {
         navController.popBackStack()
     }
 
-    var sheetStae by remember {
+    var sheetState by remember {
         mutableStateOf(false)
     }
     val scope = rememberCoroutineScope()
     var selectedPaymentMethod by remember { mutableStateOf("Pay Online") }
 
-    val totalTime = service.sumOf { it.time.toInt() * it.count }
-    val totalPrice = service.sumOf { it.price.toInt() * it.count }
+    val totalTime = bookingModel.listOfService.sumOf { it.time.toInt() * it.count }
+    val totalPrice = bookingModel.listOfService.sumOf { it.price.toInt() * it.count }
     val scroll = rememberScrollState()
 
     var isdialog by remember {
@@ -108,24 +99,19 @@ messageViewModel: MessageViewModel = hiltViewModel(),
         SuccessfulDialog(navController = navController)
     }
     ModalBottomSheetLayout(
-        sheetState = if (!sheetStae) ModalBottomSheetState(ModalBottomSheetValue.Hidden) else ModalBottomSheetState(
+        sheetState = if (!sheetState) ModalBottomSheetState(ModalBottomSheetValue.Hidden) else ModalBottomSheetState(
             ModalBottomSheetValue.Expanded
         ),
         sheetContent = {
             PaymentMethodBottomSheet(totalPrice = totalPrice,
                 selectedPaymentMethod = selectedPaymentMethod,
                 onPaymentMethodSelect = { selectedPaymentMethod = it },
-                onClose = { sheetStae = false }, navController = navController,
+                onClose = { sheetState = false }, navController = navController,
                 onCashClick = {
                     scope.launch(Dispatchers.IO) {
-                        viewModel.onEvent(
+                        getBarberDataViewModel.onEvent(
                             MainEvent.setBooking(
-                                barber.uid,
-                                FirebaseAuth.getInstance().currentUser!!.uid,
-                                service,
-                                genders,
-                                date,
-                                time
+                                bookingModel
                             )
                         )
                         val currentDate = Date()
@@ -138,182 +124,186 @@ messageViewModel: MessageViewModel = hiltViewModel(),
                             seenbybarber = true,
                             seenbyuser = false
                         )
-                        messageViewModel.onEvent(MessageEvent.AddChat(message,barber.uid))
+                        messageViewModel.onEvent(MessageEvent.AddChat(message, bookingModel.barber.uid))
                     }
-                    isdialog=true
+                    isdialog = true
                 }, onOnlineClick = {})
         },
         sheetShape = RoundedCornerShape(topEnd = 15.dp, topStart = 15.dp),
         sheetGesturesEnabled = true,
         sheetBackgroundColor = purple_200
     ) {
-        Box(modifier = Modifier.fillMaxSize()){
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 70.dp)
-                .verticalScroll(scroll),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = "Details",
-                color = Color.Black,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Card(
-                colors = CardColors(Color.White, Color.White, Color.White, Color.White),
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
                 modifier = Modifier
-                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                    .border(1.dp, sallonColor, RoundedCornerShape(10.dp))
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    .fillMaxSize()
+                    .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 70.dp)
+                    .verticalScroll(scroll),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
-                    Text(
-                        text = "Date:",
-                        color = Color.Gray,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
+                Text(
+                    text = "Details",
+                    color = Color.Black,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(modifier = Modifier.height(10.dp))
 
-                        )
-                    Text(
-                        text = "$date",
-                        color = Color.Black,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
-                    Text(
-                        text = "Time Slots:",
-                        color = Color.Gray,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-
-                        )
-                    Column {
-                        for (times in time.value) {
-                            Text(
-                                text = "${times.time}",
-                                color = Color.Black,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-
-                        }
-                    }
-
-                }
-            }
-            Spacer(modifier = Modifier.height(15.dp))
-            Card(
-                colors = CardColors(Color.White, Color.White, Color.White, Color.White),
-                modifier = Modifier
-                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                    .border(1.dp, sallonColor, RoundedCornerShape(10.dp))
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
-                    Text(
-                        text = "Gender Type:",
-                        color = Color.Gray,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = "${if (genders[0] > 0) "Male  " else ""}${if (genders[1] > 0) "Female  " else ""}${if (genders[2] > 0) "Other" else ""}",
-                        color = Color.Black,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(15.dp))
-
-            ExpandableCard(title = "Service List", expanded = true) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.Top,
-                    horizontalAlignment = Alignment.Start
+                Card(
+                    colors = CardColors(Color.White, Color.White, Color.White, Color.White),
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                        .border(1.dp, sallonColor, RoundedCornerShape(10.dp))
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    service.forEach { service ->
-                        if (service.count > 0) {
-                            ServiceNameAndPriceCard(
-                                serviceName = service.serviceName,
-                                serviceTime = service.time,
-                                servicePrice = service.price,
-                                count = service.count
+                    Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
+                        Text(
+                            text = "Date:",
+                            color = Color.Gray,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+
                             )
+                        Text(
+                            text = "${bookingModel.selectedDate}",
+                            color = Color.Black,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
+                        Text(
+                            text = "Time Slots:",
+                            color = Color.Gray,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+
+                            )
+                        Column {
+                            for (times in bookingModel.selectedSlots) {
+                                Text(
+                                    text = times.time,
+                                    color = Color.Black,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+
+                            }
+                        }
+
+                    }
+                }
+                Spacer(modifier = Modifier.height(15.dp))
+                Card(
+                    colors = CardColors(Color.White, Color.White, Color.White, Color.White),
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                        .border(1.dp, sallonColor, RoundedCornerShape(10.dp))
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
+                        Text(
+                            text = "Gender Type:",
+                            color = Color.Gray,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "${if (bookingModel.genderCounter[0] > 0) "Male  " else ""}${if (bookingModel.genderCounter[1] > 0) "Female  " else ""}${if (bookingModel.genderCounter[2] > 0) "Other" else ""}",
+                            color = Color.Black,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(15.dp))
+
+                ExpandableCard(title = "Service List", expanded = true) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        bookingModel.listOfService.forEach { service ->
+
+                                ServiceNameAndPriceCard(
+                                    serviceName = service.serviceName,
+                                    serviceTime = service.time,
+                                    servicePrice = service.price,
+                                    count = service.count
+                                )
+
                         }
                     }
                 }
+                Spacer(
+                    modifier = Modifier.height(15.dp),
+                )
+                Card(
+                    colors = CardColors(Color.White, Color.White, Color.White, Color.White),
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                        .border(1.dp, sallonColor, RoundedCornerShape(10.dp))
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
+                        Text(
+                            text = "Total Time:",
+                            color = Color.Gray,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.weight(1f)
+
+
+                        )
+                        Text(
+                            text = "$totalTime Minutes",
+                            color = Color.Black,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
+                        Text(
+                            text = "Total Price:",
+                            color = Color.Gray,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = "Rs.$totalPrice",
+                            color = sallonColor,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+
+                    }
+                }
+                Spacer(modifier = Modifier.height(35.dp))
+
+
+                Spacer(modifier = Modifier.height(15.dp))
+
+
             }
-            Spacer(
-                modifier = Modifier.height(15.dp),
-            )
-            Card(
-                colors = CardColors(Color.White, Color.White, Color.White, Color.White),
-                modifier = Modifier
-                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                    .border(1.dp, sallonColor, RoundedCornerShape(10.dp))
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            GeneralButton(
+                text = "Pay Now",
+                width = 300,
+                modifier = Modifier.align(Alignment.BottomCenter)
             ) {
-                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
-                    Text(
-                        text = "Total Time:",
-                        color = Color.Gray,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.weight(1f)
+                scope.launch { sheetState = true }
 
-
-                    )
-                    Text(
-                        text = "$totalTime Minutes",
-                        color = Color.Black,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
-                    Text(
-                        text = "Total Price:",
-                        color = Color.Gray,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = "Rs.$totalPrice",
-                        color = sallonColor,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-
-
-                }
             }
-            Spacer(modifier = Modifier.height(35.dp))
-
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-
         }
-            GeneralButton(text = "Pay Now", width = 300, modifier = Modifier.align(Alignment.BottomCenter)) {
-                scope.launch { sheetStae = true }
-
-            }
     }
-       }
 
 }
 

@@ -1,11 +1,6 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,13 +16,12 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,18 +33,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.practicecoding.sallonapp.appui.Screens
+import com.practicecoding.sallonapp.appui.components.AlertDialogBox
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.components.RowofDate
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
-import com.practicecoding.sallonapp.data.model.BarberModel
-import com.practicecoding.sallonapp.data.model.Service
+import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
+import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
@@ -65,29 +58,29 @@ import kotlin.math.ceil
 enum class SlotStatus {
     AVAILABLE, BOOKED, NOT_AVAILABLE
 }
-
-
 @Composable
 fun TimeSelection(
     time: Int,
     date: LocalDate,
     navController: NavController,
-    service: List<Service>,
-    barber: BarberModel,
-    genders: List<Int>,
-    viewModel: GetBarberDataViewModel= hiltViewModel()
+    bookingModel: BookingModel,
+    getBarberDataViewModel: GetBarberDataViewModel = hiltViewModel()
 ) {
     BackHandler {
         navController.popBackStack()
     }
-//    var slotTime by remember {
-//        mutableStateOf(restScreenViewModel.slots.value)
-//    }
+    if (getBarberDataViewModel.showDialog.value) {
+        AlertDialogBox(
+            getBarberDataViewModel.dialogMessage.value,
+            onDismiss = { getBarberDataViewModel.showDialog.value = false },
+            onClick = { getBarberDataViewModel.showDialog.value = false }
+        )
+    }
     val dayOfWeek = date.dayOfWeek
     val dayNameFull = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val context = LocalContext.current
-    val slotTime = viewModel._slots.value
+    val slotTime by getBarberDataViewModel.slots.collectAsState()
     val bookedTimes = remember {
         mutableStateListOf<LocalTime>()
     }
@@ -97,7 +90,9 @@ fun TimeSelection(
     }
     LaunchedEffect(date) {
 //        slotTime = restScreenViewModel.getSlots(dayNameFull, barber.uid, slotsViewModel)
-        viewModel.getSlots(dayNameFull,barber.uid)
+        getBarberDataViewModel.onEvent(
+            MainEvent.getSlots(dayNameFull, bookingModel.barber.uid)
+        )
         bookedTimes.clear()
         notAvailableTimes.clear()
     }
@@ -106,183 +101,173 @@ fun TimeSelection(
 
     // Retrieve the booked and not available times for the selected date
 
-if (date==LocalDate.parse(slotTime.date)) {
-    bookedTimes.clear()
-    for (timeString in slotTime.booked!!) {
-        val localTime = LocalTime.parse(timeString, timeFormatter)
-        bookedTimes.add(localTime)
+    if (date == LocalDate.parse(slotTime.date)) {
+        bookedTimes.clear()
+        for (timeString in slotTime.booked!!) {
+            val localTime = LocalTime.parse(timeString, timeFormatter)
+            bookedTimes.add(localTime)
+        }
     }
-}
-    if (date==LocalDate.parse(slotTime.date)) {
+    if (date == LocalDate.parse(slotTime.date)) {
         notAvailableTimes.clear()
-    for (timeString in slotTime.notAvailable!!) {
-        val localTime = LocalTime.parse(timeString, timeFormatter)
-        notAvailableTimes.add(localTime)
-    }}
+        for (timeString in slotTime.notAvailable!!) {
+            val localTime = LocalTime.parse(timeString, timeFormatter)
+            notAvailableTimes.add(localTime)
+        }
+    }
 
-    val slots = generateTimeSlots(date,startTime, endTime, 30L, bookedTimes, notAvailableTimes)
+    val slots = generateTimeSlots(date, startTime, endTime, 30L, bookedTimes, notAvailableTimes)
     var showDialog by remember { mutableStateOf(false) }
     var dialogMessage by remember { mutableStateOf("") }
 
     val requiredSlots = ceil(time / 30.0).toInt()
 
-    if (viewModel.selectedSlots.size > requiredSlots) {
-        showDialog=true
-        dialogMessage= "You doesn't need more than ${ceil(time/30.0).toInt()}"
-        viewModel.selectedSlots.removeAt(viewModel.selectedSlots.size - 1)
+    if (getBarberDataViewModel.selectedSlots.size > requiredSlots) {
+        getBarberDataViewModel.showDialog.value = true
+        getBarberDataViewModel.dialogMessage.value =
+            listOf("Slots Selection", "You doesn't need more than ${ceil(time / 30.0).toInt()}")
+        getBarberDataViewModel.selectedSlots.removeAt(getBarberDataViewModel.selectedSlots.size - 1)
     }
 
-    Box(modifier = Modifier.fillMaxSize()){
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Time",
-                color = Color.Black,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f)
-            )
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text(
-                        text = "AVAILABLE",
-                        color = Color.Gray,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = "NOT AVAILABLE",
-                        color = Color.Red,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text(
-                        text = "BOOKED",
-                        color = sallonColor, // Update to match `sallonColor` if defined
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = "YOUR BOOKING",
-                        color = Color.Green,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-        }
-        slots.chunked(4).forEach { row ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                row.forEach { slot ->
-                    TimeSlotBox(
-                        slot = slot,
-                        timeFormatter = timeFormatter,
-                        isSelected = viewModel.selectedSlots.contains(slot),
-                        onClick = {
-                            when (slot.status) {
-                                SlotStatus.AVAILABLE -> {
-                                    if (viewModel.selectedSlots.contains(slot)) {
-                                        viewModel.selectedSlots.remove(slot)
-                                    } else if(viewModel.selectedSlots.size>0&&viewModel.selectedSlots[0].date!=date.toString()){
-                                        showDialog=true
-                                        dialogMessage = "You can select Slot for only one day"
-                                    }else {
-                                        viewModel.selectedSlots.add(slot)
+                Text(
+                    text = "Time",
+                    color = Color.Black,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = "AVAILABLE",
+                            color = Color.Gray,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "NOT AVAILABLE",
+                            color = Color.Red,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = "BOOKED",
+                            color = sallonColor, // Update to match `sallonColor` if defined
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "YOUR BOOKING",
+                            color = Color.Green,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+            slots.chunked(4).forEach { row ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    row.forEach { slot ->
+                        TimeSlotBox(
+                            slot = slot,
+                            timeFormatter = timeFormatter,
+                            isSelected = getBarberDataViewModel.selectedSlots.contains(slot),
+                            onClick = {
+                                when (slot.status) {
+                                    SlotStatus.AVAILABLE -> {
+                                        if (getBarberDataViewModel.selectedSlots.contains(slot)) {
+                                            getBarberDataViewModel.selectedSlots.remove(slot)
+                                        } else if (getBarberDataViewModel.selectedSlots.size > 0 && getBarberDataViewModel.selectedSlots[0].date != date.toString()) {
+                                            getBarberDataViewModel.showDialog.value = true
+                                            getBarberDataViewModel.dialogMessage.value =
+                                                listOf(
+                                                    "Slots Selection",
+                                                    "You can select Slot for only one day"
+                                                )
+                                        } else {
+                                            getBarberDataViewModel.selectedSlots.add(slot)
+                                        }
                                     }
-                                }
 
-                                SlotStatus.BOOKED, SlotStatus.NOT_AVAILABLE -> {
-                                    showDialog = true
-                                    dialogMessage = if (slot.status == SlotStatus.BOOKED) {
-                                        "This slot is already booked."
-                                    } else {
-                                        "This slot is not available."
+                                    SlotStatus.BOOKED, SlotStatus.NOT_AVAILABLE -> {
+                                        getBarberDataViewModel.showDialog.value = true
+                                        getBarberDataViewModel.dialogMessage.value =
+                                            listOf(
+                                                "Slots Selection",
+                                                if (slot.status == SlotStatus.BOOKED) {
+                                                    "This slot is already booked."
+                                                } else {
+                                                    "This slot is not available."
+                                                }
+                                            )
                                     }
                                 }
                             }
-                        }
-                    )
-                }
-            }
-        }
-
-        AnimatedVisibility(showDialog, enter = fadeIn(animationSpec = tween(500)),exit = fadeOut(animationSpec = tween(500))) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                title = { Text("Selection Error") },
-                text = { Text(dialogMessage) },
-                confirmButton = {
-                    Button(onClick = { showDialog = false }) {
-                        Text("OK")
+                        )
                     }
                 }
+            }
+
+
+
+            Text(
+                text = "Estimated total time you need according to your selection is approx $time mins",
+                color = sallonColor, // Update to match `sallonColor` if defined
+                fontWeight = FontWeight.SemiBold,
+                textDecoration = TextDecoration.Underline,
+                fontSize = 12.sp
             )
         }
-
-
-        Text(
-            text = "Estimated total time you need according to your selection is approx $time mins",
-            color = sallonColor, // Update to match `sallonColor` if defined
-            fontWeight = FontWeight.SemiBold,
-            textDecoration = TextDecoration.Underline,
-            fontSize = 12.sp
-        )
-    }
-        GeneralButton(text = "Continue", width = 300, modifier = Modifier.align(Alignment.BottomCenter)) {
+        GeneralButton(
+            text = "Continue",
+            width = 300,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
             // Handle continue button click
-            if (viewModel.selectedSlots.size < requiredSlots) {
-                showDialog = true
-                dialogMessage =
-                    "Your selected time slots don't match the required time for your service."
+            if (getBarberDataViewModel.selectedSlots.size < requiredSlots) {
+                getBarberDataViewModel.showDialog.value = true
+                getBarberDataViewModel.dialogMessage.value =
+                    listOf("Slots Selection",
+                    "Your selected time slots don't match the required time for your service.")
             } else {
+                bookingModel.selectedSlots = getBarberDataViewModel.selectedSlots
+                bookingModel.selectedDate = date
                 navController.currentBackStackEntry?.savedStateHandle?.set(
-                    key = "selectedDateSlots",
-                    value = mutableStateOf(viewModel.selectedSlots.toList())
-                )
-                navController.currentBackStackEntry?.savedStateHandle?.set(
-                    key = "date",
-                    value = date
-                )
-                navController.currentBackStackEntry?.savedStateHandle?.set(
-                    key = "services",
-                    value = service
-                )
-                navController.currentBackStackEntry?.savedStateHandle?.set(
-                    key = "barber",
-                    value = barber
-                )
-                navController.currentBackStackEntry?.savedStateHandle?.set(
-                    key = "genders",
-                    value = genders
+                    key = "bookingModel",
+                    value = bookingModel
                 )
                 navController.navigate(Screens.Appointment.route)
             }
-        }}
+        }
+    }
 }
 
 
@@ -361,7 +346,7 @@ fun daySelection(): LocalDate {
 }
 
 fun generateTimeSlots(
-    date:LocalDate,
+    date: LocalDate,
     startTime: LocalTime,
     endTime: LocalTime,
     intervalMinutes: Long,
@@ -377,7 +362,7 @@ fun generateTimeSlots(
             bookedTimes.contains(currentTime) -> SlotStatus.BOOKED
             else -> SlotStatus.AVAILABLE
         }
-        slots.add(TimeSlot(currentTime.toString(), date.toString(),status))
+        slots.add(TimeSlot(currentTime.toString(), date.toString(), status))
         currentTime = currentTime.plus(intervalMinutes, ChronoUnit.MINUTES)
     }
 

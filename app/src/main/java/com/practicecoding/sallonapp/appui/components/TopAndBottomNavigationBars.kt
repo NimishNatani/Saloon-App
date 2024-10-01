@@ -2,9 +2,7 @@ package com.practicecoding.sallonapp.appui.components
 
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -26,25 +23,16 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.twotone.List
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.twotone.List
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -53,9 +41,6 @@ import androidx.compose.ui.unit.dp
 import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
-import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
-import com.practicecoding.sallonapp.ui.theme.purple_200
-import com.practicecoding.sallonapp.ui.theme.purple_400
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 
 
@@ -80,7 +65,7 @@ fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
 fun BottomAppNavigationBar(
     selectedItem: NavigationItem,
     onItemSelected: (NavigationItem) -> Unit,
-    messageCount: Int = 0
+    messageCount: Boolean = false
 ) {
     val bottomBarItems = NavigationItem.entries.toTypedArray()
     AnimatedNavigationBar(
@@ -117,7 +102,7 @@ fun BottomAppNavigationBar(
                                 .padding(top = 10.dp),
                             tint = if (selectedItem == item) Color.White else Color.Gray
                         )
-                        if (item == NavigationItem.Message && messageCount > 0) {
+                        if (item == NavigationItem.Message && messageCount ) {
                             CircleWithMessageCount(messageCount = messageCount)
                         }
                     }
@@ -132,7 +117,7 @@ fun BottomAppNavigationBar(
 }
 @Composable
 fun CircleWithMessageCount(
-    messageCount: Int
+    messageCount: Boolean
 ) {
     Box(
         modifier = Modifier
@@ -140,7 +125,7 @@ fun CircleWithMessageCount(
             .background(Color.White, CircleShape),
         contentAlignment = Alignment.CenterEnd
     ) {
-        if (messageCount > 0) {
+        if (messageCount) {
             Canvas(
                 modifier = Modifier.size(50.dp).align(Alignment.TopEnd) // Ensure the canvas size matches the Box
             ) {

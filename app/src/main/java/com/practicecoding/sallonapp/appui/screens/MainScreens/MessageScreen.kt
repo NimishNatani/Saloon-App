@@ -11,6 +11,7 @@ import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +35,7 @@ import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 
 @Composable
-fun MessageScreen(navHostController: NavController,viewModel: MessageViewModel ,    viewModelBarber: GetBarberDataViewModel
+fun MessageScreen(navHostController: NavController,messageViewModel: MessageViewModel ,    viewModelBarber: GetBarberDataViewModel
 ) {
     val context = LocalContext.current
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -85,13 +86,15 @@ fun MessageScreen(navHostController: NavController,viewModel: MessageViewModel ,
         },
         mainScreen = {
             if(selectedTabIndex == 0) {
-                MessageList(navHostController, viewModel)
+                MessageList(navHostController, messageViewModel)
             }
         },
         topAppBar = {
             Text(
                 text = "Message",
-                modifier = Modifier.fillMaxWidth().padding(top=15.dp, bottom = 20.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 15.dp, bottom = 20.dp)
                 ,
                 textAlign = TextAlign.Center,
                 fontSize = 20.sp,
@@ -104,30 +107,25 @@ fun MessageScreen(navHostController: NavController,viewModel: MessageViewModel ,
 }
 
 @Composable
-fun MessageList(navHostController: NavController,viewModel: MessageViewModel ){
+fun MessageList(navHostController: NavController,messageViewModel: MessageViewModel ){
     var refresh by remember {
         mutableStateOf(true)
     }
-    val user by remember {
-        mutableStateOf(viewModel.userChat.value)
-    }
+    val userChat by messageViewModel.userChat.collectAsState()
 
 //    LaunchedEffect(refresh) {
 //viewModel.onEvent(MessageEvent.GetChatBarber)
 //    }
-    if (viewModel.userChat.value.isNotEmpty()) {
+    if (userChat.isNotEmpty()) {
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)) {
-            viewModel.userChat.value.reversed().forEach { chatModel ->
+            userChat.reversed().forEach { chatModel ->
                 MessageItemBox(
                     navHostController = navHostController,
-                    message = chatModel.message,
-                    image = chatModel.image,
-                    name = chatModel.name,
-                    uid = chatModel.uid,
-                    phoneNumber = chatModel.phoneNumber,
-                    viewModel = viewModel
+
+                    user = chatModel,
+                    messageViewModel = messageViewModel
                 )
             }
         }

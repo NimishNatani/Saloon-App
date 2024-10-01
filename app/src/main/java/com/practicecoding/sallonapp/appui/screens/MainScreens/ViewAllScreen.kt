@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,7 +66,7 @@ fun ViewAllScreen(
     val scrollState = rememberScrollState()
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     var barbers =
-        if (type == "NearBy") viewModelBarber._barberNearby.value else viewModelBarber._barberPopular.value
+        if (type == "NearBy") viewModelBarber.barberNearby.collectAsState().value else viewModelBarber.barberPopular.collectAsState().value
     LaunchedEffect(key1 = true) {
         viewModelBarber.onEvent(
             if (type == "NearBy") MainEvent.getBarberNearby(
@@ -82,20 +83,20 @@ fun ViewAllScreen(
         when (sortType) {
             "Distance" -> {
                 barbers =
-                    barbers.sortedBy { it.distance }
+                    barbers.sortedBy { it.distance }.toMutableList()
             }
 
             "Rating" -> {
 
                 barbers=
-                    barbers.sortedBy { it.rating }.asReversed()
+                    barbers.sortedBy { it.rating }.asReversed().toMutableList()
 
             }
 
             else -> {
                 barbers=
                     barbers.sortedBy { it.noOfReviews!!.toInt() }
-                        .asReversed()
+                        .asReversed().toMutableList()
             }
         }
         Column(

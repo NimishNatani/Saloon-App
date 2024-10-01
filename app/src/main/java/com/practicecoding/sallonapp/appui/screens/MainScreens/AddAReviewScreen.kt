@@ -91,7 +91,7 @@ fun AddReviewScreen(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = "Barber: ${order.barberName}", fontSize = 16.sp, color = Color.Black)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Order Type: ${order.orderType.joinToString()}", fontSize = 16.sp, color = Color.Black)
+                Text(text = "Order Type: ${order.listOfService.joinToString()}", fontSize = 16.sp, color = Color.Black)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = "Time Slot: ${order.timeSlot.joinToString()}", fontSize = 16.sp, color = Color.Black)
                 Spacer(modifier = Modifier.height(4.dp))

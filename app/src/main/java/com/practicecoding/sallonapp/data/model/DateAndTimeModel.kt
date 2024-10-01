@@ -3,10 +3,11 @@ package com.practicecoding.sallonapp.data.model
 import android.os.Parcelable
 import com.practicecoding.sallonapp.appui.screens.MainScreens.SlotStatus
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
-
+@Serializable
 @Parcelize
-data class TimeSlot( val time:  String, val date: String, val status: SlotStatus) : Parcelable
+data class TimeSlot( val time:  String="", val date: String="", val status: SlotStatus=SlotStatus.AVAILABLE) : Parcelable
 
 @Parcelize
 data class DateSlots(val date: LocalDate, val slots: List<TimeSlot>) : Parcelable

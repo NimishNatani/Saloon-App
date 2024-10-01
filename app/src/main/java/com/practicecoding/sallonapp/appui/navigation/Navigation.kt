@@ -47,10 +47,12 @@ import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPag
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.PhoneNumberScreen
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.BookingModel
+import com.practicecoding.sallonapp.data.model.ChatModel
 import com.practicecoding.sallonapp.data.model.OrderModel
 import com.practicecoding.sallonapp.data.model.OrderStatus
 import com.practicecoding.sallonapp.data.model.Service
-import com.practicecoding.sallonapp.data.model.ServiceCat
+import com.practicecoding.sallonapp.data.model.ServiceCategoryModel
 import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
 import java.time.LocalDate
@@ -59,7 +61,7 @@ import java.time.LocalDate
 fun AppNavigation(
     navController: NavHostController,
     startDestinations: String,
-    ) {
+) {
     val enterTransition =
         slideInHorizontally(
             initialOffsetX = { it },
@@ -212,40 +214,6 @@ fun AppNavigation(
             MainScreen1(navController, context)
 
         }
-
-        composable(Screens.BarberScreen.route, enterTransition = { enterTransition },
-            exitTransition = { exitTransition },
-            popEnterTransition = { popEnterTransition },
-            popExitTransition = { popExitTransition }) {
-            val result =
-                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
-            if (result != null) {
-                BarberScreen(
-                    onBackClick = { navController.popBackStack() },
-                    onLikeClick = { /* Handle like click */ },
-                    onShareClick = { /* Handle share click */ },
-                    barber = result,
-                    navController = navController
-                )
-            }
-        }
-        composable(Screens.GenderSelection.route, enterTransition = { enterTransition },
-            exitTransition = { exitTransition },
-            popEnterTransition = { popEnterTransition },
-            popExitTransition = { popExitTransition }) {
-            val service =
-                navController.previousBackStackEntry?.savedStateHandle?.get<List<ServiceCat>>("service")
-            val barber =
-                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
-            if (service != null && barber != null) {
-                GenderSelectOnBook(
-                    navController = navController,
-                    service = service,
-                    barber = barber,
-                    onBackClick = { navController.popBackStack() }
-                )
-            }
-        }
         composable(Screens.ViewAllScreen.route, enterTransition = { enterTransition },
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
@@ -254,7 +222,7 @@ fun AppNavigation(
                 navController.previousBackStackEntry?.savedStateHandle?.get<String>("type")
             val resultCity =
                 navController.previousBackStackEntry?.savedStateHandle?.get<String>("location")
-            if ( resultCity != null && resultType != null) {
+            if (resultCity != null && resultType != null) {
                 var isBottomBar by remember {
                     mutableStateOf(false)
                 }
@@ -293,38 +261,60 @@ fun AppNavigation(
                     })
             }
         }
+
+        composable(Screens.BarberScreen.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
+            val bookingModel =
+                navController.previousBackStackEntry?.savedStateHandle?.get<BookingModel>("bookingModel")
+            if (bookingModel != null) {
+                BarberScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onLikeClick = { /* Handle like click */ },
+                    onShareClick = { /* Handle share click */ },
+                    bookingModel = bookingModel,
+                    navController = navController
+                )
+            }
+        }
+        composable(Screens.GenderSelection.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
+            val bookingModel =
+                navController.previousBackStackEntry?.savedStateHandle?.get<BookingModel>("bookingModel")
+            if (bookingModel != null) {
+                GenderSelectOnBook(
+                    navController = navController,
+                    bookingModel = bookingModel,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+        }
+
         composable(Screens.serviceSelector.route, enterTransition = { enterTransition },
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
-            val services =
-                navController.previousBackStackEntry?.savedStateHandle?.get<List<ServiceCat>>("service")
-            val barber =
-                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
-            val numberOfGenders =
-                navController.previousBackStackEntry?.savedStateHandle?.get<List<Int>>("genders")
-            if (services != null && barber != null && numberOfGenders != null)
+            val bookingModel =
+                navController.previousBackStackEntry?.savedStateHandle?.get<BookingModel>("bookingModel")
+            if (bookingModel != null) {
                 ServiceSelector(
                     navController = navController,
                     onBackClick = { navController.popBackStack() },
-                    services = services,
-                    barber = barber,
-                    genders = numberOfGenders
-                )
+                    bookingModel = bookingModel
+                )}
         }
         composable(Screens.DayTimeSelection.route, enterTransition = { enterTransition },
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
             val currentDate = LocalDate.now()
-            val services =
-                navController.previousBackStackEntry?.savedStateHandle?.get<List<Service>>("services")
-            val barber =
-                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
-            val genders =
-                navController.previousBackStackEntry?.savedStateHandle?.get<List<Int>>("genders")
-            if (services != null && barber != null && genders != null) {
-                val time = services.sumOf { it.time.toInt() * it.count }
+            val bookingModel =
+                navController.previousBackStackEntry?.savedStateHandle?.get<BookingModel>("bookingModel")
+            if (bookingModel != null) {
+                val time = bookingModel.listOfService.sumOf { it.time.toInt() * it.count }
                 var date by remember {
                     mutableStateOf<LocalDate>(currentDate)
                 }
@@ -340,12 +330,11 @@ fun AppNavigation(
                     },
                     bottomAppBar = { },
                     mainScreen = {
-                        TimeSelection(time,
+                        TimeSelection(
+                            time,
                             date,
                             navController,
-                            services,
-                            barber,
-                            genders
+                            bookingModel
                         )
                     })
             }
@@ -354,24 +343,16 @@ fun AppNavigation(
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
-            val time =
-                navController.previousBackStackEntry?.savedStateHandle?.get<MutableState<List<TimeSlot>>>("selectedDateSlots")
-            val date =
-                navController.previousBackStackEntry?.savedStateHandle?.get<LocalDate>("date")
-            val barber =
-                navController.previousBackStackEntry?.savedStateHandle?.get<BarberModel>("barber")
-            val services =
-                navController.previousBackStackEntry?.savedStateHandle?.get<List<Service>>("services")
-            val genders =
-                navController.previousBackStackEntry?.savedStateHandle?.get<List<Int>>("genders")
-            if (time != null && date != null && barber != null && services != null && genders != null) {
+            val bookingModel =
+                navController.previousBackStackEntry?.savedStateHandle?.get<BookingModel>("bookingModel")
+            if (bookingModel != null) {
                 DoubleCard(
                     midCarBody = {
                         SalonCard(
-                            shopName = barber.shopName!!,
-                            imageUri = barber.imageUri!!,
-                            address = barber.shopStreetAddress!!,
-                            distance = barber.distance!!,
+                            shopName = bookingModel.barber.shopName!!,
+                            imageUri = bookingModel.barber.imageUri!!,
+                            address = bookingModel.barber.shopStreetAddress!!,
+                            distance = bookingModel.barber.distance!!,
                         )
                     },
                     navController,
@@ -383,7 +364,7 @@ fun AppNavigation(
                     },
                     bottomAppBar = {},
                     mainScreen = {
-                        DetailScreen(time, date, barber, services, genders, navController)
+                        DetailScreen(bookingModel, navController)
                     })
             }
         }
@@ -394,67 +375,60 @@ fun AppNavigation(
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
-            val image =
-                navController.previousBackStackEntry?.savedStateHandle?.get<String>("image").toString()
-            val name =
-                navController.previousBackStackEntry?.savedStateHandle?.get<String>("name").toString()
-            val uid =
-                navController.previousBackStackEntry?.savedStateHandle?.get<String>("uid").toString()
-            val phoneNumber =
-                navController.previousBackStackEntry?.savedStateHandle?.get<String>("phoneNumber").toString()
-            ChatScreen(image, name,uid,phoneNumber,navController)
+            val user =
+                navController.previousBackStackEntry?.savedStateHandle?.get<ChatModel>("user")
+            if (user != null) {
+                ChatScreen(user, navController)
+            }
         }
         composable(Screens.AddReviewScreen.route) {
             val orderModel = navController.previousBackStackEntry
                 ?.savedStateHandle
-                ?.get<OrderModel>("order") ?: OrderModel(
-                imageUrl = "",
-                orderType = listOf(),
-                timeSlot = listOf(),
-                phoneNumber = "",
-                barberName = "",
-                barberShopName = "",
-                paymentMethod = "",
-                orderStatus = OrderStatus.PENDING,
-                isCancelRequested = false,
-                orderId = "",
-                date = ""
-            )
+                ?.get<OrderModel>("order")
             Log.d("Navigation", "AppNavigation: $orderModel")
-            AddReviewScreen(order = orderModel, navController = navController)
+            if (orderModel != null) {
+                AddReviewScreen(order = orderModel, navController = navController)
+            }
         }
         composable(Screens.UpdateProfileScreen.route, enterTransition = { enterTransition },
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
-            popExitTransition = { popExitTransition }){
+            popExitTransition = { popExitTransition }) {
             UpdateUserInfoScreen(navController = navController)
         }
         composable(Screens.BookingHistory.route, enterTransition = { enterTransition },
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
-            popExitTransition = { popExitTransition }){
+            popExitTransition = { popExitTransition }) {
             BookingHistoryScreen(navController = navController)
         }
         composable(Screens.FavBarberList.route, enterTransition = { enterTransition },
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
-            popExitTransition = { popExitTransition }){
-            FavBarberListScreen(likedBarberViewModel = LikedBarberViewModel(context), navController = navController)
+            popExitTransition = { popExitTransition }) {
+            FavBarberListScreen(
+                likedBarberViewModel = LikedBarberViewModel(context),
+                navController = navController
+            )
         }
         composable(Screens.CatBarberList.route, enterTransition = { enterTransition },
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
-            popExitTransition = { popExitTransition }){
+            popExitTransition = { popExitTransition }) {
             val service = navController.previousBackStackEntry
                 ?.savedStateHandle
                 ?.get<String>("service") ?: "default_service"
-            BarberServiceVise(service = service!!, likedBarberViewModel = LikedBarberViewModel(context), navController = navController)
+            BarberServiceVise(
+                service = service,
+                likedBarberViewModel = LikedBarberViewModel(context),
+                navController = navController
+            )
         }
         composable(Screens.AllCategory.route, enterTransition = { enterTransition },
-        exitTransition = { exitTransition },
-        popEnterTransition = { popEnterTransition },
-        popExitTransition = { popExitTransition }){
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
             CategoriesScreen(navController = navController)
+        }
     }
-    }
-    }
+}

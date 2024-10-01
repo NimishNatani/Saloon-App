@@ -24,7 +24,7 @@ import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.data.model.BarberModel
-import com.practicecoding.sallonapp.data.model.ServiceCat
+import com.practicecoding.sallonapp.data.model.ServiceCategoryModel
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.launch
 
@@ -49,7 +49,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HorizontalPagerWithTabs(
     barberDetails: BarberModel,
-    serviceCategories: List<ServiceCat?>  = listOf(),
+    serviceCategories: List<ServiceCategoryModel?> = listOf(),
     previewImages: List<String?> = listOf()
 ) {
     val pagerState = rememberPagerState(pageCount = { 4 })
@@ -61,7 +61,7 @@ fun HorizontalPagerWithTabs(
         TabRow(
             selectedTabIndex = pagerState.currentPage,
             indicator = { tabPositions ->
-                TabRowDefaults.Indicator(
+                SecondaryIndicator(
                     Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
                     color = Color.White
                 )
@@ -97,6 +97,7 @@ fun HorizontalPagerWithTabs(
         }
     }
 }
+
 @Composable
 fun AboutUsPage(barberDetails: BarberModel) {
     val scrollState = rememberScrollState()
@@ -107,8 +108,7 @@ fun AboutUsPage(barberDetails: BarberModel) {
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 15.dp, vertical = 15.dp)
-            .verticalScroll(scrollState)
-                ,
+            .verticalScroll(scrollState),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -152,7 +152,7 @@ fun AboutUsPage(barberDetails: BarberModel) {
                     fontSize = 12.sp
                 )
                 Text(
-                    text = barberDetails?.phoneNumber ?: "Contact Us",
+                    text = barberDetails.phoneNumber ?: "Contact Us",
                     modifier = Modifier.padding(8.dp)
                 )
             }
@@ -163,7 +163,7 @@ fun AboutUsPage(barberDetails: BarberModel) {
 
 @Composable
 fun ServicesPage(
-    serviceCategories: List<ServiceCat?> = listOf()
+    serviceCategories: List<ServiceCategoryModel?> = listOf()
 
 ) {
     val scrollState = rememberScrollState()
@@ -182,8 +182,13 @@ fun ServicesPage(
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.Start
                 ) {
-                   service.services.forEach { service ->
-                        ServiceNameAndPriceCard(serviceName = service.name!!, serviceTime = service.time, servicePrice = service.price.toString(), count = 0)
+                    service.services.forEach { service ->
+                        ServiceNameAndPriceCard(
+                            serviceName = service.name!!,
+                            serviceTime = service.time,
+                            servicePrice = service.price.toString(),
+                            count = 0
+                        )
                     }
                 }
             }
@@ -191,6 +196,7 @@ fun ServicesPage(
         Spacer(modifier = Modifier.height(60.dp))
     }
 }
+
 @Composable
 fun GalleryPage(previewImages: List<String?> = listOf()) {
     LazyVerticalGrid(
@@ -223,6 +229,7 @@ fun GalleryPage(previewImages: List<String?> = listOf()) {
         }
     }
 }
+
 @Composable
 fun ReviewsPage(barberDetails: BarberModel? = null) {
     val scrollState = rememberScrollState()
@@ -233,7 +240,7 @@ fun ReviewsPage(barberDetails: BarberModel? = null) {
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
-    ){
+    ) {
         if (barberDetails != null) {
             Text(
                 text = "Total ${barberDetails.noOfReviews!!} Reviews",
@@ -243,7 +250,7 @@ fun ReviewsPage(barberDetails: BarberModel? = null) {
                 ),
                 modifier = Modifier.padding(8.dp)
             )
-        }else{
+        } else {
             Text(
                 text = "No Reviews yet",
                 style = MaterialTheme.typography.headlineMedium,

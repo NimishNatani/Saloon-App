@@ -25,6 +25,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +58,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun UserOrderPage(
     navController: NavController,
-    context: Context,
     orderViewModel: OrderViewModel ,
     viewModelBarber:GetBarberDataViewModel
 ){
@@ -74,7 +74,6 @@ fun UserOrderPage(
         },
         mainScreen = {
             UserBookingScreen(
-                activity = context as Activity,
                 orderViewModel= orderViewModel,
                 navController = navController
             )
@@ -97,7 +96,7 @@ fun UserOrderPage(
 
 @Composable
 fun OrderList(orders: List<OrderModel>,
-              orderViewModel: OrderViewModel = hiltViewModel(),
+              orderViewModel: OrderViewModel ,
               navController: NavController,
 ) {
     val scope = rememberCoroutineScope()
@@ -109,14 +108,10 @@ fun OrderList(orders: List<OrderModel>,
         items(orders.size) { index ->
             val order = orders[index]
             OrderCard(
-                imageUrl = order.imageUrl,
-                orderType = order.orderType,
-                timeSlot = order.timeSlot,
-                phoneNumber = order.phoneNumber,
                 onCancel = {
-                  order.orderStatus = OrderStatus.CANCELLED
+//                  order.orderStatus = OrderStatus.CANCELLED
                   scope.launch{
-                      orderViewModel.updateOrderStatus(order.orderId, OrderStatus.CANCELLED.status)
+                      orderViewModel.updateOrderStatus(order, OrderStatus.CANCELLED.status)
                   }
                 },
                 onContactBarber = { },
@@ -125,12 +120,7 @@ fun OrderList(orders: List<OrderModel>,
                 navController.navigate(Screens.AddReviewScreen.route)
                     Log.d("OrderList", "OrderList: $order")
                            },
-                barberName = order.barberName,
-                barbershopName = order.barberShopName,
-                orderStatus = order.orderStatus,
-                date = order.date,
-                orderID = order.orderId,
-                paymentMethod = order.paymentMethod!!,
+                order=order
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -140,7 +130,6 @@ fun OrderList(orders: List<OrderModel>,
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UserBookingScreen(
-    activity: Activity,
     orderViewModel: OrderViewModel,
     navController: NavController,
 ) {
@@ -157,7 +146,7 @@ fun UserBookingScreen(
             .background(Color.White)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp)
         ) {
             TabRow(
                 selectedTabIndex = selectedTab.value,
@@ -218,10 +207,22 @@ fun UserBookingScreen(
                     )
             ) { page ->
                 when (page) {
-                    0 -> OrderList(orders = orderViewModel.pendingOrderList.value.toMutableList(), navController = navController,)
-                    1 -> OrderList(orders = orderViewModel.acceptedOrderList.value.toMutableList(), navController = navController,)
-                    2 -> OrderList(orders = orderViewModel.completedOrderList.value.toMutableList(), navController = navController,)
-                    3 -> OrderList(orders = orderViewModel.cancelledOrderList.value.toMutableList(), navController =navController,)
+                    0 -> OrderList(
+                        orders = orderViewModel.pendingOrderList.collectAsState().value,
+                        navController = navController, orderViewModel = orderViewModel
+                    )
+                    1 -> OrderList(
+                        orders = orderViewModel.acceptedOrderList.collectAsState().value,
+                        navController = navController,orderViewModel = orderViewModel
+                    )
+                    2 -> OrderList(
+                        orders = orderViewModel.completedOrderList.collectAsState().value,
+                        navController = navController,orderViewModel = orderViewModel
+                    )
+                    3 -> OrderList(
+                        orders = orderViewModel.cancelledOrderList.collectAsState().value,
+                        navController = navController,orderViewModel = orderViewModel
+                    )
                 }
             }
         }

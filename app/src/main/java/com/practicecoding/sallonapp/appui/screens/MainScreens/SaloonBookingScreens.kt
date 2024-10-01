@@ -1,5 +1,6 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseOut
@@ -25,6 +26,8 @@ import androidx.compose.material.Card
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +48,7 @@ import com.practicecoding.sallonapp.appui.components.TransparentTopAppBar
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.ui.theme.purple_200
 
 @Composable
@@ -53,8 +57,8 @@ fun BarberScreen(
     onBackClick: () -> Unit,
     onLikeClick: () -> Unit,
     onShareClick: () -> Unit,
-    barber: BarberModel,
-    viewModel: GetBarberDataViewModel = hiltViewModel(),
+    bookingModel: BookingModel,
+    getBarberDataViewModel: GetBarberDataViewModel = hiltViewModel(),
 ) {
     BackHandler {
         navController.popBackStack()
@@ -68,12 +72,10 @@ fun BarberScreen(
         "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
     )
     val screenHeight = LocalContext.current.resources.displayMetrics.heightPixels
-    val scope = rememberCoroutineScope()
-
-    val services = viewModel._services.value
-
+    val services by getBarberDataViewModel.services.collectAsState()
+    val context = LocalContext.current
     LaunchedEffect(key1 = true) {
-        viewModel.onEvent(MainEvent.getServices(barber.uid))
+        getBarberDataViewModel.onEvent(MainEvent.getServices(bookingModel.barber.uid))
 
     }
     AnimatedVisibility(
@@ -113,7 +115,7 @@ fun BarberScreen(
                     ) {
                         Image(
                             painter = rememberAsyncImagePainter(
-                                model = barber.imageUri.toString()
+                                model = bookingModel.barber.imageUri.toString()
                             ),
                             contentDescription = null,
                             modifier = Modifier.clip(RoundedCornerShape(16.dp)),
@@ -160,11 +162,11 @@ fun BarberScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 BookingScreenShopPreviewCard(
-                                    shopName = barber.shopName.toString(),
-                                    shopAddress = barber.shopStreetAddress.toString() + barber.city.toString() + barber.state.toString(),
-                                    ratings = barber.rating.toDouble(),
-                                    numberOfReviews = barber.noOfReviews!!.toInt(),
-                                    isOpen = barber.open!!
+                                    shopName = bookingModel.barber.shopName.toString(),
+                                    shopAddress = bookingModel.barber.shopStreetAddress.toString() + bookingModel.barber.city.toString() + bookingModel.barber.state.toString(),
+                                    ratings = bookingModel.barber.rating.toDouble(),
+                                    numberOfReviews = bookingModel.barber.noOfReviews!!.toInt(),
+                                    isOpen = bookingModel.barber.open!!
                                 ) {
 
                                 }
@@ -173,7 +175,7 @@ fun BarberScreen(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     HorizontalPagerWithTabs(
-                                        barber,
+                                        bookingModel.barber,
                                         services,
                                         previewImages
                                     )
@@ -198,13 +200,10 @@ fun BarberScreen(
                         modifier = Modifier.fillMaxWidth(),
                         roundnessPercent = 35,
                     ) {
+                        bookingModel.services=services
                         navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "service",
-                            value = services
-                        )
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "barber",
-                            value = barber
+                            key = "bookingModel",
+                            value = bookingModel
                         )
                         navController.navigate(Screens.GenderSelection.route)
                     }

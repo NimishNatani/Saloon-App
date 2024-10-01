@@ -61,15 +61,12 @@ fun BookingHistoryScreen(
             items(orderViewModel.orderList.value) { order ->
                 Spacer(modifier = Modifier.height(5.dp))
                 OrderCard(
-                    imageUrl = order.imageUrl,
-                    orderType = order.orderType,
-                    timeSlot = order.timeSlot,
-                    phoneNumber = order.phoneNumber,
+
                     onCancel = {
                         order.orderStatus = OrderStatus.CANCELLED
                         scope.launch {
                             orderViewModel.updateOrderStatus(
-                                order.orderId,
+                                order,
                                 OrderStatus.CANCELLED.status
                             )
                         }
@@ -80,12 +77,7 @@ fun BookingHistoryScreen(
                         navController.navigate(Screens.AddReviewScreen.route)
                         Log.d("OrderList", "OrderList: $order")
                     },
-                    barberName = order.barberName,
-                    barbershopName = order.barberShopName,
-                    orderStatus = order.orderStatus,
-                    date = order.date,
-                    orderID = order.orderId,
-                    paymentMethod = order.paymentMethod!!,
+                    order = order
                 )
 //                HorizontalDivider(
 //                    modifier = Modifier.padding(horizontal = 16.dp),

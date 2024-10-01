@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +45,7 @@ import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
 import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.viewmodel.MessageEvent
 import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
+import com.practicecoding.sallonapp.data.model.ChatModel
 import com.practicecoding.sallonapp.data.model.LastMessage
 import com.practicecoding.sallonapp.data.model.Message
 import com.practicecoding.sallonapp.ui.theme.purple_200
@@ -56,19 +58,16 @@ import java.util.*
 
 @Composable
 fun ChatScreen(
-    image: String,
-    name: String,
-    uid: String,
-    phoneNumber: String,
+    user:ChatModel,
     navController: NavController,
-    viewModel: MessageViewModel = hiltViewModel()
+    messageViewModel: MessageViewModel= hiltViewModel()
 ) {
     BackHandler {
         navController.popBackStack()
     }
     val context = LocalContext.current
     LaunchedEffect(Unit) {
-        viewModel.onEvent(MessageEvent.MessageList(uid))
+        messageViewModel.onEvent(MessageEvent.MessageList(user.uid))
     }
     Box(
         modifier = Modifier
@@ -88,31 +87,35 @@ fun ChatScreen(
                     imageVector = Icons.Default.Call,
                     contentDescription = "Call",
                     tint = sallonColor,
-                    modifier = Modifier.clickable {
-                        val u = Uri.parse("tel:$phoneNumber")
+                    modifier = Modifier
+                        .clickable {
+                            val u = Uri.parse("tel:$user.phoneNumber")
 
-                        // Create the intent and set the data for the
-                        // intent as the phone number.
-                        val i = Intent(Intent.ACTION_DIAL, u)
-                        try {
+                            // Create the intent and set the data for the
+                            // intent as the phone number.
+                            val i = Intent(Intent.ACTION_DIAL, u)
+                            try {
 
-                            // Launch the Phone app's dialer with a phone
-                            // number to dial a call.
-                            context.startActivity(i)
-                        } catch (s: SecurityException) {
+                                // Launch the Phone app's dialer with a phone
+                                // number to dial a call.
+                                context.startActivity(i)
+                            } catch (s: SecurityException) {
 
-                            // show() method display the toast with
-                            // exception message.
-                            Toast.makeText(context, "An error occurred", Toast.LENGTH_LONG)
-                                .show()
+                                // show() method display the toast with
+                                // exception message.
+                                Toast
+                                    .makeText(context, "An error occurred", Toast.LENGTH_LONG)
+                                    .show()
+                            }
                         }
-                    }.padding(end=10.dp, bottom = 10.dp).align(Alignment.CenterEnd)
+                        .padding(end = 10.dp, bottom = 10.dp)
+                        .align(Alignment.CenterEnd)
                 )
             }
-            ChatMessages(modifier = Modifier.weight(1f), viewModel)
+            ChatMessages(modifier = Modifier.weight(1f), messageViewModel)
 
         }
-        MessageInput(uid)
+        MessageInput(user.uid)
     }
 }
 
@@ -179,12 +182,13 @@ fun TopBar(image: String, name: String,phoneNumber: String) {
 }
 
 @Composable
-fun ChatMessages(modifier: Modifier = Modifier, viewModel: MessageViewModel) {
+fun ChatMessages(modifier: Modifier = Modifier, messageViewModel: MessageViewModel) {
     val scrollState = rememberScrollState()
-    LaunchedEffect(viewModel.messageList) {
+    val messageList by messageViewModel.messageList.collectAsState()
+    LaunchedEffect(messageList) {
         scrollState.animateScrollTo(scrollState.maxValue)
     }
-    if (viewModel.messageList.isNotEmpty()) {
+    if (messageList.isNotEmpty()) {
         Column(
             modifier = modifier
                 .padding(top = 18.dp)
@@ -194,7 +198,7 @@ fun ChatMessages(modifier: Modifier = Modifier, viewModel: MessageViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             var lastDate = ""
-            viewModel.messageList.forEach { message ->
+            messageList.forEach { message ->
                 val currentDate = parseDate(message.time)
                 if (currentDate != lastDate) {
                     DateSeparator(date = currentDate)

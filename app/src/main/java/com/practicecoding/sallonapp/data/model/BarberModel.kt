@@ -6,7 +6,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Parcelize
 data class BarberModel(
     val name: String? = "",
@@ -20,9 +22,9 @@ data class BarberModel(
     var aboutUs: String? = "",
     var noOfReviews: String? = "0",
     var rating: Double = 0.0,
-    val uid:String,
-    val lat:Double,
-    val long:Double,
+    val uid:String="",
+    val lat:Double=0.0,
+    val long:Double=0.0,
     val open:Boolean?=false,
     var distance:Double?=0.0
 ): Parcelable
