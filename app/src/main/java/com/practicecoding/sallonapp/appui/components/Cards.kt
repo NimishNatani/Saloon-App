@@ -1,6 +1,5 @@
 package com.practicecoding.sallonapp.appui.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -28,7 +27,6 @@ import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
-import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -36,7 +34,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -70,11 +67,16 @@ import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPag
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingText
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
+import com.practicecoding.sallonapp.data.model.BookingModel
+import com.practicecoding.sallonapp.data.model.ReviewModel
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.purple_400
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.launch
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -492,7 +494,7 @@ fun BigSaloonPreviewCard(
                         .padding(end = 8.dp)
                 )
                 Text(
-                    text = "$rating ($noOfReviews reviews)",
+                    text = "${Math. round(rating * 10.0) / 10.0} ($noOfReviews reviews)",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                 )
@@ -520,11 +522,12 @@ fun BigSaloonPreviewCard(
 //Customer review card from customers
 @Composable
 fun CustomerReviewCard(
-    customerName: String,
-    reviewText: String,
-    rating: Float,
-    imageUrl: String,
-    time: String = "2 days ago"
+//    customerName: String,
+//    reviewText: String,
+//    rating: Double,
+//    imageUrl: String,
+//    time: String = "2 days ago"
+    review :ReviewModel
 ) {
     Surface(
         modifier = Modifier
@@ -534,6 +537,15 @@ fun CustomerReviewCard(
         color = Color.White,
         shadowElevation = 4.dp
     ) {
+        val currentTime = LocalDateTime.now()
+        val reviewTime =
+            LocalDateTime.parse(review.reviewTime, DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+        val duration = Duration.between(reviewTime, currentTime)
+        val timePassed = when {
+            duration.toDays() > 0 -> "${duration.toDays()} days ago"
+            duration.toHours() > 0 -> "${duration.toHours()} hours ago"
+            duration.toMinutes() > 0 -> "${duration.toMinutes()} minutes ago"
+            else -> "Just now"}
         Column {
             Row(
                 modifier = Modifier
@@ -553,20 +565,20 @@ fun CustomerReviewCard(
                 Column {
                     Row {
                         Text(
-                            text = customerName,
+                            text = review.userName,
                             fontSize = 18.sp,
                             maxLines = 1
                         )
                         Spacer(modifier = Modifier.weight(0.5f))
                         Text(
-                            text = time,
+                            text = timePassed,
                             fontSize = 14.sp,
                             color = Color.Gray
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Row {
-                        repeat(rating.toInt()) {
+                        repeat((Math. round(review.rating * 10.0) / 10.0).toInt()) {
                             Icon(
                                 imageVector = Icons.Default.Star,
                                 contentDescription = "Star Icon",
@@ -579,7 +591,7 @@ fun CustomerReviewCard(
                 }
             }
             Text(
-                text = reviewText,
+                text = review.reviewText,
                 fontSize = 16.sp,
                 maxLines = 3,
                 modifier = Modifier
@@ -725,7 +737,7 @@ fun SmallSaloonPreviewCard(
                                     .padding(end = 8.dp)
                             )
                             Text(
-                                text = "$rating",
+                                text = "${ Math. round(rating * 10.0) / 10.0}",
                                 fontSize = 14.sp,
                             )
                             Spacer(modifier = Modifier.padding(end = 8.dp))
@@ -903,11 +915,7 @@ fun Counter(
 
 @Composable
 fun BookingScreenShopPreviewCard(
-    shopName: String,
-    shopAddress: String,
-    ratings: Double,
-    isOpen: Boolean,
-    numberOfReviews: Int,
+    bookingModel: BookingModel,
     onOpenClick: () -> Unit
 ) {
     Column(
@@ -923,13 +931,16 @@ fun BookingScreenShopPreviewCard(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
+            Column(modifier = Modifier.weight(1f).height(40.dp)) {
             Text(
-                text = shopName,
+                text = bookingModel.barber.shopName.toString(),
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
+//                    .weight(0.1f)
+//                    .padding(end = 8.dp)
             )
+
+            }
             Button(
                 onClick = { onOpenClick() },
                 modifier = Modifier.align(Alignment.CenterVertically),
@@ -939,8 +950,8 @@ fun BookingScreenShopPreviewCard(
                 )
             ) {
                 Text(
-                    text = if (isOpen) "Open" else "Closed",
-                    color = Color(sallonColor.toArgb())
+                    text = "Book",
+                    color = sallonColor, fontWeight = FontWeight.SemiBold, fontSize = 18.sp
                 )
             }
         }
@@ -956,7 +967,7 @@ fun BookingScreenShopPreviewCard(
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = shopAddress,
+                text = bookingModel.barber.shopStreetAddress+bookingModel.barber.city ,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f),
                 overflow = TextOverflow.Ellipsis,
@@ -976,7 +987,7 @@ fun BookingScreenShopPreviewCard(
                     .padding(end = 8.dp)
             )
             Text(
-                text = "$ratings ($numberOfReviews reviews)",
+                text = "${Math. round(bookingModel.barber.rating * 10.0) / 10.0} (${bookingModel.barber.noOfReviews} reviews)",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f)
             )

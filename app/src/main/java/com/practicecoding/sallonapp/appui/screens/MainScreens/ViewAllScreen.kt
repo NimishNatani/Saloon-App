@@ -43,6 +43,7 @@ import com.practicecoding.sallonapp.appui.components.CircularCheckbox
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectBarberBig
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
+import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
 import com.practicecoding.sallonapp.ui.theme.purple_400
 import com.practicecoding.sallonapp.ui.theme.sallonColor
@@ -67,6 +68,7 @@ fun ViewAllScreen(
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     var barbers =
         if (type == "NearBy") viewModelBarber.barberNearby.collectAsState().value else viewModelBarber.barberPopular.collectAsState().value
+    val bookingModel = BookingModel()
     LaunchedEffect(key1 = true) {
         viewModelBarber.onEvent(
             if (type == "NearBy") MainEvent.getBarberNearby(
@@ -123,9 +125,10 @@ fun ViewAllScreen(
                     noOfReviews = barber.noOfReviews!!.toInt(),
                     imageUrl = barber.imageUri!!,
                     onBookNowClick = {
+                        bookingModel.barber = barber
                         navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "barber",
-                            value = barber
+                            key = "bookingModel",
+                            value = bookingModel
                         )
                         navController.navigate(
                             route = Screens.BarberScreen.route,

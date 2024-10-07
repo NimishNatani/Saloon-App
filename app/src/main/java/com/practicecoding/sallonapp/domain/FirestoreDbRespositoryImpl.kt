@@ -157,6 +157,49 @@ class FirestoreDbRespositoryImpl @Inject constructor(
         return userModel
     }
 
+    override suspend fun getAllCityBarber(city: String): Flow<Resource<MutableList<BarberModel>>> =
+        callbackFlow {
+
+            val listenerRegistration = barberDb.whereEqualTo("city", city)
+                .addSnapshotListener { querySnapshot, e ->
+                    if (e != null) {
+                        close(e)
+                        return@addSnapshotListener
+                    }
+                    if (querySnapshot != null) {
+                        launch {
+
+                            val listOfBarber = querySnapshot.documents.map { document ->
+                                BarberModel(
+                                    name = document.getString("name") ?: "",
+                                    rating = document.getDouble("rating") ?: 0.0,
+                                    shopName = document.getString("shopName") ?: "",
+                                    imageUri = document.getString("imageUri")
+                                        ?: "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
+                                    shopStreetAddress = document.getString("shopStreetAddress")
+                                        ?: "",
+                                    phoneNumber = document.getString("phoneNumber") ?: "",
+                                    uid = document.getString("uid").toString(),
+                                    state = document.getString("state").toString(),
+                                    city = document.getString("city") ?: "",
+                                    lat = document.getDouble("lat")!!.toDouble(),
+                                    long = document.getDouble("long")!!.toDouble(),
+                                    noOfReviews = document.getString("noOfReviews"),
+                                    open = document.getBoolean("open")!!,
+                                    aboutUs = document.getString("aboutUs").toString(),
+                                    saloonType = document.getString("saloonType").toString()
+                                )
+                            }.toMutableList()
+
+                            trySend(Resource.Success(listOfBarber.toMutableList())).isSuccess
+                        }
+                    }
+                }
+            awaitClose {
+                listenerRegistration.remove()
+            }
+        }.flowOn(Dispatchers.IO)
+
     override suspend fun getBarberPopular(city: String, limit: Long): MutableList<BarberModel> {
         return withContext(Dispatchers.IO) {
             val querySnapshot =
@@ -341,6 +384,12 @@ class FirestoreDbRespositoryImpl @Inject constructor(
         val formattedDate = dateFormat.format(currentDate)
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
+        val querySnapshot =
+            Firebase.firestore.collection("users").document(auth.currentUser?.uid.toString()).get()
+                .await()
+        val userDp = querySnapshot.getString("imageUri").toString()
+        val userName = querySnapshot.getString("name").toString()
+
         val bookingData = hashMapOf(
             "barberuid" to bookingModel.barber.uid,
             "useruid" to auth.currentUser?.uid,
@@ -351,7 +400,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             "dateandtime" to formattedDate,
             "status" to "pending",
             "paymentMethod" to "Cash",
-            "review" to ReviewModel()
+            "review" to ReviewModel(userDp = userDp, userName = userName)
         )
         try {
             Firebase.firestore
@@ -367,7 +416,6 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             Firebase.firestore.collection("Booking")
                 .document(bookingModel.barber.uid + auth.currentUser?.uid)
                 .collection("Order").document(formattedDate).set(bookingData).await()
-            Log.d("slotbooking", "Booking successfully set!")
         } catch (e: Exception) {
             Log.d("slotBooking", "Error setting booking: ${e.message}")
         }
@@ -440,6 +488,16 @@ class FirestoreDbRespositoryImpl @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     override suspend fun messageList(barberuid: String): Flow<MutableList<Message>> = callbackFlow {
+        val calendar = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, -14) // Subtract 14 days from today
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val fourteenDaysAgo = calendar.time
+
+        val dateFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
         val messageRef = Firebase.firestore.collection("Chats")
             .document("${auth.currentUser?.uid}$barberuid")
             .collection("Messages")
@@ -451,17 +509,30 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     return@addSnapshotListener
                 }
 
-                val messageList = querySnapshot?.documents?.map { documentSnapshot ->
-                    Message(
-                        message = documentSnapshot.getString("message").toString(),
-                        time = documentSnapshot.getString("time").toString(),
-                        status = documentSnapshot.getBoolean("status")!!
-                    )
-                }?.toMutableList() ?: emptyList()
-                trySend(messageList.toMutableList())
+                val messageList = querySnapshot?.documents?.mapNotNull { documentSnapshot ->
+                    val timeString = documentSnapshot.get("time").toString()
+                    val orderDate = timeString.let { dateFormat.parse(it) }
+
+                    if (orderDate != null && orderDate.after(fourteenDaysAgo)) {
+                        Message(
+                            message = documentSnapshot.getString("message").orEmpty(),
+                            time = timeString,
+                            status = documentSnapshot.getBoolean("status") ?: false
+                        )
+                    } else if (orderDate != null) {
+                        documentSnapshot.reference.delete()
+                        null
+                    } else {
+                        null // Skip messages older than 14 days or with invalid data
+                    }
+                }?.toMutableList() ?: mutableListOf()
+
+                trySend(messageList)
             }
+
         awaitClose { subscription.remove() }
     }.flowOn(Dispatchers.IO)
+
 
     override suspend fun getOrder(): Flow<List<OrderModel>> = callbackFlow {
         val db = FirebaseFirestore.getInstance()
@@ -556,10 +627,12 @@ class FirestoreDbRespositoryImpl @Inject constructor(
 
 
                                                 orderModel
-                                            }
-                                            else {
+                                            } else {
 
-                                                if(order.getString("status") == "cancelled"||order.getString("status") == "pending"||order.getString("status") == "accepted") {
+                                                if (order.getString("status") == "cancelled" || order.getString(
+                                                        "status"
+                                                    ) == "pending" || order.getString("status") == "accepted"
+                                                ) {
                                                     order.reference.delete()
                                                 }
                                                 null
@@ -615,13 +688,13 @@ class FirestoreDbRespositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun addReview(orderId: String, review: ReviewModel): Flow<Resource<String>> =
+    override suspend fun addReview(order: OrderModel, review: ReviewModel): Flow<Resource<String>> =
         callbackFlow {
             try {
-                trySend(Resource.Loading).isSuccess
-
+                trySend(Resource.Loading)
                 // Update review in the order document
-                Firebase.firestore.collection("booking").document(orderId)
+                Firebase.firestore.collection("Booking").document(order.barberuid + order.useruid)
+                    .collection("Order").document(order.orderId)
                     .update("review", review)
                     .addOnSuccessListener {
                         trySend(Resource.Success("Review added successfully")).isSuccess
@@ -629,23 +702,18 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     .addOnFailureListener {
                         trySend(Resource.Failure(it)).isSuccess
                     }
+                val barberSnapshot = barberDb.document(order.barberuid).get().await()
+                var rating = barberSnapshot.get("rating").toString().toDouble()
+                var noOfReview = barberSnapshot.get("noOfReviews").toString().toInt()
 
-                // Fetch the order snapshot to update barber's review and rating
-                val orderSnapShot = Firebase.firestore.collection("booking").document(orderId)
-                    .get().await()
+//                rating = ((rating*noOfReview)+review.rating)/(++noOfReview)
+                // Update barber's number of reviews and rating
+                barberDb.document(order.barberuid).update("noOfReviews", (++noOfReview).toString())
+                    .await()
+                barberDb.document(order.barberuid)
+                    .update("rating", ((rating * (noOfReview - 1)) + review.rating) / (noOfReview))
+                    .await()
 
-                if (orderSnapShot != null) {
-                    val barberUid = orderSnapShot.getString("barberuid").toString()
-                    val noOfReviews = orderSnapShot.getLong("noOfReviews")?.toInt() ?: 0
-                    val rating = orderSnapShot.getDouble("rating") ?: 0.0
-
-                    // Calculate new rating
-                    val newRating = (rating * noOfReviews + review.rating) / (noOfReviews + 1)
-
-                    // Update barber's number of reviews and rating
-                    barberDb.document(barberUid).update("noOfReviews", "${noOfReviews + 1}").await()
-                    barberDb.document(barberUid).update("rating", newRating).await()
-                }
             } catch (e: Exception) {
                 trySend(Resource.Failure(e)).isSuccess
             } finally {
@@ -653,33 +721,74 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun getReview(): Flow<Resource<List<ReviewModel>>> = callbackFlow {
-        val listenerRegistration = Firebase.firestore.collection("booking")
-            .whereEqualTo("useruid", auth.currentUser?.uid.toString())
-            .addSnapshotListener { snapshots, e ->
-                if (e != null) {
-                    Log.w("FireStoreDbRepository", "listen:error", e)
-                    trySend(Resource.Failure(e))
-                    return@addSnapshotListener
-                }
-                if (snapshots != null) {
-                    val reviews = mutableListOf<ReviewModel>()
-                    for (documentSnapshot in snapshots.documents) {
-                        val review =
-                            documentSnapshot.get("review") as? Map<*, *> ?: emptyMap<String, Any>()
-                        val rating = review["rating"] as? Double ?: 0.0
-                        val reviewText = review["reviewText"] as? String ?: ""
-                        val orderId = documentSnapshot.id
-                        val reviewModel = ReviewModel(
-                            rating = rating,
-                            reviewText = reviewText,
-                            orderId = orderId
-                        )
-                        reviews.add(reviewModel)
+    override suspend fun getReview(barberuid: String): Flow<Resource<MutableList<ReviewModel>>> =
+        callbackFlow {
+            val db = FirebaseFirestore.getInstance()
+            val listenerRegistrations = mutableListOf<ListenerRegistration>()
+
+            // Step 1: Query Bookings where userUid matches
+            db.collection("Booking")
+                .whereEqualTo("barberuid", barberuid)
+                .get()
+                .addOnSuccessListener { bookingsSnapshot ->
+                    // Step 2: Set listeners on each order subcollection of the matching bookings
+                    for (booking in bookingsSnapshot.documents) {
+                        val listenerRegistration = booking.reference.collection("Order")
+                            .addSnapshotListener { ordersSnapshot, error ->
+                                if (error != null) {
+                                    close(error) // If there is an error, close the flow with the error
+                                } else if (ordersSnapshot != null) {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        // Collect orders data from the snapshot and process them in parallel
+                                        val jobs = ordersSnapshot.documents.map { order ->
+                                            async {
+                                                // Convert Firestore document to BookedModel
+                                                val bookedModel =
+                                                    order.toObject(BookedModel::class.java)
+                                                if (bookedModel != null && bookedModel.review.rating.toString()
+                                                        .isNotEmpty() && bookedModel.review.reviewTime.isNotEmpty()
+                                                ) {
+                                                    val reviewModel =
+                                                        ReviewModel(
+                                                            rating = bookedModel.review.rating,
+                                                            reviewTime = bookedModel.review.reviewTime,
+                                                            reviewText = bookedModel.review.reviewText,
+                                                            userDp = bookedModel.review.userDp,
+                                                            userName = bookedModel.review.userName
+                                                        )
+                                                    reviewModel
+                                                } else {
+                                                    null
+                                                }
+                                            }
+
+                                        }
+
+                                        // Wait for all the jobs to complete
+                                        val results = jobs.awaitAll().filterNotNull()
+
+                                        // Sort the orders by time in descending order
+                                        val sortedOrders = results.sortedByDescending {
+                                            it.reviewTime
+                                        }
+
+                                        // Emit the sorted list of orders
+                                        trySend(Resource.Success(sortedOrders.toMutableList())).isSuccess
+                                    }
+                                }
+                            }
+
+                        // Store the listener to remove later
+                        listenerRegistrations.add(listenerRegistration)
                     }
-                    trySend(Resource.Success(reviews)).isSuccess
                 }
+                .addOnFailureListener { exception ->
+                    close(exception) // Close the flow with the error
+                }
+
+            // Await close of the flow
+            awaitClose {
+                listenerRegistrations.forEach { it.remove() } // Clean up listeners when the flow is closed
             }
-        awaitClose { listenerRegistration.remove() }
-    }
+        }
 }

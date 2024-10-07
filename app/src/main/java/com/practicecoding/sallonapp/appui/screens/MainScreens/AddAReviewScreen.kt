@@ -18,6 +18,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -34,11 +35,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.CommonDialog
+import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.RatingBar
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
+import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.OrderEvent
 import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
 import com.practicecoding.sallonapp.data.model.OrderModel
@@ -47,16 +51,19 @@ import com.practicecoding.sallonapp.data.model.ReviewModel
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun AddReviewScreen(
     order: OrderModel,
     orderViewModel: OrderViewModel = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     var isReviewAdded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    var rating by remember { mutableStateOf(0.0) }
+    var rating by remember { mutableDoubleStateOf(0.0) }
     var reviewText by remember { mutableStateOf("") }
     if(orderViewModel.isLoading.value){
          ShimmerEffectMainScreen()
@@ -79,7 +86,7 @@ fun AddReviewScreen(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Image(
-                    painter = rememberImagePainter(data = order.imageUrl),
+                    painter = rememberAsyncImagePainter(model = order.imageUrl),
                     contentDescription = "Order Image",
                     modifier = Modifier
                         .height(200.dp)
@@ -91,9 +98,9 @@ fun AddReviewScreen(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = "Barber: ${order.barberName}", fontSize = 16.sp, color = Color.Black)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Order Type: ${order.listOfService.joinToString()}", fontSize = 16.sp, color = Color.Black)
+                Text(text = "Order Type: ${order.listOfService.joinToString { it.serviceName }}", fontSize = 16.sp, color = Color.Black)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Time Slot: ${order.timeSlot.joinToString()}", fontSize = 16.sp, color = Color.Black)
+                Text(text = "Time Slot: ${order.timeSlot.joinToString { it.time }}", fontSize = 16.sp, color = Color.Black)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = "Phone: ${order.phoneNumber}", fontSize = 16.sp, color = Color.Black)
                 Spacer(modifier = Modifier.height(4.dp))
@@ -122,26 +129,30 @@ fun AddReviewScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
+
             onClick = {
+                val currentDate = Date()
+                val dateFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
+                val formattedDate = dateFormat.format(currentDate)
                 val review = ReviewModel(
                     rating = rating,
-                    reviewText = reviewText
+                    reviewText = reviewText,
+                    userName = order.review.userName,
+                    userDp = order.review.userDp,
+                    reviewTime = formattedDate
                 )
+                order.review=review
                 scope.launch(Dispatchers.IO) {
                     orderViewModel.onEvent(
-                        OrderEvent.AddReview,
-                        orderId = order.orderId,
+                        OrderEvent.AddReview(
+                        order = order,
                         review = review,
                         onCompletion = {
                             isReviewAdded = true
                             scope.launch(Dispatchers.Main) {
-                                navController.navigate(Screens.MainScreen.route) {
-                                    popUpTo(Screens.AddReviewScreen.route) {
-                                        inclusive = true
-                                    }
-                                }
+                               navController.popBackStack()
                             }
-                        }
+                        })
                     )
                 }
             },

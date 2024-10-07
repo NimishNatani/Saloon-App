@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,7 @@ import com.practicecoding.sallonapp.appui.components.BigSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.components.ShimmerBigCards
 import com.practicecoding.sallonapp.appui.components.TransparentTopAppBar
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
+import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import kotlinx.coroutines.Dispatchers
@@ -52,10 +54,11 @@ fun BarberServiceVise(
     BackHandler {
         navController.popBackStack()
     }
-    var isLoading by remember { mutableStateOf(true) }
+    var isLoading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         scope.launch(Dispatchers.IO) {
+            isLoading=true
             service.let {
                 barberListViewModel.getBarberListByService(it)
             }
@@ -64,7 +67,9 @@ fun BarberServiceVise(
     }
 
 
-    val barberList = barberListViewModel.barberList
+    val barberList by barberListViewModel.barberList.collectAsState()
+    val bookingModel = BookingModel()
+
     Scaffold(
         containerColor = purple_200,
         topBar = {
@@ -93,7 +98,7 @@ fun BarberServiceVise(
         ) {
 
 
-            items(barberList.value.size) {
+            items(barberList.size) {
                 Spacer(modifier = Modifier.height(15.dp))
                 var isLiked by remember {
                     mutableStateOf(
@@ -102,39 +107,40 @@ fun BarberServiceVise(
                 }
                 LaunchedEffect(isLiked) {
                     scope.launch(Dispatchers.IO) {
-                        isLiked = likedBarberViewModel.isBarberLiked(barberList.value[it].uid)
+                        isLiked = likedBarberViewModel.isBarberLiked(barberList[it].uid)
                     }
                 }
                 BigSaloonPreviewCard(
-                    shopName = barberList.value[it].shopName!!,
-                    address = barberList.value[it].shopStreetAddress!!,
-                    distance = barberList.value[it].distance!!,
+                    shopName = barberList[it].shopName!!,
+                    address = barberList[it].shopStreetAddress!!,
+                    distance = barberList[it].distance!!,
                     height = screenWidth - 70.dp,
                     width = screenWidth - 60.dp,
-                    imageUrl = barberList.value[it].imageUri!!,
+                    imageUrl = barberList[it].imageUri!!,
                     isFavorite = isLiked,
-                    noOfReviews = barberList.value[it].noOfReviews!!.toInt(),
-                    rating = barberList.value[it].rating,
+                    noOfReviews = barberList[it].noOfReviews!!.toInt(),
+                    rating = barberList[it].rating,
                     onHeartClick = {
                         isLiked = if (isLiked) {
-                            likedBarberViewModel.unlikeBarber(barberList.value[it].uid)
+                            likedBarberViewModel.unlikeBarber(barberList[it].uid)
                             false
                         } else {
-                            likedBarberViewModel.likeBarber(barberList.value[it].uid)
+                            likedBarberViewModel.likeBarber(barberList[it].uid)
                             true
                         }
                     },
                     onBookNowClick = {
+                        bookingModel.barber = barberList[it]
                         navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "barber",
-                            value = barberList.value[it]
+                            key = "bookingModel",
+                            value = bookingModel
                         )
                         navController.navigate(
                             route = Screens.BarberScreen.route,
                         )
                     },
                     modifier = Modifier,
-                    open = barberList.value[it].open!!,
+                    open = barberList[it].open!!,
                 )
             }
         }

@@ -29,12 +29,14 @@ import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
 import com.practicecoding.sallonapp.appui.components.OrderCard
 import com.practicecoding.sallonapp.appui.components.TransparentTopAppBar
 import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
+import com.practicecoding.sallonapp.data.model.OrderModel
 import com.practicecoding.sallonapp.data.model.OrderStatus
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import kotlinx.coroutines.launch
 
 @Composable
 fun BookingHistoryScreen(
+    completedOrderList: MutableList<OrderModel>,
     orderViewModel: OrderViewModel = hiltViewModel(),
     navController: NavController
 ) {
@@ -58,7 +60,7 @@ fun BookingHistoryScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items(orderViewModel.orderList.value) { order ->
+            items(completedOrderList) { order ->
                 Spacer(modifier = Modifier.height(5.dp))
                 OrderCard(
 

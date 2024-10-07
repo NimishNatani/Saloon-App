@@ -400,7 +400,12 @@ fun AppNavigation(
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
-            BookingHistoryScreen(navController = navController)
+            val completedOrderList = navController.previousBackStackEntry?.savedStateHandle?.get<MutableList<OrderModel>>("completedOrderList")
+            if (completedOrderList != null) {
+                BookingHistoryScreen(navController = navController,
+                    completedOrderList = completedOrderList
+                )
+            }
         }
         composable(Screens.FavBarberList.route, enterTransition = { enterTransition },
             exitTransition = { exitTransition },

@@ -41,16 +41,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.data.model.BarberModel
+import com.practicecoding.sallonapp.data.model.BookingModel
+import com.practicecoding.sallonapp.data.model.ReviewModel
 import com.practicecoding.sallonapp.data.model.ServiceCategoryModel
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.launch
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HorizontalPagerWithTabs(
-    barberDetails: BarberModel,
+    bookingModel: BookingModel,
     serviceCategories: List<ServiceCategoryModel?> = listOf(),
-    previewImages: List<String?> = listOf()
+    previewImages: List<String?> = listOf(),
+    reviewList: MutableList<ReviewModel>
 ) {
     val pagerState = rememberPagerState(pageCount = { 4 })
 
@@ -88,11 +94,11 @@ fun HorizontalPagerWithTabs(
                 .weight(1f)
         ) { page ->
             when (page) {
-                0 -> AboutUsPage(barberDetails)
+                0 -> AboutUsPage(bookingModel.barber)
                 1 -> ServicesPage(serviceCategories)
                 2 -> GalleryPage(previewImages)
-                3 -> ReviewsPage(barberDetails)
-                else -> AboutUsPage(barberDetails) // Handle unexpected page index
+                3 -> ReviewsPage(reviewList)
+                else -> AboutUsPage(bookingModel.barber) // Handle unexpected page index
             }
         }
     }
@@ -132,7 +138,7 @@ fun AboutUsPage(barberDetails: BarberModel) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Open",
+                    text = if (barberDetails.open==true)"Open" else "Close",
                     modifier = Modifier.padding(8.dp)
                 )
             }
@@ -231,8 +237,9 @@ fun GalleryPage(previewImages: List<String?> = listOf()) {
 }
 
 @Composable
-fun ReviewsPage(barberDetails: BarberModel? = null) {
+fun ReviewsPage(reviewList: MutableList<ReviewModel>) {
     val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -241,29 +248,19 @@ fun ReviewsPage(barberDetails: BarberModel? = null) {
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
     ) {
-        if (barberDetails != null) {
-            Text(
-                text = "Total ${barberDetails.noOfReviews!!} Reviews",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontSize = 20.sp,
-                    fontStyle = FontStyle.Italic
-                ),
-                modifier = Modifier.padding(8.dp)
-            )
-        } else {
-            Text(
-                text = "No Reviews yet",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(8.dp)
-            )
-        }
+        Text(
+            text = "Total ${reviewList.size} Reviews",
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontSize = 20.sp,
+                fontStyle = FontStyle.Italic
+            ),
+            modifier = Modifier.padding(8.dp)
+        )
+        reviewList.sortByDescending { it.reviewTime }
+        for (review in reviewList)
         CustomerReviewCard(
             /*TODO: have to add the reviews of barber*/
-            customerName = "Customer Name",
-            reviewText = "Review Text",
-            rating = 4.5f,
-            imageUrl = "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
-            time = "2 days ago"
+            review = review
         )
         Spacer(modifier = Modifier.height(60.dp))
     }

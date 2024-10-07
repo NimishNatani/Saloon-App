@@ -714,7 +714,7 @@ fun RatingBar(
 
     var isHalfStar = (rating % 1) != 0.0
 
-    Row {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         for (index in 1..stars) {
             Icon(
                 imageVector =
@@ -732,6 +732,7 @@ fun RatingBar(
                 tint = starsColor,
                 modifier = modifier
                     .clickable { onRatingChanged(index.toDouble()) }
+                    .size(30.dp)
             )
         }
     }

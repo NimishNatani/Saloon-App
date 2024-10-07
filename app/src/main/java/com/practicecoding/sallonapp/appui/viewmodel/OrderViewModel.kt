@@ -37,19 +37,12 @@ class OrderViewModel @Inject constructor(
     var isLoading = mutableStateOf(false)
     var isUpdating = mutableStateOf(false)
 
-    private val _reviewList = mutableStateOf<List<ReviewModel>>(emptyList())
-    val reviewList: State<List<ReviewModel>> = _reviewList
+    private val _userReviewList = MutableStateFlow(emptyList<OrderModel>().toMutableList())
+    val userReviewList: StateFlow<MutableList<OrderModel>> = _userReviewList
 
-//    var upcomingOrder = mutableStateOf(
-//        OrderModel(
-//            barberShopName = " ",
-//            barberName = " ",
-//            imageUrl = " ",
-//            orderType = emptyList(),
-//            phoneNumber = " ",
-//            timeSlot = emptyList(),
-//        )
-//    )
+
+
+
 
     init {
         viewModelScope.launch {
@@ -59,20 +52,17 @@ class OrderViewModel @Inject constructor(
 
     suspend fun onEvent(
         event: OrderEvent,
-        orderId: String = " ",
-        review: ReviewModel = ReviewModel(),
-        onCompletion: () -> Unit = {}
     ) {
         when (event) {
             is OrderEvent.GetOrderList -> getOrders()
-            is OrderEvent.AddReview -> addReview(orderId, review, onCompletion)
+            is OrderEvent.AddReview -> addReview(event.order, event.review, event.onCompletion)
             is OrderEvent.UpdateOrderStatus -> {}
         }
     }
 
-    private suspend fun addReview(orderId: String, review: ReviewModel, onCompletion: () -> Unit) {
+    private suspend fun addReview(order: OrderModel, review: ReviewModel, onCompletion: () -> Unit) {
         isUpdating.value = true
-        repo.addReview(orderId, review).collect {
+        repo.addReview(order, review).collect {
             when (it) {
                 is Resource.Success -> {
                     Log.d("rOrderViewModel", "addReview: Success")
@@ -90,26 +80,11 @@ class OrderViewModel @Inject constructor(
         }
     }
 
-    fun getReviewByOrderId(orderId: String): ReviewModel? {
-        return _reviewList.value.find { it.orderId == orderId }
-    }
+//    fun getReviewByOrderId(orderId: String): ReviewModel? {
+//        return _reviewList.value.find { it.orderId == orderId }
+//    }
 
-    private suspend fun getReviewList() {
-        repo.getReview().collect {
-            when (it) {
-                is Resource.Success -> {
-                    _reviewList.value = it.result
-                    Log.d("ReviewModel", "getReviewList: ${it.result}")
-                }
 
-                is Resource.Failure -> {
-                    Log.d("OrderViewModel", "getReviewList: Error${it.exception}")
-                }
-
-                else -> {}
-            }
-        }
-    }
 
     private suspend fun getOrders() {
         val today = LocalDate.now().toString()
@@ -120,6 +95,7 @@ class OrderViewModel @Inject constructor(
                 _acceptedOrderList.update { it.toMutableList().apply { clear() } }
                 _completedOrderList.update { it.toMutableList().apply { clear() } }
                 _cancelledOrderList.update { it.toMutableList().apply { clear() } }
+                _userReviewList.update { it.toMutableList().apply { clear() } }
                 orders.forEach { order ->
                     Log.d("OrderViewModel", "getOrders: ${order.orderStatus}")
 
@@ -165,6 +141,9 @@ class OrderViewModel @Inject constructor(
                                 it.toMutableList().apply {
                                     add(order)
                                 }
+                            }
+                            if(order.review.reviewText.isNotEmpty()&&order.review.reviewTime.isNotEmpty()){
+                                _userReviewList.update { it.toMutableList().apply { add(order) } }
                             }
                         }
 
@@ -214,5 +193,9 @@ class OrderViewModel @Inject constructor(
 sealed class OrderEvent {
     object GetOrderList : OrderEvent()
     object UpdateOrderStatus : OrderEvent()
-    object AddReview : OrderEvent()
+    data class AddReview(
+        val order: OrderModel,
+        val review: ReviewModel,
+        val onCompletion: () -> Unit
+    ) : OrderEvent()
 }

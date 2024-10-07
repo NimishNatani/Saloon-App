@@ -1,17 +1,18 @@
 package com.practicecoding.sallonapp.appui.viewmodel
 
 import android.location.Location
-import androidx.compose.runtime.MutableState
+import android.util.Log
 import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.data.FireStoreDbRepository
+import com.practicecoding.sallonapp.data.Resource
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.BookingModel
+import com.practicecoding.sallonapp.data.model.ReviewModel
 import com.practicecoding.sallonapp.data.model.Service
 import com.practicecoding.sallonapp.data.model.ServiceCategoryModel
 import com.practicecoding.sallonapp.data.model.Slots
@@ -22,8 +23,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -52,17 +53,50 @@ class GetBarberDataViewModel @Inject constructor(
 
     var selectedSlots = mutableStateListOf<TimeSlot>()
 
-    private val _barberList = mutableStateOf<List<BarberModel>>(emptyList())
-    val barberList: State<List<BarberModel>> = _barberList
+    private val _barberList =MutableStateFlow(emptyList<BarberModel>().toMutableList())
+    val barberList: StateFlow<MutableList<BarberModel>> = _barberList.asStateFlow()
+
+    private val _barberReviewList = MutableStateFlow(emptyList<ReviewModel>().toMutableList())
+    val barberReviewList: StateFlow<MutableList<ReviewModel>> = _barberReviewList.asStateFlow()
 
     var navigationItem = mutableStateOf(NavigationItem.Home)
 
     var showDialog = mutableStateOf(false)
     var dialogMessage = mutableStateOf(listOf("", ""))
+    var shimmerVisible = mutableStateOf(true)
 
 
     suspend fun getBarberListByService(service: String) {
-        _barberList.value = repo.getBarberByService(service)
+        _barberList.emit( repo.getBarberByService(service))
+    }
+
+    suspend fun getAllCityBarber(city: String){
+        viewModelScope.launch() {
+           repo.getAllCityBarber(city).collect{
+               _barberList.update { it.apply { clear() } }
+               when(it){
+                   is Resource.Success ->{
+                       _barberList.emit(it.result)
+                   }
+                   is Resource.Failure ->{}
+                   else ->{}
+               }
+//               Log.d("list",barbers.r.toString())
+           }
+            _barberList.value.map {  barber->
+                barber.apply {
+                    val locationDetails = locationObject.locationDetails
+                    distance = getLocation(
+                        lat1 = locationDetails.latitude!!.toDouble(),
+                        long1 = locationDetails.longitude!!.toDouble(),
+                        lat2 = barber.lat,
+                        long2 = barber.long
+                    )
+                }
+            }
+            _barberPopular.emit(_barberList.value.sortedByDescending { it.rating }.take(6).toMutableList())
+            _barberNearby.emit(_barberList.value.sortedBy { it.distance }.take(6).toMutableList())
+        }
     }
 
     suspend fun onEvent(event: MainEvent) {
@@ -137,6 +171,24 @@ class GetBarberDataViewModel @Inject constructor(
         var solution = distance[0].toDouble() / 1000
         solution = Math.round(solution * 10.0) / 10.0
         return solution
+    }
+
+     suspend fun getReviewList(barberuid:String) {
+        repo.getReview(barberuid).collect {
+            _barberReviewList.emit(emptyList<ReviewModel>().toMutableList())
+            when (it) {
+                is Resource.Success -> {
+                    _barberReviewList.emit(it.result)
+                    Log.d("ReviewModel", "getReviewList: ${it.result}")
+                }
+
+                is Resource.Failure -> {
+                    Log.d("OrderViewModel", "getReviewList: Error${it.exception}")
+                }
+
+                else -> {}
+            }
+        }
     }
 
     private suspend fun getSlots(day: String, uid: String) {

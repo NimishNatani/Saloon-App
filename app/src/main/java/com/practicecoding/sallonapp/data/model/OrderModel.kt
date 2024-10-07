@@ -34,7 +34,8 @@ data class BookingModel(
     var genderCounter: List<Int> = listOf(0, 0, 0),
     var listOfService: List<Service> = emptyList(),
     var selectedSlots: List<TimeSlot> = emptyList(),
-    var selectedDate: @Contextual LocalDate = LocalDate.now()
+    var selectedDate: @Contextual LocalDate = LocalDate.now(),
+//    var reviewList:MutableList<OrderModel> = emptyList<OrderModel>().toMutableList()
 
 ) : Parcelable
 
@@ -57,7 +58,9 @@ data class BookedModel(
 data class ReviewModel(
     var rating: Double = 0.0,
     var reviewText: String = "",
-    val orderId: String = "",
+    val userDp: String = "",
+    val userName: String = "",
+    val reviewTime:String = ""
 ):Parcelable
 
 //@OptIn(ExperimentalSerializationApi::class)

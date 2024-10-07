@@ -1,5 +1,6 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,18 +36,26 @@ import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.DoubleCard
+import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
+import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
 
 @Composable
 fun ProfileScreen(
-    viewModel: GetBarberDataViewModel,
-    navController: NavController
+    viewModelBarber: GetBarberDataViewModel,
+    navController: NavController,
+    orderViewModel: OrderViewModel
 ){
-    DoubleCard(midCarBody = { PhotoWithName() }, mainScreen = { ProfileScreenList(navController) }, topAppBar = {
+    BackHandler {
+        viewModelBarber.navigationItem.value = NavigationItem.Home
+    }
+    DoubleCard(midCarBody = { PhotoWithName() }, mainScreen = { ProfileScreenList(navController,orderViewModel) }, topAppBar = {
         Text(
             text = "Profile",
-            modifier = Modifier.fillMaxWidth().padding(top = 15.dp, bottom = 20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 15.dp, bottom = 20.dp),
             textAlign = TextAlign.Center,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
@@ -53,7 +64,7 @@ fun ProfileScreen(
     })
 }
 @Composable
-fun ProfileScreenList(navController: NavController){
+fun ProfileScreenList(navController: NavController,orderViewModel: OrderViewModel){
     val profileList = listOf(
         Pair( R.drawable.salon_app_logo,"My Profile"),
         Pair( R.drawable.salon_app_logo,"My Booking History"),
@@ -62,6 +73,7 @@ fun ProfileScreenList(navController: NavController){
         Pair( R.drawable.salon_app_logo,"About Us"),
         Pair( R.drawable.salon_app_logo,"Log Out"),
     )
+    val completedOrderList by orderViewModel.completedOrderList.collectAsState()
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(22.dp)
@@ -71,6 +83,7 @@ fun ProfileScreenList(navController: NavController){
               navController.navigate(Screens.UpdateProfileScreen.route)
           }
           ShowingList(image = R.drawable.salon_app_logo, text ="My Booking History"){
+              navController.currentBackStackEntry?.savedStateHandle?.set("completedOrderList",completedOrderList)
                 navController.navigate(Screens.BookingHistory.route)
           }
           ShowingList(image = R.drawable.salon_app_logo, text = "Favorite's Saloon"){

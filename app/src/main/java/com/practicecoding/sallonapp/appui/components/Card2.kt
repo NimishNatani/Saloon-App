@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
 import com.practicecoding.sallonapp.data.model.OrderModel
 import com.practicecoding.sallonapp.data.model.OrderStatus
 import com.practicecoding.sallonapp.data.model.ReviewModel
@@ -466,10 +467,10 @@ fun ReviewText(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         RatingBar(onRatingChanged = { }, rating = review.rating)
-        Text(text = review.reviewText)
+        Text(text = review.reviewText, color = sallonColor, )
     }
 }
 

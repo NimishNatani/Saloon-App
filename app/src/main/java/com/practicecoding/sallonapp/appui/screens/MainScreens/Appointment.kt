@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
@@ -45,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -70,7 +70,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DetailScreen(
     bookingModel: BookingModel,
@@ -99,8 +98,8 @@ fun DetailScreen(
         SuccessfulDialog(navController = navController)
     }
     ModalBottomSheetLayout(
-        sheetState = if (!sheetState) ModalBottomSheetState(ModalBottomSheetValue.Hidden) else ModalBottomSheetState(
-            ModalBottomSheetValue.Expanded
+        sheetState = if (!sheetState) ModalBottomSheetState(ModalBottomSheetValue.Hidden, density = LocalDensity.current) else ModalBottomSheetState(
+            ModalBottomSheetValue.Expanded, density = LocalDensity.current
         ),
         sheetContent = {
             PaymentMethodBottomSheet(totalPrice = totalPrice,

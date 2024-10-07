@@ -3,8 +3,6 @@ package com.practicecoding.sallonapp.appui.screens.MainScreens
 import android.content.Context
 import android.location.Address
 import android.location.Geocoder
-import android.location.Location
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.Spring
@@ -20,24 +18,26 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -61,16 +61,14 @@ import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.components.UpcomingFeaturesCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.LocationViewModel
-import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
 import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
-import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.data.model.LocationModel
 import com.practicecoding.sallonapp.data.model.locationObject
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
+import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -109,27 +107,28 @@ fun MainScreen1(
         }
         if (locationDetails.city != null) {
 //            Toast.makeText(context,locationDetails.city,Toast.LENGTH_LONG).show()
-            viewModelBarber.onEvent(
-                MainEvent.getBarberNearby(
-                    locationDetails.city!!,
-                    6
-                )
-            )
-            viewModelBarber.onEvent(
-                MainEvent.getBarberPopular(
-                    locationDetails.city!!,
-                    6
-                )
-            )
+//            viewModelBarber.onEvent(
+//                MainEvent.getBarberNearby(
+//                    locationDetails.city!!,
+//                    6
+//                )
+//            )
+//            viewModelBarber.onEvent(
+//                MainEvent.getBarberPopular(
+//                    locationDetails.city!!,
+//                    6
+//                )
+//            )
+            viewModelBarber.getAllCityBarber(locationDetails.city!!)
         }
     }
-//    var selectedScreen by remember { mutableStateOf() }
+
     Scaffold(
         bottomBar = {
             BottomAppNavigationBar(
                 selectedItem = viewModelBarber.navigationItem.value,
                 onItemSelected = { viewModelBarber.navigationItem.value = it },
-                messageCount =newChat
+                messageCount = newChat
             )
         }
     ) { paddingValues ->
@@ -146,26 +145,29 @@ fun MainScreen1(
                 }
 
                 NavigationItem.Book -> {
-                if (orderViewModel.isLoading.value) {
-                    ShimmerEffectBarber()
-                } else {
-                    viewModelBarber.navigationItem.value = NavigationItem.Book
-                    UserOrderPage(
-                        navController = navHostController,
-                        orderViewModel= orderViewModel,
-                        viewModelBarber = viewModelBarber
-                    )
+                    if (orderViewModel.isLoading.value) {
+                        ShimmerEffectBarber()
+                    } else {
+                        viewModelBarber.navigationItem.value = NavigationItem.Book
+                        UserOrderPage(
+                            navController = navHostController,
+                            orderViewModel = orderViewModel,
+                            viewModelBarber = viewModelBarber
+                        )
+                    }
                 }
-                }
+
                 NavigationItem.Message -> {
                     viewModelBarber.navigationItem.value = NavigationItem.Message
-                    MessageScreen(navHostController, messageViewModel,viewModelBarber)
+                    MessageScreen(navHostController, messageViewModel, viewModelBarber)
                 }
+
                 NavigationItem.Profile -> {
                     viewModelBarber.navigationItem.value = NavigationItem.Profile
 
-                    ProfileScreen(viewModelBarber, navHostController)
+                    ProfileScreen(viewModelBarber, navHostController, orderViewModel)
                 }
+
                 NavigationItem.More -> {
                     viewModelBarber.navigationItem.value = NavigationItem.More
 
@@ -178,7 +180,7 @@ fun MainScreen1(
 
 @Composable
 fun MoreScreen() {
-    Text(text = "More Screen")
+    UpcomingFeaturesCard()
 }
 
 @Composable
@@ -187,7 +189,7 @@ fun TopScreen(
     context: Context,
     viewModelBarber: GetBarberDataViewModel,
 
-) {
+    ) {
     DoubleCard(
         midCarBody = { SearchBar() },
         mainScreen = {
@@ -196,7 +198,7 @@ fun TopScreen(
                 likedBarberViewModel = LikedBarberViewModel(context),
                 viewModelBarber = viewModelBarber,
 
-            )
+                )
         },
         topAppBar = {
             ProfileWithNotification(
@@ -213,7 +215,7 @@ fun MainScreen(
     likedBarberViewModel: LikedBarberViewModel,
     navController: NavController,
 
-) {
+    ) {
     val scrollStateRowOffer = rememberScrollState()
     val scroll = rememberScrollState()
     val scrollStateRowCategories = rememberScrollState()
@@ -221,21 +223,26 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+
     val barberNearby by
-        viewModelBarber.barberNearby.collectAsState()
+    viewModelBarber.barberNearby.collectAsState()
     val barberPopular by
-        viewModelBarber.barberPopular.collectAsState()
+    viewModelBarber.barberPopular.collectAsState()
     val bookingModel = BookingModel()
-//    Toast.makeText(context,viewModelBarber.barberPopular.collectAsState().value.toString(),Toast.LENGTH_LONG).show()
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(10000)  // 15 seconds delay
+        viewModelBarber.shimmerVisible.value = false
+    }
 
     AnimatedVisibility(
-        (barberNearby.isEmpty() || barberPopular.isEmpty()),
+        (viewModelBarber.shimmerVisible.value && (barberNearby.isEmpty())),
         exit = fadeOut(animationSpec = tween(800, easing = EaseOut))
     ) {
         ShimmerEffectMainScreen()
     }
     AnimatedVisibility(
-        (barberNearby.isNotEmpty() && barberPopular.isNotEmpty()), enter = fadeIn(
+        (!viewModelBarber.shimmerVisible.value || (barberNearby.isNotEmpty())), enter = fadeIn(
             // Slide in from 40 dp from the top.
             animationSpec = spring(
                 stiffness = Spring.StiffnessVeryLow,
@@ -350,39 +357,167 @@ fun MainScreen(
                         navController.navigate(Screens.CatBarberList.route)
                     }
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Nearby Salons",
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(
-                            top = 12.dp,
-                            bottom = 8.dp,
-                            start = 8.dp,
-                            end = 8.dp
+                if (barberNearby.isEmpty()) {
+                    Card(
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally),
+                        colors = CardDefaults.cardColors(containerColor = purple_200)
+                    ) {
+                        Text(
+                            text = "Sorry, we are unable to fetch your city barber",
+                            color = sallonColor,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp, vertical = 20.dp)
+                                .align(Alignment.CenterHorizontally),
                         )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Nearby Salons",
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(
+                                top = 12.dp,
+                                bottom = 8.dp,
+                                start = 8.dp,
+                                end = 8.dp
+                            )
 
-                    )
-                    TextButton(onClick = {
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "type",
-                            value = "NearBy"
                         )
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "location",
-                            value = locationObject.locationDetails.city.toString()
-                        )
-                        navController.navigate(Screens.ViewAllScreen.route)
-                    }) {
-                        Text(text = "View All", color = Color.Gray)
+                        TextButton(onClick = {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                key = "type",
+                                value = "NearBy"
+                            )
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                key = "location",
+                                value = locationObject.locationDetails.city.toString()
+                            )
+                            navController.navigate(Screens.ViewAllScreen.route)
+                        }) {
+                            Text(text = "View All", color = Color.Gray)
+                        }
+
+                    }
+//                Row(modifier = Modifier.horizontalScroll(scrollStateNearbySalon)) {
+//                    if (barberNearby.isEmpty()) {
+//                        Card(
+//                            modifier = Modifier
+//                                .align(Alignment.CenterHorizontally),
+//                            colors = CardDefaults.cardColors(containerColor = purple_200)
+//                        ) {
+//                            Text(
+//                                text = "Sorry, we are unable to fetch your city barber",
+//                                color = sallonColor,
+//                                modifier = Modifier
+//                                    .fillMaxSize().padding(horizontal = 16.dp, vertical = 20.dp)
+//                                    .align(Alignment.CenterHorizontally),
+//                            )
+//                        }
+//                    } else {
+                    Row(modifier = Modifier.horizontalScroll(scrollStateNearbySalon)) {
+                        for (barber in barberNearby) {
+                            var isLiked by remember {
+                                mutableStateOf(
+                                    false
+                                )
+                            }
+                            LaunchedEffect(isLiked) {
+                                scope.launch(Dispatchers.IO) {
+                                    isLiked = likedBarberViewModel.isBarberLiked(barber.uid)
+                                }
+                            }
+                            BigSaloonPreviewCard(
+                                shopName = barber.shopName.toString(),
+                                imageUrl = barber.imageUri.toString(),
+                                address = barber.shopStreetAddress.toString() + barber.city.toString() + barber.state.toString(),
+                                distance = barber.distance!!,
+                                noOfReviews = barber.noOfReviews!!.toInt(),
+                                rating = barber.rating,
+                                onHeartClick = {
+                                    isLiked = if (isLiked) {
+                                        likedBarberViewModel.unlikeBarber(barber.uid)
+                                        false
+                                    } else {
+                                        likedBarberViewModel.likeBarber(barber.uid)
+                                        true
+                                    }
+                                },
+                                onBookNowClick = {
+                                    bookingModel.barber = barber
+                                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                                        key = "bookingModel",
+                                        value = bookingModel
+                                    )
+                                    navController.navigate(
+                                        route = Screens.BarberScreen.route,
+                                    )
+                                },
+                                isFavorite = isLiked,
+                                modifier = Modifier,
+                                open = barber.open!!,
+                                width = 280.dp,
+                                height = 270.dp
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                        }
                     }
 
-                }
-                Row(modifier = Modifier.horizontalScroll(scrollStateNearbySalon)) {
-                    for (barber in barberNearby) {
+
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Popular Saloon",
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(
+                                top = 12.dp,
+                                bottom = 8.dp,
+                                start = 8.dp,
+                                end = 8.dp
+                            )
+
+                        )
+                        TextButton(onClick = {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                key = "type",
+                                value = "Popular"
+
+                            )
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                key = "location",
+                                value = locationObject.locationDetails.city.toString()
+                            )
+                            navController.navigate(Screens.ViewAllScreen.route)
+                        }) {
+                            Text(text = "View All", color = Color.Gray)
+                        }
+
+                    }
+//                if (barberPopular.isEmpty()) {
+//                    Card(
+//                        modifier = Modifier
+//                            .align(Alignment.CenterHorizontally),
+//                        colors = CardDefaults.cardColors(containerColor = purple_200)
+//                    ) {
+//                        Text(
+//                            text = "Sorry, we are unable to fetch your city barber",
+//                            color = sallonColor,
+//                            modifier = Modifier
+//                                .fillMaxSize().padding(horizontal = 16.dp, vertical = 20.dp)
+//                                .align(Alignment.CenterHorizontally),
+//                        )
+//                    }
+//                } else {
+                    for (barber in barberPopular) {
                         var isLiked by remember {
                             mutableStateOf(
                                 false
@@ -393,23 +528,14 @@ fun MainScreen(
                                 isLiked = likedBarberViewModel.isBarberLiked(barber.uid)
                             }
                         }
-                        BigSaloonPreviewCard(
+                        SmallSaloonPreviewCard(
                             shopName = barber.shopName.toString(),
-                            imageUrl = barber.imageUri.toString(),
+                            imageUri = barber.imageUri.toString(),
                             address = barber.shopStreetAddress.toString() + barber.city.toString() + barber.state.toString(),
                             distance = barber.distance!!,
-                            noOfReviews = barber.noOfReviews!!.toInt(),
+                            numberOfReviews = barber.noOfReviews!!.toInt(),
                             rating = barber.rating,
-                            onHeartClick = {
-                                isLiked = if (isLiked) {
-                                    likedBarberViewModel.unlikeBarber(barber.uid)
-                                    false
-                                } else {
-                                    likedBarberViewModel.likeBarber(barber.uid)
-                                    true
-                                }
-                            },
-                            onBookNowClick = {
+                            onBookClick = {
                                 bookingModel.barber = barber
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
                                     key = "bookingModel",
@@ -419,91 +545,20 @@ fun MainScreen(
                                     route = Screens.BarberScreen.route,
                                 )
                             },
-                            isFavorite = isLiked,
-                            modifier = Modifier,
                             open = barber.open!!,
-                            width = 280.dp,
-                            height = 270.dp
+                            onHeartClick = {
+                                isLiked = if (isLiked) {
+                                    likedBarberViewModel.unlikeBarber(barber.uid)
+                                    false
+                                } else {
+                                    likedBarberViewModel.likeBarber(barber.uid)
+                                    true
+                                }
+                            },
+                            isFavorite = isLiked,
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
                     }
-
-
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Popular Saloon",
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(
-                            top = 12.dp,
-                            bottom = 8.dp,
-                            start = 8.dp,
-                            end = 8.dp
-                        )
-
-                    )
-                    TextButton(onClick = {
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "type",
-                            value = "Popular"
-
-                        )
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "location",
-                            value = locationObject.locationDetails.city.toString()
-                        )
-                        navController.navigate(Screens.ViewAllScreen.route)
-                    }) {
-                        Text(text = "View All", color = Color.Gray)
-                    }
-
-                }
-                for (barber in barberPopular) {
-                    var isLiked by remember {
-                        mutableStateOf(
-                            false
-                        )
-                    }
-                    LaunchedEffect(isLiked) {
-                        scope.launch(Dispatchers.IO) {
-                            isLiked = likedBarberViewModel.isBarberLiked(barber.uid)
-                        }
-                    }
-                    SmallSaloonPreviewCard(
-                        shopName = barber.shopName.toString(),
-                        imageUri = barber.imageUri.toString(),
-                        address = barber.shopStreetAddress.toString() + barber.city.toString() + barber.state.toString(),
-                        distance = barber.distance!!,
-                        numberOfReviews = barber.noOfReviews!!.toInt(),
-                        rating = barber.rating,
-                        onBookClick = {
-                            bookingModel.barber = barber
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                key = "bookingModel",
-                                value = bookingModel
-                            )
-                            navController.navigate(
-                                route = Screens.BarberScreen.route,
-                            )
-                        },
-                        open = barber.open!!,
-                        onHeartClick = {
-                            isLiked = if (isLiked) {
-                                likedBarberViewModel.unlikeBarber(barber.uid)
-                                false
-                            } else {
-                                likedBarberViewModel.likeBarber(barber.uid)
-                                true
-                            }
-                        },
-                        isFavorite = isLiked,
-                    )
-                }
-                UpcomingFeaturesCard()
             }
         }
     }

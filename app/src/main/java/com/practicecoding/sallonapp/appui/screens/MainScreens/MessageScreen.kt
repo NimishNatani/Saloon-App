@@ -29,6 +29,7 @@ import androidx.navigation.NavController
 import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.MessageItemBox
 import com.practicecoding.sallonapp.appui.components.NavigationItem
+import com.practicecoding.sallonapp.appui.components.UpcomingFeaturesCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
 import com.practicecoding.sallonapp.ui.theme.purple_200
@@ -87,6 +88,8 @@ fun MessageScreen(navHostController: NavController,messageViewModel: MessageView
         mainScreen = {
             if(selectedTabIndex == 0) {
                 MessageList(navHostController, messageViewModel)
+            }else{
+                UpcomingFeaturesCard()
             }
         },
         topAppBar = {
