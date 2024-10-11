@@ -17,6 +17,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -50,6 +51,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -72,6 +76,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -527,63 +532,121 @@ fun BottomAppNavigationBar1(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBar() {
-    var text by remember { mutableStateOf("") }
-    var active by remember {
-        mutableStateOf(false)
-    }
-    val shape = if (active) RoundedCornerShape(16.dp) else SearchBarDefaults.dockedShape
-
-    androidx.compose.material3.SearchBar(
-        query = text,
-        onQueryChange = { text = it },
-        onSearch = { active = false },
-        active = active,
-        onActiveChange = { active = it },
-        placeholder = { Text(text = "Search", color = Color.Gray) },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search Icon",
-                tint = Purple40
-
-            )
-        },
-        trailingIcon = {
-            if (active) {
+fun CustomSearchBar(placeholderText: String, onSearchClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .clickable { onSearchClick() }
+            .padding(horizontal = 16.dp)
+    ) {
+        OutlinedTextField(
+            value = TextFieldValue(""),
+            onValueChange = {},
+            enabled = false, // Disable editing since it just navigates to the search screen
+            placeholder = {
+                Text(
+                    text = placeholderText,
+                    color = Color.Gray,
+                    fontSize = 16.sp
+                )
+            },
+            leadingIcon = {
                 Icon(
-                    modifier = Modifier.clickable {
-                        if (text.isNotEmpty()) {
-                            text = ""
-                        } else {
-                            active = false
-                        }
-                    },
-                    imageVector = Icons.Default.Clear,
-                    contentDescription = "Clear Icon",
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search Icon",
                     tint = Color.Gray
                 )
-            }
-        }, modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 50.dp, max = 180.dp)
-            .padding(start = 24.dp, end = 24.dp),
-        shape = shape, // Adjust the corner radius as needed
-        colors = SearchBarDefaults.colors(
-            containerColor = Color.White,
-            inputFieldColors = TextFieldDefaults.colors(
-                unfocusedTextColor = Color.Gray,
-                disabledTextColor = Color.Gray,
-                focusedTextColor = Color.Black,
-                focusedIndicatorColor = sallonColor,
-                unfocusedIndicatorColor = sallonColor,
-                disabledIndicatorColor = sallonColor,
-            )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onSearchClick() },
+            shape = RoundedCornerShape(24.dp), // Rounded edges for the search bar look
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                unfocusedTextColor = purple_200
+            ),
+            singleLine = true
         )
-    ) {}
+    }
 }
+
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun SearchBar(text:String) {
+//    var text by remember { mutableStateOf("") }
+//    var active by remember {
+//        mutableStateOf(false)
+//    }
+//    val shape = if (active) RoundedCornerShape(16.dp) else SearchBarDefaults.dockedShape
+//
+//    val onActiveChange = { active = it }
+//    val colors1 = SearchBarDefaults.colors(
+//        containerColor = Color.White,
+//        inputFieldColors = TextFieldDefaults.colors(
+//            unfocusedTextColor = Color.Gray,
+//            disabledTextColor = Color.Gray,
+//            focusedTextColor = Color.Black,
+//            focusedIndicatorColor = sallonColor,
+//            unfocusedIndicatorColor = sallonColor,
+//            disabledIndicatorColor = sallonColor,
+//        )
+//    )
+//    SearchBar(
+//        inputField = {
+//            SearchBarDefaults.InputField(
+//                query = text,
+//                onQueryChange = { text = it },
+//                onSearch = { active = false },
+//                expanded = active,
+//                onExpandedChange = {active=it},
+//                enabled = true,
+//                placeholder = { Text(text = "Search", color = Color.Gray) },
+//                leadingIcon = {
+//                    Icon(
+//                        imageVector = Icons.Default.Search,
+//                        contentDescription = "Search Icon",
+//                        tint = Purple40
+//
+//                    )
+//                },
+//                trailingIcon = {
+//                    if (active) {
+//                        Icon(
+//                            modifier = Modifier.clickable {
+//                                if (text.isNotEmpty()) {
+//                                    text = ""
+//                                } else {
+//                                    active = false
+//                                }
+//                            },
+//                            imageVector = Icons.Default.Clear,
+//                            contentDescription = "Clear Icon",
+//                            tint = Color.Gray
+//                        )
+//                    }
+//                },
+//                colors = colors1.inputFieldColors,
+//                interactionSource = null,
+//            )
+//        },
+//        expanded = active,
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .heightIn(min = 50.dp, max = 180.dp)
+//            .padding(start = 24.dp, end = 24.dp),
+//        shape = shape, // Adjust the corner radius as needed
+//        colors = colors1,
+//        tonalElevation = SearchBarDefaults.TonalElevation,
+//        shadowElevation = SearchBarDefaults.ShadowElevation,
+//        windowInsets = SearchBarDefaults.windowInsets,
+//        content = fun ColumnScope.() {
+//
+//        },
+//    )
+//}
 
 enum class BottomNavItems {
     Home, Location, Book, Message, Profile

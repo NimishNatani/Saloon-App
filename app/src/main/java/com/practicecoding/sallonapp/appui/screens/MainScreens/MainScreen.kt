@@ -3,6 +3,7 @@ package com.practicecoding.sallonapp.appui.screens.MainScreens
 import android.content.Context
 import android.location.Address
 import android.location.Geocoder
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.Spring
@@ -18,7 +19,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.practicecoding.sallonapp.R
@@ -50,11 +51,11 @@ import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BigSaloonPreviewCard
 import com.practicecoding.sallonapp.appui.components.BottomAppNavigationBar
 import com.practicecoding.sallonapp.appui.components.Categories
+import com.practicecoding.sallonapp.appui.components.CustomSearchBar
 import com.practicecoding.sallonapp.appui.components.DoubleCard
 import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.OfferCard
 import com.practicecoding.sallonapp.appui.components.ProfileWithNotification
-import com.practicecoding.sallonapp.appui.components.SearchBar
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectBarber
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
@@ -190,8 +191,25 @@ fun TopScreen(
     viewModelBarber: GetBarberDataViewModel,
 
     ) {
+    val barberNearby by viewModelBarber.barberNearby.collectAsState()
+    val barberList by viewModelBarber.barberList.collectAsState()
     DoubleCard(
-        midCarBody = { SearchBar() },
+        midCarBody = {
+            CustomSearchBar(placeholderText = "Search Barber", onSearchClick = {
+                // Navigate to search screen
+                if (barberNearby.isNotEmpty()) {
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        key = "barberList",
+                        value = barberList
+                    )
+                    navController.navigate(Screens.SearchScreen.route)
+                } else {
+                    Toast.makeText(context, "Wait for Loading Salon for you", Toast.LENGTH_LONG)
+                        .show()
+                }
+            })
+//            SearchBar()
+        },
         mainScreen = {
             MainScreen(
                 navController = navController,
@@ -223,7 +241,7 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-
+    val offerCard by viewModelBarber.offerCard.collectAsState()
     val barberNearby by
     viewModelBarber.barberNearby.collectAsState()
     val barberPopular by
@@ -267,34 +285,51 @@ fun MainScreen(
                         .horizontalScroll(scrollStateRowOffer)
                         .padding(end = 18.dp)
                 ) {
-                    OfferCard(
-                        detailText = "hello",
-                        percentOff = 30,
-                        iconImageId = R.drawable.salon_app_logo,
-                        onExploreClick = {},
-                        cardColor = sallonColor
-                    )
-                    OfferCard(
-                        detailText = "hello",
-                        percentOff = 30,
-                        iconImageId = R.drawable.salon_app_logo,
-                        onExploreClick = {},
-                        cardColor = sallonColor
-                    )
-                    OfferCard(
-                        detailText = "hello",
-                        percentOff = 30,
-                        iconImageId = R.drawable.salon_app_logo,
-                        onExploreClick = {},
-                        cardColor = sallonColor
-                    )
-                    OfferCard(
-                        detailText = "hello",
-                        percentOff = 30,
-                        iconImageId = R.drawable.salon_app_logo,
-                        onExploreClick = {},
-                        cardColor = sallonColor
-                    )
+                    if (offerCard.isNotEmpty()) {
+                        OfferCard(
+                            detailText = "hello",
+                            percentOff = 30,
+                            iconImageId = R.drawable.salon_app_logo,
+                            onExploreClick = {},
+                            cardColor = sallonColor
+                        )
+                        OfferCard(
+                            detailText = "hello",
+                            percentOff = 30,
+                            iconImageId = R.drawable.salon_app_logo,
+                            onExploreClick = {},
+                            cardColor = sallonColor
+                        )
+                        OfferCard(
+                            detailText = "hello",
+                            percentOff = 30,
+                            iconImageId = R.drawable.salon_app_logo,
+                            onExploreClick = {},
+                            cardColor = sallonColor
+                        )
+                        OfferCard(
+                            detailText = "hello",
+                            percentOff = 30,
+                            iconImageId = R.drawable.salon_app_logo,
+                            onExploreClick = {},
+                            cardColor = sallonColor
+                        )
+                    }else{
+//                        Card(
+//                            modifier = Modifier
+//                                .align(Alignment.CenterVertically),
+//                            colors = CardDefaults.cardColors(containerColor = purple_200)
+//                        ) {
+//                            Text(
+//                                text = "No Offer yet!",
+//                                color = sallonColor,
+//                                modifier = Modifier
+//                                    .fillMaxSize()
+//                                    .padding(horizontal = 16.dp, vertical = 20.dp)
+//                                    .align(Alignment.CenterHorizontally),
+//                            )
+//                        }
+                    }
 
                 }
                 Row(

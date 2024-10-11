@@ -7,7 +7,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +33,7 @@ import com.practicecoding.sallonapp.appui.screens.MainScreens.FavBarberListScree
 import com.practicecoding.sallonapp.appui.screens.MainScreens.GenderSelectOnBook
 import com.practicecoding.sallonapp.appui.screens.MainScreens.MainScreen1
 import com.practicecoding.sallonapp.appui.screens.MainScreens.PaymentScreen
+import com.practicecoding.sallonapp.appui.screens.MainScreens.SearchScreen
 import com.practicecoding.sallonapp.appui.screens.MainScreens.ServiceSelector
 import com.practicecoding.sallonapp.appui.screens.MainScreens.SortBarber
 import com.practicecoding.sallonapp.appui.screens.MainScreens.TimeSelection
@@ -50,10 +50,6 @@ import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.data.model.ChatModel
 import com.practicecoding.sallonapp.data.model.OrderModel
-import com.practicecoding.sallonapp.data.model.OrderStatus
-import com.practicecoding.sallonapp.data.model.Service
-import com.practicecoding.sallonapp.data.model.ServiceCategoryModel
-import com.practicecoding.sallonapp.data.model.TimeSlot
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
 import java.time.LocalDate
 
@@ -304,7 +300,8 @@ fun AppNavigation(
                     navController = navController,
                     onBackClick = { navController.popBackStack() },
                     bookingModel = bookingModel
-                )}
+                )
+            }
         }
         composable(Screens.DayTimeSelection.route, enterTransition = { enterTransition },
             exitTransition = { exitTransition },
@@ -400,9 +397,13 @@ fun AppNavigation(
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
-            val completedOrderList = navController.previousBackStackEntry?.savedStateHandle?.get<MutableList<OrderModel>>("completedOrderList")
+            val completedOrderList =
+                navController.previousBackStackEntry?.savedStateHandle?.get<MutableList<OrderModel>>(
+                    "completedOrderList"
+                )
             if (completedOrderList != null) {
-                BookingHistoryScreen(navController = navController,
+                BookingHistoryScreen(
+                    navController = navController,
                     completedOrderList = completedOrderList
                 )
             }
@@ -434,6 +435,18 @@ fun AppNavigation(
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
             CategoriesScreen(navController = navController)
+        }
+        composable(Screens.SearchScreen.route, enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition }) {
+            val barberList =
+                navController.previousBackStackEntry?.savedStateHandle?.get<MutableList<BarberModel>>(
+                    "barberList"
+                )
+            if (barberList != null) {
+                SearchScreen(barberList, navController,LikedBarberViewModel(context))
+            }
         }
     }
 }

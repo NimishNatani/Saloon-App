@@ -23,7 +23,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -53,11 +52,17 @@ class GetBarberDataViewModel @Inject constructor(
 
     var selectedSlots = mutableStateListOf<TimeSlot>()
 
-    private val _barberList =MutableStateFlow(emptyList<BarberModel>().toMutableList())
+    private val _barberList = MutableStateFlow(emptyList<BarberModel>().toMutableList())
     val barberList: StateFlow<MutableList<BarberModel>> = _barberList.asStateFlow()
+
+    private val _barberListByService = MutableStateFlow(emptyList<BarberModel>().toMutableList())
+    val barberListByService: StateFlow<MutableList<BarberModel>> = _barberListByService.asStateFlow()
 
     private val _barberReviewList = MutableStateFlow(emptyList<ReviewModel>().toMutableList())
     val barberReviewList: StateFlow<MutableList<ReviewModel>> = _barberReviewList.asStateFlow()
+
+    private val _offerCard = MutableStateFlow(emptyList<BarberModel>().toMutableList())
+    val offerCard:StateFlow<MutableList<BarberModel>> = _offerCard.asStateFlow()
 
     var navigationItem = mutableStateOf(NavigationItem.Home)
 
@@ -67,23 +72,9 @@ class GetBarberDataViewModel @Inject constructor(
 
 
     suspend fun getBarberListByService(service: String) {
-        _barberList.emit( repo.getBarberByService(service))
-    }
-
-    suspend fun getAllCityBarber(city: String){
-        viewModelScope.launch() {
-           repo.getAllCityBarber(city).collect{
-               _barberList.update { it.apply { clear() } }
-               when(it){
-                   is Resource.Success ->{
-                       _barberList.emit(it.result)
-                   }
-                   is Resource.Failure ->{}
-                   else ->{}
-               }
-//               Log.d("list",barbers.r.toString())
-           }
-            _barberList.value.map {  barber->
+        viewModelScope.launch(Dispatchers.Default) {
+            _barberListByService.emit(repo.getBarberByService(service))
+            _barberListByService.value.map { barber ->
                 barber.apply {
                     val locationDetails = locationObject.locationDetails
                     distance = getLocation(
@@ -94,8 +85,32 @@ class GetBarberDataViewModel @Inject constructor(
                     )
                 }
             }
-            _barberPopular.emit(_barberList.value.sortedByDescending { it.rating }.take(6).toMutableList())
-            _barberNearby.emit(_barberList.value.sortedBy { it.distance }.take(6).toMutableList())
+        }
+    }
+
+    suspend fun getAllCityBarber(city: String) {
+        viewModelScope.launch(Dispatchers.Default) {
+            repo.getAllCityBarber(city).collect {
+                _barberList.emit(it)
+                Log.d("barber", _barberList.toString())
+                _barberList.value.map { barber ->
+                    barber.apply {
+                        val locationDetails = locationObject.locationDetails
+                        distance = getLocation(
+                            lat1 = locationDetails.latitude!!.toDouble(),
+                            long1 = locationDetails.longitude!!.toDouble(),
+                            lat2 = barber.lat,
+                            long2 = barber.long
+                        )
+                    }
+                }
+                _barberPopular.emit(
+                    _barberList.value.sortedByDescending { it.rating }.take(6).toMutableList()
+                )
+                _barberNearby.emit(
+                    _barberList.value.sortedBy { it.distance }.take(6).toMutableList()
+                )
+            }
         }
     }
 
@@ -106,7 +121,7 @@ class GetBarberDataViewModel @Inject constructor(
             is MainEvent.getServices -> getServices(event.uid)
             is MainEvent.getSlots -> getSlots(event.day, event.uid)
             is MainEvent.setBooking -> setBooking(
-               event.bookingModel
+                event.bookingModel
             )
 
             else -> {}
@@ -132,7 +147,7 @@ class GetBarberDataViewModel @Inject constructor(
 
     private suspend fun getBarberNearby(city: String, limit: Long) {
         viewModelScope.launch(Dispatchers.Default) {
-            _barberNearby.emit( repo.getBarberNearby(city, limit))
+            _barberNearby.emit(repo.getBarberNearby(city, limit))
             _barberNearby.emit(barberNearby.value.map { barber ->
                 barber.apply {
                     val locationDetails = locationObject.locationDetails
@@ -145,7 +160,7 @@ class GetBarberDataViewModel @Inject constructor(
                 }
             }
                 .sortedBy { it.distance }
-        .toMutableList())
+                .toMutableList())
         }
     }
 
@@ -173,7 +188,7 @@ class GetBarberDataViewModel @Inject constructor(
         return solution
     }
 
-     suspend fun getReviewList(barberuid:String) {
+    suspend fun getReviewList(barberuid: String) {
         repo.getReview(barberuid).collect {
             _barberReviewList.emit(emptyList<ReviewModel>().toMutableList())
             when (it) {
@@ -214,18 +229,20 @@ class GetBarberDataViewModel @Inject constructor(
         }
     }
 
-     fun updateService(updatedService: Service) {
-         viewModelScope.launch {
-        _listOfService.emit( _listOfService.value.map {
-            if (it.id == updatedService.id) updatedService else it
-        }.toMutableList())}
+    fun updateService(updatedService: Service) {
+        viewModelScope.launch {
+            _listOfService.emit(_listOfService.value.map {
+                if (it.id == updatedService.id) updatedService else it
+            }.toMutableList())
+        }
     }
 
     suspend fun setBooking(
         bookingModel: BookingModel
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-        repo.setBooking(bookingModel)}
+            repo.setBooking(bookingModel)
+        }
     }
 
 }

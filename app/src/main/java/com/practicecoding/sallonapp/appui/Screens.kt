@@ -22,5 +22,6 @@ sealed class Screens(val route: String) {
     object FavBarberList:Screens("fav_barber_list")
     object CatBarberList:Screens("cat_barber_list")
     object AllCategory:Screens("all_category")
+    object SearchScreen:Screens("search_screen")
 
 }

@@ -157,7 +157,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
         return userModel
     }
 
-    override suspend fun getAllCityBarber(city: String): Flow<Resource<MutableList<BarberModel>>> =
+    override suspend fun getAllCityBarber(city: String): Flow<MutableList<BarberModel>> =
         callbackFlow {
 
             val listenerRegistration = barberDb.whereEqualTo("city", city)
@@ -191,7 +191,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                                 )
                             }.toMutableList()
 
-                            trySend(Resource.Success(listOfBarber.toMutableList())).isSuccess
+                            trySend(listOfBarber.toMutableList()).isSuccess
                         }
                     }
                 }

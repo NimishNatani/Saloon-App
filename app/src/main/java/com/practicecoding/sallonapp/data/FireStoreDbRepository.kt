@@ -31,7 +31,7 @@ interface FireStoreDbRepository {
     suspend fun getBarberPopular(city: String, limit: Long): MutableList<BarberModel>
     suspend fun getBarberNearby(city: String, limit: Long): MutableList<BarberModel>
 
-    suspend fun getAllCityBarber(city: String):Flow<Resource<MutableList<BarberModel>>>
+    suspend fun getAllCityBarber(city: String):Flow<MutableList<BarberModel>>
 
     suspend fun getBarberByService(service: String): MutableList<BarberModel>
 

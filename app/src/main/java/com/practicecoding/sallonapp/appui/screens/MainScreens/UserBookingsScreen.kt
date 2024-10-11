@@ -146,7 +146,7 @@ fun UserBookingScreen(
             .background(Color.White)
     ) {
         Column(
-            modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp)
+            modifier = Modifier.padding(vertical = 16.dp, horizontal = 1.dp)
         ) {
             TabRow(
                 selectedTabIndex = selectedTab.value,
@@ -155,7 +155,7 @@ fun UserBookingScreen(
                     .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
             ) {
                 Tab(
-                    text = { Text("Pending", color = Color.White) },
+                    text = { Text("Pending", color = Color.White, fontSize = 13.sp) },
                     selected = selectedTab.value == 0,
                     onClick = {
                         selectedTab.value = 0
@@ -163,10 +163,9 @@ fun UserBookingScreen(
                             pagerState.scrollToPage(0)
                         }
                     },
-                    modifier = Modifier.clip(CircleShape)
                 )
                 Tab(
-                    text = { Text("Accepted", color = Color.White) },
+                    text = { Text("Accepted", color = Color.White, fontSize = 13.sp) },
                     selected = selectedTab.value == 1,
                     onClick = {
                         selectedTab.value = 1
@@ -176,7 +175,7 @@ fun UserBookingScreen(
                     }
                 )
                 Tab(
-                    text = { Text("Completed", color = Color.White) },
+                    text = { Text("Completed", color = Color.White, fontSize = 13.sp) },
                     selected = selectedTab.value == 2,
                     onClick = {
                         selectedTab.value = 2
@@ -186,7 +185,7 @@ fun UserBookingScreen(
                     }
                 )
                 Tab(
-                    text = { Text("Cancelled", color = Color.White) },
+                    text = { Text("Cancelled", color = Color.White, fontSize = 13.sp) },
                     selected = selectedTab.value == 3,
                     onClick = {
                         selectedTab.value = 3

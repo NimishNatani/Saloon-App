@@ -257,11 +257,11 @@ fun ReviewsPage(reviewList: MutableList<ReviewModel>) {
             modifier = Modifier.padding(8.dp)
         )
         reviewList.sortByDescending { it.reviewTime }
-        for (review in reviewList)
-        CustomerReviewCard(
-            /*TODO: have to add the reviews of barber*/
-            review = review
-        )
+        for (review in reviewList) {
+            CustomerReviewCard(
+                review = review
+            )
+        }
         Spacer(modifier = Modifier.height(60.dp))
     }
 }
