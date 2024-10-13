@@ -74,7 +74,6 @@ import com.practicecoding.sallonapp.ui.theme.purple_200
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedSignUpScreen(
     phoneNumber: String? = null,
@@ -83,7 +82,7 @@ fun AdvancedSignUpScreen(
     navController: NavController,
 
     ) {
-    val phone = phoneNumber ?: "1234567890"
+    var phone by remember { mutableStateOf(phoneNumber) }
     // State variables
     val context = LocalContext.current
     var name by remember { mutableStateOf("") }
@@ -129,7 +128,7 @@ fun AdvancedSignUpScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-//                .verticalScroll(scrollState)
+                .verticalScroll(scrollState)
             ,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -165,9 +164,9 @@ fun AdvancedSignUpScreen(
                 )
             }
             OutlinedTextField(
-                value = phone,
-                enabled = false,
-                onValueChange = { },
+                value = phone.toString(),
+                enabled = true,
+                onValueChange = {phone=it },
                 label = { Text("Phone Number") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = androidx.compose.material.TextFieldDefaults.outlinedTextFieldColors(
@@ -339,9 +338,9 @@ fun AdvancedSignUpScreen(
                 )
             )
             GeneralButton(text = "Sign In", width = 350, height = 80, modifier = Modifier, roundnessPercent = 50) {
-                if (name.isNotBlank() && selectedGender != null && birthDate.isNotBlank()
+                if (name.isNotBlank() && selectedGender != null && birthDate.isNotBlank()&& phone?.length  ==10
                 ) {
-                    val userModel = UserModel(name, phoneNumber,birthDate,selectedGender.toString(),selectedImageUri.toString())
+                    val userModel = UserModel(name, phone,birthDate,selectedGender.toString(),selectedImageUri.toString())
                     scope.launch(Dispatchers.Main){
                     viewModel.addUserData(userModel,selectedImageUri,activity).collect {
                         when (it) {

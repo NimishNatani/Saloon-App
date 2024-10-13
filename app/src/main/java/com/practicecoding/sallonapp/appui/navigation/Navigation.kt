@@ -134,7 +134,7 @@ fun AppNavigation(
                     PhoneNumberScreen(activity = context as Activity,
                         navigateToVerification = { phoneNumber ->
                             navController.navigate(Screens.OTPVerification.route + "/$phoneNumber")
-                        }
+                        }, navController = navController
                     )
                 },
                 topAppBar = {
@@ -147,7 +147,7 @@ fun AppNavigation(
             )
         }
         composable(Screens.OTPVerification.route + "/{phoneNumber}") { backStackEntry ->
-            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber") ?: "000"
+            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber") ?: ""
             DoubleCard(
                 midCarBody = { HeadingText(bodyText = "We have sent an otp to $phoneNumber") },
                 mainScreen = {
@@ -166,7 +166,7 @@ fun AppNavigation(
             )
         }
         composable(Screens.SignUp.route + "/{phoneNumber}") { backStackEntry ->
-            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber") ?: "000"
+            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber") ?: ""
             DoubleCard(
                 midCarBody = { HeadingText(bodyText = "Enter your details to access all the feature of barber shop") },
                 mainScreen = {

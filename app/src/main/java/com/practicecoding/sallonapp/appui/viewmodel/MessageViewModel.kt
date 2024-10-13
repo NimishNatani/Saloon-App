@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -55,8 +56,10 @@ class MessageViewModel @Inject constructor(
 
     private suspend fun getChatUser() {
         viewModelScope.launch {
+            _userChat.update { it.apply { clear() } }
             repo.getChatUser().collect { chat ->
-                _userChat.emit(chat)
+                Log.d("uses", chat.toString())
+                _userChat.emit(chat.sortedBy { it.message.time }.toMutableList())
                 _newChat.value = false
                 for (i in _userChat.value) {
                     if (!i.message.seenbyuser) {

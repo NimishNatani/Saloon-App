@@ -28,7 +28,7 @@ fun GeneralButton(text:String,width:Int,height:Int = 80,modifier: Modifier=Modif
             .height(height.dp)
             .clickable(onClick = onClick)
             .padding(vertical = 16.dp, horizontal = 16.dp)
-            .background(color = Color(sallonColor.toArgb()),shape = RoundedCornerShape(percent = roundnessPercent)),
+            .background(color = sallonColor,shape = RoundedCornerShape(percent = roundnessPercent)),
             contentAlignment = Alignment.Center,
     ) {
         Text(text= text, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 20.sp, textAlign = TextAlign.Center)

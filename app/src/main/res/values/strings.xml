@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Sallon App</string>
+    <string name="web_client_id"></string>
 </resources>

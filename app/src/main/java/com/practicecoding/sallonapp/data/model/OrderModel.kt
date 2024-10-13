@@ -23,7 +23,7 @@ data class OrderModel(
     val orderId: String = "",
     val date: String = "",
     var review:ReviewModel = ReviewModel(),
-    val genderCounter:List<Int> =listOf()
+    val genderCounter: List<Int> =listOf()
 ) : Parcelable
 
 @Serializable()

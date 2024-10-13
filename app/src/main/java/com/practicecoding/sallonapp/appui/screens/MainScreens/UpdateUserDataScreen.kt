@@ -86,10 +86,8 @@ fun UpdateUserInfoScreen(
     LaunchedEffect(user) {
         user?.let {
             name.value = TextFieldValue(it.name ?: "")
-            address.value = TextFieldValue(it.address ?: "")
-            city.value = TextFieldValue(it.city ?: "")
+
             phoneNumber = TextFieldValue(it.phoneNumber ?: "")
-            state.value = TextFieldValue(it.state ?: "")
             imageUri = it.imageUri?.toUri()
         }
     }
@@ -158,11 +156,6 @@ fun UpdateUserInfoScreen(
                 val updatedUser = UserModel(
                     name = name.value.text.takeIf { it.isNotEmpty() } ?: user?.name,
                     phoneNumber = phoneNumber.text.takeIf { it.isNotEmpty() } ?: user?.phoneNumber,
-                    address = address.value.text.takeIf { it.isNotEmpty() } ?: user?.address,
-                    city = city.value.text.trim().replace(" ", "").replaceFirstChar { it.uppercase() }
-                        .takeIf { it.isNotEmpty() } ?: user?.city,
-                    state = state.value.text.trim().replace(" ", "").replaceFirstChar { it.uppercase() }
-                        .takeIf { it.isNotEmpty() } ?: user?.state
                 )
 
                 isLoading = true

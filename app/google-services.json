@@ -12,7 +12,28 @@
           "package_name": "com.example.sallonappbarbar"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "62927274401-aojq6m6aa6iln5qnookrk72qngc5tfur.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sallonappbarbar",
+            "certificate_hash": "637b8ea3da1c53bba4e7e777884e86ff91253d9f"
+          }
+        },
+        {
+          "client_id": "62927274401-og8t2rm1fq7vbf5ip5nimi6q4ipc3g60.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sallonappbarbar",
+            "certificate_hash": "450bf5e11e8d749973150ecaa8380d012697f8c7"
+          }
+        },
+        {
+          "client_id": "62927274401-oqege1j128llk76qegksiv5rt5aab1ht.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA3GSPxhju-ncPaBX2CHfql4DI1vFjPJpI"
@@ -20,7 +41,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "62927274401-oqege1j128llk76qegksiv5rt5aab1ht.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     },
@@ -31,7 +57,28 @@
           "package_name": "com.practicecoding.sallonapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "62927274401-bnutrct8auool7jnpn2s9eo9l2otbe27.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.practicecoding.sallonapp",
+            "certificate_hash": "450bf5e11e8d749973150ecaa8380d012697f8c7"
+          }
+        },
+        {
+          "client_id": "62927274401-n8ta5r2s3797r9qpuju8527bt0vdgp1l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.practicecoding.sallonapp",
+            "certificate_hash": "637b8ea3da1c53bba4e7e777884e86ff91253d9f"
+          }
+        },
+        {
+          "client_id": "62927274401-oqege1j128llk76qegksiv5rt5aab1ht.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA3GSPxhju-ncPaBX2CHfql4DI1vFjPJpI"
@@ -39,7 +86,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "62927274401-oqege1j128llk76qegksiv5rt5aab1ht.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

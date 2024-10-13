@@ -1,8 +1,13 @@
 package com.practicecoding.sallonapp.appui.screens.initiatorScreens
 
 import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.util.Log
 import android.widget.Toast
+import com.google.android.gms.auth.api.identity.Identity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.background
@@ -10,19 +15,23 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.CommonDialog
@@ -56,23 +66,60 @@ import com.practicecoding.sallonapp.data.Resource
 import com.practicecoding.sallonapp.ui.theme.Purple80
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
 fun PhoneNumberScreen(
+    navController: NavController,
     activity: Activity,
     viewModel: AuthViewModel = hiltViewModel(),
-    navigateToVerification: (String) -> Unit
+    navigateToVerification: (String) -> Unit,
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
     var phoneNumber by remember { mutableStateOf("") }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+        onResult = { result ->
+            if(result.resultCode == RESULT_OK) {
+                viewModel.signInWithIntent(context,result){
+                    viewModel.onSignInResult(it)
+                }
+            }
+        }
+    )
+
+    LaunchedEffect(key1 = state.signInError) {
+        state.signInError?.let { error ->
+            Toast.makeText(
+                context,
+                error,
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    LaunchedEffect(key1 = state.isSignInSuccessful) {
+        if(state.isSignInSuccessful) {
+            Toast.makeText(
+                context,
+                "Sign in successful",
+                Toast.LENGTH_LONG
+            ).show()
+
+            navController.navigate(Screens.SignUp.route)
+            viewModel.resetState()
+        }
+    }
     if (isDialog)
-        CommonDialog()
+        CommonDialog("Fetching Data")
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -110,6 +157,7 @@ fun PhoneNumberScreen(
                 ),
             )
         }
+
         GeneralButton(text = "SignUp", width = 250, height = 80, modifier = Modifier, roundnessPercent = 50) {
             if (phoneNumber.isNotBlank() && phoneNumber.length == 10) {
                 scope.launch(Dispatchers.Main) {
@@ -148,6 +196,18 @@ fun PhoneNumberScreen(
                     Toast.makeText(context, "Please provide phone number.", Toast.LENGTH_SHORT)
                         .show()
                 }
+            }
+        }
+        Text(text = "Or")
+        Spacer(modifier = Modifier.height(10.dp))
+        GeneralButton(text = "Sign in with google", width = 250) {
+            isDialog = true
+            viewModel.signIn(context){
+                launcher.launch(
+                    IntentSenderRequest.Builder(
+                        it?: return@signIn
+                    ).build()
+                )
             }
         }
 
@@ -310,8 +370,8 @@ fun ClickableTextWithUnderline(text: String, onClick: () -> Unit) {
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun PhoneNumberScreenPreview() {
-    PhoneNumberScreen(activity = Activity(), navigateToVerification = {})
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PhoneNumberScreenPreview() {
+//    PhoneNumberScreen(activity = Activity(), navigateToVerification = {})
+//}
