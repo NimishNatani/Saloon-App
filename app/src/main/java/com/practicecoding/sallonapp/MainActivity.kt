@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +16,8 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,52 +34,66 @@ import com.google.android.gms.ads.MobileAds
 import com.google.firebase.auth.FirebaseAuth
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.navigation.AppNavigation
+import com.practicecoding.sallonapp.appui.viewmodel.PaymentViewModel
 import com.practicecoding.sallonapp.ui.theme.SallonAppTheme
 import com.practicecoding.sallonapp.ui.theme.purple_200
+import com.razorpay.Checkout
+import com.razorpay.PaymentData
+import com.razorpay.PaymentResultWithDataListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
+
+    private val paymentViewModel: PaymentViewModel by viewModels()
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Checkout.preload(applicationContext)
         setContent {
 
             val navController = rememberNavController()
             SallonAppTheme {
+
                LaunchedEffect(Unit) {
                    val backgroundScope = CoroutineScope(Dispatchers.IO)
                    backgroundScope.launch {
                        // Initialize the Google Mobile Ads SDK on a background thread.
                        MobileAds.initialize(this@MainActivity) {}
                    }
+
+
                }
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = purple_200
                 ) {
-
-                    val updatedCurrentUser = FirebaseAuth.getInstance().currentUser
                     var startDestination by remember {
                         mutableStateOf(Screens.Logo.route)
                     }
-                    if (updatedCurrentUser != null) {
-                        startDestination = Screens.MainScreen.route
-                    }
-                    AppNavigation(navController = navController, startDestinations = startDestination)
+                        val updatedCurrentUser = FirebaseAuth.getInstance().currentUser
+                        if (updatedCurrentUser != null) {
+                            startDestination = Screens.MainScreen.route
+                        }
+                        AppNavigation(
+                            navController = navController,
+                            startDestinations = startDestination,
+                            paymentViewModel = paymentViewModel
+                        )
+
                 }
+
             }
-            checkAndEnableLocation()
+            checkAndEnableLocation() // Ensure location is enabled on start
         }
     }
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun checkAndEnableLocation() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             if (!isLocationEnabled()) {
                 showEnableLocationDialog()
             } else {
@@ -85,21 +103,20 @@ class MainActivity : ComponentActivity() {
             requestSinglePermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
+
+
     private fun isLocationEnabled(): Boolean {
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
     private fun showEnableLocationDialog() {
         AlertDialog.Builder(this).apply {
             setTitle("Enable Location")
-            setMessage("Location access is important to show nearby barbers. Please enable location services.")
-            setCancelable(false)
+            setMessage("Location access is mandatory to show nearby barbers. Please enable location services.")
+            setCancelable(false) // Non-cancelable dialog
             setPositiveButton("OK") { _, _ ->
                 val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                startActivityForResult(intent, REQUEST_LOCATION_ENABLE)
-            }
-            setNegativeButton("Cancel") { _, _ ->
-                finish() // Exit the app
+                startActivity(intent)
             }
             create()
             show()
@@ -109,16 +126,17 @@ class MainActivity : ComponentActivity() {
     private val requestSinglePermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                if (!isLocationEnabled()) {
-                    showEnableLocationDialog()
-                    prepLocationUpdates()
-                } else {
-                    requestLocationUpdates()
-                }
+                requestLocationUpdates() // If permission is granted, start location updates
+                requestSmsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
             } else {
-                Toast.makeText(this, "GPS Unavailable", Toast.LENGTH_LONG).show()
             }
         }
+
+    private val requestSmsPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+
+        }
+
     private fun requestLocationUpdates() {
     }
     private fun prepLocationUpdates() {
@@ -141,6 +159,14 @@ class MainActivity : ComponentActivity() {
                 showEnableLocationDialog()
             }
         }
+    }
+    override fun onPaymentSuccess(razorpayPaymentID: String?,paymentData: PaymentData?) {
+        if (razorpayPaymentID != null){
+            paymentViewModel.handlePaymentSuccess(razorpayPaymentID)
+        }
+    }
+    override fun onPaymentError(code: Int, response: String?, paymentData: PaymentData?) {
+        paymentViewModel.handlePaymentError(code,response?:"Payment Failed")
     }
     companion object {
         private const val REQUEST_LOCATION_ENABLE = 1

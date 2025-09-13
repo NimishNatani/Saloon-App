@@ -17,5 +17,6 @@ data class Slots(
     val endTime: String,
     val booked: List<String>? = emptyList(),
     val notAvailable: List<String>? = emptyList(),
-    val date: String= LocalDate.now().toString()
+    val date: String= LocalDate.now().toString(),
+    val isOpen:Boolean=true
 )

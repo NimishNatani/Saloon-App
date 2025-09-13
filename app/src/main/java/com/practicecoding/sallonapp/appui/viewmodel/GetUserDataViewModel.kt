@@ -38,7 +38,7 @@ class GetUserDataViewModel @Inject constructor(
     suspend fun getUser() {
         viewModelScope.launch { _user.value= repo.getUser()!! }
     }
-    private suspend fun updateBarber(user : UserModel, imageUri: Uri, context: Context, navController: NavController) {
+    private suspend fun updateBarber(user : UserModel, imageUri: Uri?, context: Context, navController: NavController) {
         _isLoading.value = true
         viewModelScope.launch {
             repo.updateUserInfo(user, imageUri).collect {
@@ -48,15 +48,16 @@ class GetUserDataViewModel @Inject constructor(
                         Toast.makeText(context, "Info Updated Successfully", Toast.LENGTH_SHORT).show()
                         getUser()
                         navController.navigate(Screens.MainScreen.route) {
-                            navController.popBackStack()
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
                         }
                         _isLoading.value = false
                     }
                     is Resource.Failure -> {
                         getUser()
-                        navController.navigate(Screens.MainScreen.route) {
-                            navController.popBackStack()
-                        }
+                       navController.popBackStack()
                         _isLoading.value = false
                         Toast.makeText(context, "Failed to Update Info", Toast.LENGTH_SHORT).show()
                     }
@@ -68,6 +69,6 @@ class GetUserDataViewModel @Inject constructor(
 }
 
 sealed class UserEvent {
-    data class UpdateUser(val user: UserModel, val imageUri: Uri, val context: Context, val navController: NavController) : UserEvent()
+    data class UpdateUser(val user: UserModel, val imageUri: Uri?, val context: Context, val navController: NavController) : UserEvent()
     object GetUser : UserEvent()
 }

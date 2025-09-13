@@ -45,68 +45,83 @@ import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
 fun ProfileScreen(
     viewModelBarber: GetBarberDataViewModel,
     navController: NavController,
-    orderViewModel: OrderViewModel
-){
+    orderViewModel: OrderViewModel,
+    viewModelUser: GetUserDataViewModel = hiltViewModel(),
+) {
     BackHandler {
         viewModelBarber.navigationItem.value = NavigationItem.Home
     }
-    DoubleCard(midCarBody = { PhotoWithName() }, mainScreen = { ProfileScreenList(navController,orderViewModel) }, topAppBar = {
-        Text(
-            text = "Profile",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 15.dp, bottom = 20.dp),
-            textAlign = TextAlign.Center,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-    })
+    DoubleCard(
+        midCarBody = { PhotoWithName(viewModelUser) },
+        mainScreen = { ProfileScreenList(navController, orderViewModel, viewModelUser) },
+        topAppBar = {
+            Text(
+                text = "Profile",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 15.dp, bottom = 20.dp),
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+        })
 }
-@Composable
-fun ProfileScreenList(navController: NavController,orderViewModel: OrderViewModel){
-    val profileList = listOf(
-        Pair( R.drawable.salon_app_logo,"My Profile"),
-        Pair( R.drawable.salon_app_logo,"My Booking History"),
-        Pair( R.drawable.salon_app_logo,"Favorite's Saloon"),
-        Pair( R.drawable.salon_app_logo,"Privacy Policy"),
-        Pair( R.drawable.salon_app_logo,"About Us"),
-        Pair( R.drawable.salon_app_logo,"Log Out"),
-    )
-    val completedOrderList by orderViewModel.completedOrderList.collectAsState()
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(22.dp)
-        .verticalScroll(rememberScrollState())) {
 
-          ShowingList(image = R.drawable.salon_app_logo, text = "Edit Profile"){
-              navController.navigate(Screens.UpdateProfileScreen.route)
-          }
-          ShowingList(image = R.drawable.salon_app_logo, text ="My Booking History"){
-              navController.currentBackStackEntry?.savedStateHandle?.set("completedOrderList",completedOrderList)
-                navController.navigate(Screens.BookingHistory.route)
-          }
-          ShowingList(image = R.drawable.salon_app_logo, text = "Favorite's Saloon"){
-                navController.navigate(Screens.FavBarberList.route)
-          }
-          ShowingList(image = R.drawable.salon_app_logo, text = "Privacy Policy"){}
-          ShowingList(image = R.drawable.salon_app_logo, text ="About Us"){}
-          ShowingList(image = R.drawable.salon_app_logo, text ="Log Out"){}
+@Composable
+fun ProfileScreenList(
+    navController: NavController,
+    orderViewModel: OrderViewModel,
+    viewModelUser: GetUserDataViewModel
+) {
+    val completedOrderList by orderViewModel.completedOrderList.collectAsState()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(22.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+
+        ShowingList(
+            image = if (viewModelUser.user.value.gender == "Female") {
+                R.drawable.women_blue
+            } else {
+                R.drawable.men_blue
+            }, text = "Edit Profile"
+        ) {
+            navController.navigate(Screens.UpdateProfileScreen.route)
+        }
+        ShowingList(image = R.drawable.booking_history_blue, text = "My Booking History") {
+            navController.currentBackStackEntry?.savedStateHandle?.set(
+                "completedOrderList",
+                completedOrderList
+            )
+            navController.navigate(Screens.BookingHistory.route)
+        }
+        ShowingList(image = R.drawable.favourite_barber_blue, text = "Favorite's Saloon") {
+            navController.navigate(Screens.FavBarberList.route)
+        }
+        ShowingList(image = R.drawable.privacy_policy_blue, text = "Privacy Policy") {}
+        ShowingList(image = R.drawable.aboutus_blue, text = "About Us") {}
+        ShowingList(image = R.drawable.logout_blue, text = "Log Out") {}
 
 
     }
 }
 
 @Composable
-fun PhotoWithName(viewModel: GetUserDataViewModel= hiltViewModel(),){
-    Column(modifier = Modifier
-       , horizontalAlignment = Alignment.CenterHorizontally) {
-        Image(painter =  rememberAsyncImagePainter(
-            model =viewModel.user.value.imageUri
-        ), contentDescription ="userImage", modifier = Modifier
-            .size(100.dp)
-            .clip(CircleShape) ,
-            contentScale = ContentScale.FillBounds)
+fun PhotoWithName(viewModel: GetUserDataViewModel) {
+    Column(
+        modifier = Modifier, horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(
+                model = viewModel.user.value.imageUri
+            ), contentDescription = "userImage", modifier = Modifier
+                .size(100.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.FillBounds
+        )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = viewModel.user.value.name.toString(),
@@ -119,15 +134,18 @@ fun PhotoWithName(viewModel: GetUserDataViewModel= hiltViewModel(),){
 }
 
 @Composable
-fun ShowingList(image:Int,text:String,onClick:()->Unit){
+fun ShowingList(image: Int, text: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier.clickable { onClick() },
-        verticalAlignment = Alignment.CenterVertically){
-        Image(painter = painterResource(id =  image), contentDescription = text, modifier = Modifier
-            .size(40.dp)
-            .clip(CircleShape))
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(id = image), contentDescription = text, modifier = Modifier
+                .size(40.dp)
+                , contentScale = ContentScale.Inside
+        )
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text=text, color = Color.Black)
+        Text(text = text, color = Color.Black)
     }
     Spacer(modifier = Modifier.height(6.dp))
     HorizontalDivider(thickness = 1.dp, color = Color.LightGray)

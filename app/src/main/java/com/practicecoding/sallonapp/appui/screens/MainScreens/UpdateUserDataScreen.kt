@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -26,10 +27,12 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,13 +50,16 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.practicecoding.sallonapp.R
+import com.practicecoding.sallonapp.appui.components.CommonDialog
 import com.practicecoding.sallonapp.appui.components.GeneralButton
+import com.practicecoding.sallonapp.appui.components.LoadingAnimation
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectBarber
 import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.UserEvent
@@ -72,29 +78,26 @@ fun UpdateUserInfoScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val user = allUserDataViewModel.user.value
+    val user by allUserDataViewModel.user.collectAsState()
     var isLoading by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
-    var phoneNumber by remember { mutableStateOf(TextFieldValue("")) }
+    val phoneNumber = remember { mutableStateOf(TextFieldValue("")) }
     val name = remember { mutableStateOf(TextFieldValue("")) }
-    val address = remember { mutableStateOf(TextFieldValue("")) }
-    val city = remember { mutableStateOf(TextFieldValue("")) }
-    val state = remember { mutableStateOf(TextFieldValue("")) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     LaunchedEffect(user) {
-        user?.let {
+        user.let {
             name.value = TextFieldValue(it.name ?: "")
 
-            phoneNumber = TextFieldValue(it.phoneNumber ?: "")
+            phoneNumber.value = TextFieldValue(it.phoneNumber ?: "")
             imageUri = it.imageUri?.toUri()
         }
     }
 
-    if (isLoading) {
-        ShimmerEffectBarber()
-    } else {
+    if (viewModel.isLoading.value) {
+        LoadingAnimation()
+    }
         val imagePickerLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.GetContent()
         ) { uri ->
@@ -108,10 +111,15 @@ fun UpdateUserInfoScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .background(Color.White),
+                .background(Color.White)
+                .padding(vertical = 30.dp, horizontal = 15.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
+
+            Text(text = "Update Your Info", color = Color.Black, fontSize = 24.sp)
+            Spacer(modifier = Modifier.height(30.dp))
+
             Box(
                 modifier = Modifier
                     .width(150.dp)
@@ -140,36 +148,33 @@ fun UpdateUserInfoScreen(
 
             listOf(
                 Triple(name, "Name", R.drawable.img),
-                Triple(address, "Address", Icons.Outlined.LocationOn),
-                Triple(city, "City", Icons.Outlined.LocationOn),
-                Triple(state, "State", Icons.Outlined.LocationOn)
+                Triple(phoneNumber,"Phone Number",Icons.Filled.Phone)
             ).forEach { (textFieldState, label, icon) ->
                 Spacer(modifier = Modifier.height(8.dp))
                 CustomOutlinedTextField(textFieldState, label, icon)
             }
 
             GeneralButton(
-                text = "Update your Info",
+                text = "Update",
                 width = 350,
                 height = 80
             ) {
                 val updatedUser = UserModel(
                     name = name.value.text.takeIf { it.isNotEmpty() } ?: user?.name,
-                    phoneNumber = phoneNumber.text.takeIf { it.isNotEmpty() } ?: user?.phoneNumber,
+                    phoneNumber = phoneNumber.value.text.takeIf { it.isNotEmpty() } ?: user?.phoneNumber,
+                    imageUri = imageUri.toString(),
                 )
-
-                isLoading = true
-                scope.launch(Dispatchers.Main) {
+                scope.launch(Dispatchers.IO) {
                     viewModel.onEvent(
                         UserEvent.UpdateUser(
                             updatedUser,
-                            selectedImageUri ?: imageUri ?: Uri.EMPTY,
+                            selectedImageUri ,
                             context,
                             navController
                         )
                     )
                 }
-            }
+
         }
     }
 }

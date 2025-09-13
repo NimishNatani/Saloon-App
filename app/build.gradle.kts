@@ -59,7 +59,7 @@ android {
         buildConfig=true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.13"
     }
     packaging {
         resources {
@@ -70,13 +70,15 @@ android {
 
 dependencies {
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
-    implementation("com.google.firebase:firebase-auth:23.0.0")
-    implementation("com.google.firebase:firebase-firestore:25.1.0")
+    implementation("com.google.firebase:firebase-auth:23.1.0")
+    implementation("com.google.firebase:firebase-firestore:25.1.1")
     implementation ("com.google.android.gms:play-services-auth:21.2.0")
     implementation("com.google.firebase:firebase-storage:21.0.1")
-    implementation("androidx.compose.material3:material3-android:1.3.0")
+    implementation("androidx.compose.material3:material3-android:1.3.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation ("com.google.firebase:firebase-messaging-ktx:24.0.3")
+
 //    implementation("com.google.firebase:firebase-perf-ktx:21.0.0")
     //this is the code for navigation between screens
     val nav_version = "2.7.7"
@@ -181,5 +183,7 @@ dependencies {
     //Ads
     implementation("com.google.android.gms:play-services-ads:23.4.0")
     implementation ("io.github.farimarwat:admobnative-compose:1.2")
+
+    implementation("com.razorpay:checkout:1.6.40")
 
 }

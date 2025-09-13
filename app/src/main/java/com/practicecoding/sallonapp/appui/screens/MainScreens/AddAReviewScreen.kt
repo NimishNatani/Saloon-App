@@ -28,25 +28,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
-import com.practicecoding.sallonapp.appui.Screens
-import com.practicecoding.sallonapp.appui.components.CommonDialog
-import com.practicecoding.sallonapp.appui.components.NavigationItem
+import com.practicecoding.sallonapp.appui.components.LoadingAnimation
 import com.practicecoding.sallonapp.appui.components.RatingBar
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectMainScreen
-import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.OrderEvent
 import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
 import com.practicecoding.sallonapp.data.model.OrderModel
-import com.practicecoding.sallonapp.data.model.OrderStatus
 import com.practicecoding.sallonapp.data.model.ReviewModel
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
@@ -65,11 +59,12 @@ fun AddReviewScreen(
     val scope = rememberCoroutineScope()
     var rating by remember { mutableDoubleStateOf(0.0) }
     var reviewText by remember { mutableStateOf("") }
-    if(orderViewModel.isLoading.value){
-         ShimmerEffectMainScreen()
+    val context = LocalContext.current
+    if (orderViewModel.isLoading.value) {
+        ShimmerEffectMainScreen()
     }
-    if(orderViewModel.isUpdating.value){
-        CommonDialog(title = "Adding Review..")
+    if (orderViewModel.isUpdating.value) {
+        LoadingAnimation(text = "Adding Review..")
     }
     Column(
         modifier = Modifier
@@ -94,25 +89,42 @@ fun AddReviewScreen(
                     contentScale = ContentScale.Crop
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = order.barberShopName, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.Black)
+                Text(
+                    text = order.barberShopName,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = Color.Black
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = "Barber: ${order.barberName}", fontSize = 16.sp, color = Color.Black)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Order Type: ${order.listOfService.joinToString { it.serviceName }}", fontSize = 16.sp, color = Color.Black)
+                Text(
+                    text = "Order Type: ${order.listOfService.joinToString { it.serviceName }}",
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Time Slot: ${order.timeSlot.joinToString { it.time }}", fontSize = 16.sp, color = Color.Black)
+                Text(
+                    text = "Time Slot: ${order.timeSlot.joinToString { it.time }}",
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = "Phone: ${order.phoneNumber}", fontSize = 16.sp, color = Color.Black)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Payment Method: ${order.paymentMethod}", fontSize = 16.sp, color = Color.Black)
+                Text(
+                    text = "Payment Method: ${order.paymentMethod}",
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = "Date: ${order.date}", fontSize = 16.sp, color = Color.Black)
             }
         }
         Spacer(modifier = Modifier.height(20.dp))
         RatingBar(
-            rating= rating,
-            onRatingChanged = { rating = it})
+            rating = rating,
+            onRatingChanged = { rating = it })
         Spacer(modifier = Modifier.height(2.dp))
         OutlinedTextField(
             value = reviewText,
@@ -141,20 +153,21 @@ fun AddReviewScreen(
                     userDp = order.review.userDp,
                     reviewTime = formattedDate
                 )
-                order.review=review
+                order.review = review
                 scope.launch(Dispatchers.IO) {
                     orderViewModel.onEvent(
                         OrderEvent.AddReview(
-                        order = order,
-                        review = review,
-                        onCompletion = {
-                            isReviewAdded = true
-                            scope.launch(Dispatchers.Main) {
-                               navController.popBackStack()
-                            }
-                        })
+                            order = order,
+                            review = review,
+                            onCompletion = {
+                                isReviewAdded = true
+                                scope.launch(Dispatchers.Main) {
+                                    navController.popBackStack()
+                                }
+                            })
                     )
                 }
+
             },
             colors = ButtonDefaults.buttonColors(backgroundColor = Color(sallonColor.toArgb())),
             modifier = Modifier.align(Alignment.CenterHorizontally)

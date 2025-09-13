@@ -1,8 +1,12 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
+import android.telephony.SmsManager
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -23,10 +27,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,19 +48,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.trace
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.CircularProgressWithAppLogo
 import com.practicecoding.sallonapp.appui.components.CommonDialog
 import com.practicecoding.sallonapp.appui.components.DoubleCard
+import com.practicecoding.sallonapp.appui.components.LoadingAnimation
 import com.practicecoding.sallonapp.appui.components.NavigationItem
 import com.practicecoding.sallonapp.appui.components.OrderCard
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
 import com.practicecoding.sallonapp.data.model.OrderModel
 import com.practicecoding.sallonapp.data.model.OrderStatus
+import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -62,15 +76,17 @@ fun UserOrderPage(
     viewModelBarber:GetBarberDataViewModel
 ){
     if(orderViewModel.isUpdating.value){
-        CommonDialog(title = "Updating...")
+        LoadingAnimation(text = "Updating...")
     }
+
+
     BackHandler {
         viewModelBarber.navigationItem.value = NavigationItem.Home
     }
     DoubleCard(
         midCardAble = false,
         midCarBody = {
-          //UpcomingOrderCard(upcomingOrder = orderViewModel.upcomingOrder)
+
         },
         mainScreen = {
             UserBookingScreen(
@@ -100,6 +116,13 @@ fun OrderList(orders: List<OrderModel>,
               navController: NavController,
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var showLoadingBox by remember {
+        mutableStateOf(false)
+    }
+    if (showLoadingBox){
+        LoadingAnimation(text = "Updating...")
+    }
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -110,9 +133,19 @@ fun OrderList(orders: List<OrderModel>,
             OrderCard(
                 onCancel = {
 //                  order.orderStatus = OrderStatus.CANCELLED
-                  scope.launch{
-                      orderViewModel.updateOrderStatus(order, OrderStatus.CANCELLED.status)
-                  }
+                    val job = scope.launch(Dispatchers.Main) {
+                        orderViewModel.updateOrderStatus(order, OrderStatus.CANCELLED.status)
+                        showLoadingBox = true
+                        delay(1000)
+                    }
+                    job.invokeOnCompletion {
+                        showLoadingBox = false
+                        Toast.makeText(
+                            context,
+                            "Booking Status updated Successfully👍",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 },
                 onContactBarber = { },
                 onReview = {
@@ -127,7 +160,6 @@ fun OrderList(orders: List<OrderModel>,
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UserBookingScreen(
     orderViewModel: OrderViewModel,
@@ -138,66 +170,69 @@ fun UserBookingScreen(
 
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(0, pageCount = {4})
-    val selectedTab = remember { mutableStateOf(0) }
+    val selectedTab = remember { mutableIntStateOf(0) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(purple_200)
     ) {
         Column(
-            modifier = Modifier.padding(vertical = 16.dp, horizontal = 1.dp)
+            modifier = Modifier.background(purple_200)
         ) {
             TabRow(
-                selectedTabIndex = selectedTab.value,
-                containerColor = Color(sallonColor.toArgb()),
+                selectedTabIndex = pagerState.currentPage,
+                containerColor = sallonColor,
+                contentColor = Color.White,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
+                indicator = { tabPositions ->
+                    SecondaryIndicator(
+                        Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
+                        color = Color.White
+                    )
+                }
             ) {
                 Tab(
                     text = { Text("Pending", color = Color.White, fontSize = 13.sp) },
-                    selected = selectedTab.value == 0,
+                    selected = pagerState.currentPage==0,
                     onClick = {
-                        selectedTab.value = 0
                         scope.launch {
-                            pagerState.scrollToPage(0)
+                            pagerState.animateScrollToPage(0)
                         }
                     },
                 )
                 Tab(
                     text = { Text("Accepted", color = Color.White, fontSize = 13.sp) },
-                    selected = selectedTab.value == 1,
+                    selected = pagerState.currentPage==1,
                     onClick = {
-                        selectedTab.value = 1
                         scope.launch {
-                            pagerState.scrollToPage(1)
+                            pagerState.animateScrollToPage(1)
                         }
                     }
                 )
                 Tab(
                     text = { Text("Completed", color = Color.White, fontSize = 13.sp) },
-                    selected = selectedTab.value == 2,
+                    selected = pagerState.currentPage==2,
                     onClick = {
-                        selectedTab.value = 2
                         scope.launch {
-                            pagerState.scrollToPage(2)
+                            pagerState.animateScrollToPage(2)
                         }
                     }
                 )
                 Tab(
                     text = { Text("Cancelled", color = Color.White, fontSize = 13.sp) },
-                    selected = selectedTab.value == 3,
+                    selected = pagerState.currentPage==3,
                     onClick = {
-                        selectedTab.value = 3
                         scope.launch {
-                            pagerState.scrollToPage(3)
+                            pagerState.animateScrollToPage(3)
                         }
                     }
                 )
             }
             HorizontalPager(
                 state = pagerState,
-                userScrollEnabled = false,
+                userScrollEnabled = true,
                 modifier = Modifier
                     .height(screenHeight.dp)
                     .background(Color.White)

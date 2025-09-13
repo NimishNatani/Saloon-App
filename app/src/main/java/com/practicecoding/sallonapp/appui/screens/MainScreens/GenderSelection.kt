@@ -1,9 +1,6 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
-import android.app.AlertDialog
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,18 +18,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Surface
-import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,12 +40,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.practicecoding.sallonapp.R
-import com.practicecoding.sallonapp.ads.BannerAds
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.AlertDialogBox
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
-import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.purple_400
@@ -70,17 +61,25 @@ fun GenderSelectOnBook(
     }
     var genderCounter by getBarberDataViewModel.genderCounter
     val context = LocalContext.current
-    if (getBarberDataViewModel.showDialog.value){
+    if (getBarberDataViewModel.showDialog.value) {
         AlertDialogBox(
             getBarberDataViewModel.dialogMessage.value,
-            onDismiss = {getBarberDataViewModel.showDialog.value=false},
-            onClick = {getBarberDataViewModel.showDialog.value = false}
+            onDismiss = { getBarberDataViewModel.showDialog.value = false },
+            onClick = { getBarberDataViewModel.showDialog.value = false }
         )
     }
+    if (getBarberDataViewModel.genderCounter.value.sum() > 4) {
+        getBarberDataViewModel.showDialog.value = true
+        getBarberDataViewModel.dialogMessage.value =
+            listOf("Limit", "You can use this services for 4 people at a time")
+
+    }
     Surface(modifier = Modifier.fillMaxSize(), color = purple_200) {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .background(purple_200)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(purple_200)
+        ) {
             Column(
                 modifier = Modifier
                     .padding(top = 20.dp)
@@ -143,9 +142,17 @@ fun GenderSelectOnBook(
                                 count =
                                 genderCounter[0],
                                 onIncrement = {
-                                    genderCounter =
-                                        genderCounter.toMutableList()
-                                            .apply { this[0]++ }
+                                    if (getBarberDataViewModel.genderCounter.value.sum() >= 4) {
+                                        getBarberDataViewModel.showDialog.value = true
+                                        getBarberDataViewModel.dialogMessage.value = listOf(
+                                            "Limit",
+                                            "You can use this services for 4 people at a time"
+                                        )
+                                    } else {
+                                        genderCounter =
+                                            genderCounter.toMutableList()
+                                                .apply { this[0]++ }
+                                    }
                                 },
                                 onDecrement = {
                                     genderCounter =
@@ -161,9 +168,17 @@ fun GenderSelectOnBook(
                                 genderImage = R.drawable.salon_app_logo,  // replace with your image resource
                                 count = getBarberDataViewModel.genderCounter.value[1],
                                 onIncrement = {
-                                    genderCounter =
-                                        genderCounter.toMutableList()
-                                            .apply { this[1]++ }
+                                    if (getBarberDataViewModel.genderCounter.value.sum() >= 4) {
+                                        getBarberDataViewModel.showDialog.value = true
+                                        getBarberDataViewModel.dialogMessage.value = listOf(
+                                            "Limit",
+                                            "You can use this services for 4 people at a time"
+                                        )
+                                    } else {
+                                        genderCounter =
+                                            genderCounter.toMutableList()
+                                                .apply { this[1]++ }
+                                    }
                                 },
                                 onDecrement = {
                                     genderCounter =
@@ -177,9 +192,17 @@ fun GenderSelectOnBook(
                             genderImage = R.drawable.salon_app_logo,  // replace with your image resource
                             count = getBarberDataViewModel.genderCounter.value[2],
                             onIncrement = {
-                                genderCounter =
-                                    genderCounter.toMutableList()
-                                        .apply { this[2]++ }
+                                if (getBarberDataViewModel.genderCounter.value.sum() >= 4) {
+                                    getBarberDataViewModel.showDialog.value = true
+                                    getBarberDataViewModel.dialogMessage.value = listOf(
+                                        "Limit",
+                                        "You can use this services for 4 people at a time"
+                                    )
+                                } else {
+                                    genderCounter =
+                                        genderCounter.toMutableList()
+                                            .apply { this[2]++ }
+                                }
                             },
                             onDecrement = {
                                 genderCounter =
@@ -208,11 +231,13 @@ fun GenderSelectOnBook(
                         navController.navigate(Screens.serviceSelector.route)
                     } else {
                         getBarberDataViewModel.showDialog.value = true
-                        getBarberDataViewModel.dialogMessage.value = listOf("Limit","You can use this services for 4 people at a time")
+                        getBarberDataViewModel.dialogMessage.value =
+                            listOf("Limit", "You can use this services for 4 people at a time")
                     }
                 } else {
                     getBarberDataViewModel.showDialog.value = true
-                    getBarberDataViewModel.dialogMessage.value = listOf("No Selection","Please select your gender")
+                    getBarberDataViewModel.dialogMessage.value =
+                        listOf("No Selection", "Please select your gender")
                 }
             }
         }

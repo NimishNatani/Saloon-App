@@ -10,6 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.Text
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -48,7 +50,9 @@ fun MessageScreen(navHostController: NavController,messageViewModel: MessageView
             TabRow(
                 selectedTabIndex = selectedTabIndex,
                 backgroundColor = sallonColor,
-                modifier = Modifier.padding(horizontal = 20.dp)
+                contentColor = sallonColor,
+                modifier = Modifier.padding(horizontal = 20.dp),
+
             ) {
                 Tab(
                     selected = selectedTabIndex == 0,
@@ -73,6 +77,7 @@ fun MessageScreen(navHostController: NavController,messageViewModel: MessageView
                     modifier = Modifier
                         .clip(RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp))
                         .background(if (selectedTabIndex == 1) purple_200 else Color.White)
+
 
                 ) {
                     Text(
@@ -111,14 +116,9 @@ fun MessageScreen(navHostController: NavController,messageViewModel: MessageView
 
 @Composable
 fun MessageList(navHostController: NavController,messageViewModel: MessageViewModel ){
-    var refresh by remember {
-        mutableStateOf(true)
-    }
+
     val userChat by messageViewModel.userChat.collectAsState()
 
-//    LaunchedEffect(refresh) {
-//viewModel.onEvent(MessageEvent.GetChatBarber)
-//    }
     if (userChat.isNotEmpty()) {
         Column(modifier = Modifier
             .fillMaxSize()

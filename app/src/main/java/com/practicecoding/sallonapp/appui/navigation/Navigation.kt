@@ -15,6 +15,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
@@ -46,6 +49,7 @@ import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OTPVerificati
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingPageText
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.OnBoardingScreen
 import com.practicecoding.sallonapp.appui.screens.initiatorScreens.PhoneNumberScreen
+import com.practicecoding.sallonapp.appui.viewmodel.PaymentViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.data.model.ChatModel
@@ -57,12 +61,13 @@ import java.time.LocalDate
 fun AppNavigation(
     navController: NavHostController,
     startDestinations: String,
+    paymentViewModel: PaymentViewModel
 ) {
     val enterTransition =
         slideInHorizontally(
             initialOffsetX = { it },
             animationSpec = spring(
-                stiffness = Spring.StiffnessVeryLow,
+                stiffness = Spring.StiffnessLow,
                 dampingRatio = Spring.DampingRatioLowBouncy
             )
         )
@@ -71,7 +76,7 @@ fun AppNavigation(
         slideOutHorizontally(
             targetOffsetX = { -it },
             animationSpec = spring(
-                stiffness = Spring.StiffnessVeryLow,
+                stiffness = Spring.StiffnessLow,
                 dampingRatio = Spring.DampingRatioNoBouncy
             )
         )
@@ -80,7 +85,7 @@ fun AppNavigation(
         slideInHorizontally(
             initialOffsetX = { -it },
             animationSpec = spring(
-                stiffness = Spring.StiffnessVeryLow,
+                stiffness = Spring.StiffnessLow,
                 dampingRatio = Spring.DampingRatioLowBouncy
             )
         )
@@ -89,7 +94,7 @@ fun AppNavigation(
         slideOutHorizontally(
             targetOffsetX = { it },
             animationSpec = spring(
-                stiffness = Spring.StiffnessVeryLow,
+                stiffness = Spring.StiffnessLow,
                 dampingRatio = Spring.DampingRatioNoBouncy
             )
         )
@@ -131,7 +136,8 @@ fun AppNavigation(
             DoubleCard(
                 midCarBody = { HeadingText(bodyText = "Sign up to access all the feature of barber shop") },
                 mainScreen = {
-                    PhoneNumberScreen(activity = context as Activity,
+                    PhoneNumberScreen(
+                        activity = context as Activity,
                         navigateToVerification = { phoneNumber ->
                             navController.navigate(Screens.OTPVerification.route + "/$phoneNumber")
                         }, navController = navController
@@ -166,23 +172,39 @@ fun AppNavigation(
             )
         }
         composable(Screens.SignUp.route + "/{phoneNumber}") { backStackEntry ->
-            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber") ?: ""
-            DoubleCard(
-                midCarBody = { HeadingText(bodyText = "Enter your details to access all the feature of barber shop") },
-                mainScreen = {
-                    AdvancedSignUpScreen(
-                        phoneNumber = phoneNumber,
-                        activity = context as Activity,
-                        navController = navController
-                    )
-                },
-                topAppBar = {
-                    BackButtonTopAppBar(
-                        onBackClick = { navController.popBackStack() },
-                        title = "Sign Up"
-                    )
+            val check = remember {
+                mutableStateOf(false)
+            }
+            Firebase.firestore.collection("users")
+                .document(FirebaseAuth.getInstance().currentUser?.uid.toString()).get()
+                .addOnSuccessListener {
+                    if (it.exists()) {
+                        navController.navigate(Screens.MainScreen.route)
+                    } else {
+                        check.value = true
+                    }
                 }
-            )
+            if (check.value) {
+                val phoneNumber = backStackEntry.arguments?.getString("phoneNumber") ?: ""
+
+                DoubleCard(
+                    midCarBody = { HeadingText(bodyText = "Enter your details to access all the feature of barber shop") },
+                    mainScreen = {
+                        AdvancedSignUpScreen(
+                            phoneNumber = phoneNumber,
+                            activity = context as Activity,
+                            navController = navController
+                        )
+                    },
+                    topAppBar = {
+                        BackButtonTopAppBar(
+                            onBackClick = { navController.popBackStack() },
+                            title = "Sign Up"
+                        )
+                    }
+                )
+            }
+
         }
         composable(Screens.SignUp.route) {
             DoubleCard(
@@ -216,9 +238,11 @@ fun AppNavigation(
             popExitTransition = { popExitTransition }) {
             val resultType =
                 navController.previousBackStackEntry?.savedStateHandle?.get<String>("type")
-            val resultCity =
-                navController.previousBackStackEntry?.savedStateHandle?.get<String>("location")
-            if (resultCity != null && resultType != null) {
+            val resultBarberList =
+                navController.previousBackStackEntry?.savedStateHandle?.get<MutableList<BarberModel>>(
+                    "barber"
+                )
+            if (resultBarberList != null && resultType != null) {
                 var isBottomBar by remember {
                     mutableStateOf(false)
                 }
@@ -231,7 +255,7 @@ fun AppNavigation(
                     mainScreen = {
                         ViewAllScreen(
                             type = resultType,
-                            location = resultCity,
+                            barberList = resultBarberList,
                             likedBarberViewModel = LikedBarberViewModel(context),
                             navController = navController,
                             sortType = sortType
@@ -240,7 +264,7 @@ fun AppNavigation(
                     },
                     topAppBar = {
                         BackButtonTopAppBar(
-                            onBackClick = { /*TODO*/ },
+                            onBackClick = { navController.popBackStack() },
                             title = "$resultType Salon"
                         )
                     },
@@ -266,11 +290,9 @@ fun AppNavigation(
                 navController.previousBackStackEntry?.savedStateHandle?.get<BookingModel>("bookingModel")
             if (bookingModel != null) {
                 BarberScreen(
-                    onBackClick = { navController.popBackStack() },
-                    onLikeClick = { /* Handle like click */ },
-                    onShareClick = { /* Handle share click */ },
                     bookingModel = bookingModel,
-                    navController = navController
+                    navController = navController,
+                    likedBarberViewModel = LikedBarberViewModel(context)
                 )
             }
         }
@@ -348,7 +370,7 @@ fun AppNavigation(
                         SalonCard(
                             shopName = bookingModel.barber.shopName!!,
                             imageUri = bookingModel.barber.imageUri!!,
-                            address = bookingModel.barber.shopStreetAddress!!,
+                            address = bookingModel.barber.shopStreetAddress!!+bookingModel.barber.city+bookingModel.barber.state,
                             distance = bookingModel.barber.distance!!,
                         )
                     },
@@ -361,7 +383,7 @@ fun AppNavigation(
                     },
                     bottomAppBar = {},
                     mainScreen = {
-                        DetailScreen(bookingModel, navController)
+                        DetailScreen(bookingModel, navController, paymentViewModel = paymentViewModel)
                     })
             }
         }
@@ -423,12 +445,14 @@ fun AppNavigation(
             popExitTransition = { popExitTransition }) {
             val service = navController.previousBackStackEntry
                 ?.savedStateHandle
-                ?.get<String>("service") ?: "default_service"
-            BarberServiceVise(
-                service = service,
-                likedBarberViewModel = LikedBarberViewModel(context),
-                navController = navController
-            )
+                ?.get<String>("service")
+            if (service != null) {
+                BarberServiceVise(
+                    service = service,
+                    likedBarberViewModel = LikedBarberViewModel(context),
+                    navController = navController
+                )
+            }
         }
         composable(Screens.AllCategory.route, enterTransition = { enterTransition },
             exitTransition = { exitTransition },
@@ -440,12 +464,12 @@ fun AppNavigation(
             exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition },
             popExitTransition = { popExitTransition }) {
-            val barberList =
-                navController.previousBackStackEntry?.savedStateHandle?.get<MutableList<BarberModel>>(
-                    "barberList"
+            val state =
+                navController.previousBackStackEntry?.savedStateHandle?.get<String>(
+                    "state"
                 )
-            if (barberList != null) {
-                SearchScreen(barberList, navController,LikedBarberViewModel(context))
+            if (state != null) {
+                SearchScreen(state, navController, LikedBarberViewModel(context))
             }
         }
     }

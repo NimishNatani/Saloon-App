@@ -11,10 +11,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -23,6 +28,7 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,24 +40,29 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
+import com.practicecoding.sallonapp.appui.components.LoadingAnimation
 import com.practicecoding.sallonapp.appui.components.SmallSaloonPreviewCard
+import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
 import com.practicecoding.sallonapp.ui.theme.Purple40
 import com.practicecoding.sallonapp.ui.theme.purple_200
+import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
-    barberList: MutableList<BarberModel>,
+    state: String,
     navController: NavController,
-    likedBarberViewModel: LikedBarberViewModel
+    likedBarberViewModel: LikedBarberViewModel,
+    getBarberDataViewModel: GetBarberDataViewModel= hiltViewModel()
 ) {
     BackHandler {
         navController.popBackStack()
@@ -62,9 +73,37 @@ fun SearchScreen(
         mutableStateOf(false)
     }
     val bookingModel = BookingModel()
+    val timeLimit = remember {
+        mutableStateOf(true)
+    }
+
+    val barberList by getBarberDataViewModel.barberListByState.collectAsState()
     val filteredList = barberList.filter {
         it.shopName!!.contains(text, ignoreCase = true) ||
                 it.name!!.contains(text, ignoreCase = true)
+    }
+    LaunchedEffect(Unit) {
+        getBarberDataViewModel.getBarberListByState(state)
+        kotlinx.coroutines.delay(7000)
+        timeLimit.value=false
+    }
+    if(barberList.isEmpty()&&timeLimit.value){
+        LoadingAnimation()
+    }
+    if(!timeLimit.value){
+        Card(
+            modifier = Modifier.wrapContentSize().padding(25.dp),
+            colors = CardDefaults.cardColors(containerColor = purple_200)
+        ) {
+            Text(
+                text = "Sorry, we are unable to fetch your city barber",
+                color = sallonColor,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 20.dp)
+                    .align(Alignment.CenterHorizontally),
+            )
+        }
     }
     Scaffold(
         containerColor = purple_200,
@@ -146,13 +185,17 @@ fun SearchScreen(
                 filteredList.forEach { barber ->
                     Text(
                         text = "Shop Name: ${barber.shopName}",
-                        Modifier.clickable { text = barber.shopName.toString() }.padding(start=4.dp),
+                        Modifier
+                            .clickable { text = barber.shopName.toString() }
+                            .padding(start = 4.dp),
                         fontSize = 20.sp
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
                         text = "Barber Name: ${barber.name}",
-                        Modifier.clickable { text = barber.name.toString() }.padding(start=4.dp),
+                        Modifier
+                            .clickable { text = barber.name.toString() }
+                            .padding(start = 4.dp),
                         fontSize = 20.sp
                     )
                     Spacer(modifier = Modifier.height(10.dp))
@@ -160,6 +203,9 @@ fun SearchScreen(
                 }
             }
             Spacer(modifier = Modifier.height(10.dp))
+            Column (modifier = Modifier.verticalScroll(rememberScrollState())){
+
+
             filteredList.forEach { barber ->
                 var isLiked by remember {
                     mutableStateOf(
@@ -203,6 +249,6 @@ fun SearchScreen(
                 )
 
             }
-        }
+        }}
     }
 }

@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
@@ -31,6 +30,7 @@ import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +50,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil.compose.rememberAsyncImagePainter
 import com.practicecoding.sallonapp.R
-import com.practicecoding.sallonapp.appui.viewmodel.OrderViewModel
 import com.practicecoding.sallonapp.data.model.OrderModel
 import com.practicecoding.sallonapp.data.model.OrderStatus
 import com.practicecoding.sallonapp.data.model.ReviewModel
@@ -97,17 +96,17 @@ fun SalonCard(
             Spacer(modifier = Modifier.width(8.dp))
             Column(
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(2.dp)
                     .fillMaxWidth(),
 //                verticalArrangement = Arrangement.Top
             ) {
 
                 Text(
-                    text = shopName, fontSize = 18.sp, maxLines = 1
+                    text = shopName, fontSize = 18.sp, maxLines = 1, color = Color.Black,
                 )
 
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -121,7 +120,7 @@ fun SalonCard(
                         fontSize = 14.sp,
                         maxLines = 1,
                         modifier = Modifier.width(200.dp),
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis, color = Color.Black,
                     )
                 }
                 Spacer(modifier = Modifier.height(4.dp))
@@ -136,7 +135,7 @@ fun SalonCard(
                     Text(
                         text = "${distance} Km",
                         fontSize = 14.sp,
-                        color = colorResource(id = R.color.sallon_color)
+                        color = Color.Black
                     )
                 }
             }
@@ -330,14 +329,14 @@ fun OrderCard(
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
-                                androidx.compose.material3.Text(
+                                Text(
                                     text = "Date:",
                                     color = Color.Gray,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
 
                                     )
-                                androidx.compose.material3.Text(
+                                Text(
                                     text = order.date,
                                     color = Color.Black,
                                     fontSize = 14.sp,
@@ -470,7 +469,7 @@ fun ReviewText(
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         RatingBar(onRatingChanged = { }, rating = review.rating)
-        Text(text = review.reviewText, color = sallonColor, )
+        Text(text = review.reviewText, color = sallonColor)
     }
 }
 

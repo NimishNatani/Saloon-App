@@ -43,6 +43,7 @@ import com.practicecoding.sallonapp.appui.components.CircularCheckbox
 import com.practicecoding.sallonapp.appui.components.ShimmerEffectBarberBig
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
+import com.practicecoding.sallonapp.data.model.BarberModel
 import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.room.LikedBarberViewModel
 import com.practicecoding.sallonapp.ui.theme.purple_400
@@ -53,7 +54,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ViewAllScreen(
     type: String,
-    location: String,
+    barberList: List<BarberModel>,
     viewModelBarber: GetBarberDataViewModel = hiltViewModel(),
     likedBarberViewModel: LikedBarberViewModel,
     navController: NavController,
@@ -67,16 +68,8 @@ fun ViewAllScreen(
     val scrollState = rememberScrollState()
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     var barbers =
-        if (type == "NearBy") viewModelBarber.barberNearby.collectAsState().value else viewModelBarber.barberPopular.collectAsState().value
+        if (type == "NearBy") barberList.sortedBy { it.distance } else barberList.sortedByDescending { it.rating }
     val bookingModel = BookingModel()
-    LaunchedEffect(key1 = true) {
-        viewModelBarber.onEvent(
-            if (type == "NearBy") MainEvent.getBarberNearby(
-                location,
-                15
-            ) else MainEvent.getBarberPopular(location, 15)
-        )
-    }
     if (barbers.isEmpty()) {
         for (i in 1 until 3) {
             ShimmerEffectBarberBig(screenWidth - 50.dp, screenWidth - 85.dp)

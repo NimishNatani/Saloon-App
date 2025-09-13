@@ -74,6 +74,7 @@ class MessageViewModel @Inject constructor(
 
     private suspend fun getmessageList(barberuid: String) {
         viewModelScope.launch {
+            _messageList.update { it.apply { it.clear() } }
             repo.messageList(barberuid).collect { message ->
                 _messageList.emit(message)
             }

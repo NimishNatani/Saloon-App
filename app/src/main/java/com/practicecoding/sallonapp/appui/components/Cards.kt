@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -70,6 +71,7 @@ import com.practicecoding.sallonapp.appui.viewmodel.GetUserDataViewModel
 import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.data.model.ReviewModel
 import com.practicecoding.sallonapp.data.model.Service
+import com.practicecoding.sallonapp.ui.theme.green
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.purple_400
 import com.practicecoding.sallonapp.ui.theme.sallonColor
@@ -202,10 +204,8 @@ fun OnBoardingBottomTextCard(
 @Composable
 fun ProfileWithNotification(
     onProfileClick: () -> Unit,
-    onNotificationClick: () -> Unit,
     viewModel: GetUserDataViewModel = hiltViewModel(),
 ) {
-    val scope = rememberCoroutineScope()
     val user = viewModel.user.value
     LaunchedEffect(key1 = true) {
         viewModel.getUser()
@@ -250,17 +250,12 @@ fun ProfileWithNotification(
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
                         color = Color.Black,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.clickable { onProfileClick() }
                     )
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
-//                Image(
-//                    painter = painterResource(id = R.drawable.notificationbell),
-//                    contentDescription = "notification bell",
-//                    modifier = Modifier
-//                        .size(22.dp)
-//                        .clickable { onNotificationClick() })
             }
         }
     }
@@ -408,9 +403,9 @@ fun BigSaloonPreviewCard(
                 Image(
                     painter = painterResource(
                         id = if (open) {
-                            R.drawable.open
+                            R.drawable.open_blue
                         } else {
-                            R.drawable.close
+                            R.drawable.closed_blue
                         }
                     ),
                     contentDescription = "Categories", // We don't need content description for images used as buttons
@@ -429,7 +424,7 @@ fun BigSaloonPreviewCard(
                     Icon(
                         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = "Star Icon",
-                        tint = colorResource(id = R.color.sallon_color),
+                        tint = Color.Red,
                         modifier = Modifier.size(36.dp)
                     )
                 }
@@ -508,8 +503,10 @@ fun BigSaloonPreviewCard(
                     )
                 ) {
                     Text(
-                        text = "Book Now",
-                        color = colorResource(id = R.color.sallon_color),
+                        text = "View",
+                        color = green,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 18.sp
                     )
                 }
             }
@@ -522,11 +519,7 @@ fun BigSaloonPreviewCard(
 //Customer review card from customers
 @Composable
 fun CustomerReviewCard(
-//    customerName: String,
-//    reviewText: String,
-//    rating: Double,
-//    imageUrl: String,
-//    time: String = "2 days ago"
+
     review :ReviewModel
 ) {
     Surface(
@@ -553,14 +546,14 @@ fun CustomerReviewCard(
                     .padding(top = 16.dp, start = 16.dp, end = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color.LightGray,
+                Image(
+                    painter = rememberAsyncImagePainter(model = review.userDp),
+                    contentDescription = null,
                     modifier = Modifier
-                        .size(50.dp)
-                ) {
-                    /*TODO profile picture*/
-                }
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, Color.Gray, CircleShape)
+                )
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     Row {
@@ -656,7 +649,7 @@ fun SmallSaloonPreviewCard(
                         Icon(
                             imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
                             contentDescription = "Heart Icon",
-                            tint = colorResource(id = R.color.sallon_color),
+                            tint = Color.Red,
                             modifier = Modifier
                                 .size(24.dp)
                                 .padding(4.dp)
@@ -666,9 +659,9 @@ fun SmallSaloonPreviewCard(
                 Image(
                     painter = painterResource(
                         id = if (open) {
-                            R.drawable.open
+                            R.drawable.open_blue
                         } else {
-                            R.drawable.close
+                            R.drawable.closed_blue
                         }
                     ),
                     contentDescription = "Categories", // We don't need content description for images used as buttons
@@ -751,15 +744,17 @@ fun SmallSaloonPreviewCard(
                     Spacer(modifier = Modifier.weight(0.9f))
                     Button(
                         onClick = onBookClick,
-                        modifier = Modifier.padding(),
+                        modifier = Modifier.padding(horizontal = 6.dp),
                         shape = RoundedCornerShape(50),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colorResource(id = R.color.purple_200)
                         )
                     ) {
                         Text(
-                            text = "Book Now",
-                            color = colorResource(id = R.color.sallon_color),
+                            text = "View",
+                            color = green,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 18.sp
                         )
                     }
                 }
@@ -916,7 +911,8 @@ fun Counter(
 @Composable
 fun BookingScreenShopPreviewCard(
     bookingModel: BookingModel,
-    onOpenClick: () -> Unit
+    onOpenClick: () -> Unit,
+    onDirectionClick:() ->Unit
 ) {
     Column(
         modifier = Modifier
@@ -942,7 +938,7 @@ fun BookingScreenShopPreviewCard(
 
             }
             Button(
-                onClick = { onOpenClick() },
+                onClick = {  onOpenClick() },
                 modifier = Modifier.align(Alignment.CenterVertically),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(purple_200.toArgb()),
@@ -951,7 +947,7 @@ fun BookingScreenShopPreviewCard(
             ) {
                 Text(
                     text = "Book",
-                    color = sallonColor, fontWeight = FontWeight.SemiBold, fontSize = 18.sp
+                    color = green, fontWeight = FontWeight.SemiBold, fontSize = 18.sp
                 )
             }
         }
@@ -996,13 +992,13 @@ fun BookingScreenShopPreviewCard(
                 painter = painterResource(id = R.drawable.direction),
                 contentDescription = "direction image",
                 modifier = Modifier
-                    .size(30.dp)
+                    .size(30.dp).clickable { onDirectionClick() }
 
             )
             Text(
                 text = "Directions",
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(start = 4.dp)
+                modifier = Modifier.padding(start = 4.dp).clickable {  onDirectionClick()}
             )
         }
     }

@@ -1,5 +1,7 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseOut
@@ -27,12 +29,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -44,15 +50,18 @@ import com.practicecoding.sallonapp.appui.components.TransparentTopAppBar
 import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
 import com.practicecoding.sallonapp.data.model.BookingModel
+import com.practicecoding.sallonapp.room.LikedBarberViewModel
 import com.practicecoding.sallonapp.ui.theme.purple_200
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun BarberScreen(
     navController: NavController,
-    onBackClick: () -> Unit,
-    onLikeClick: () -> Unit,
-    onShareClick: () -> Unit,
+
     bookingModel: BookingModel,
+    likedBarberViewModel: LikedBarberViewModel,
     getBarberDataViewModel: GetBarberDataViewModel = hiltViewModel(),
 ) {
     BackHandler {
@@ -70,6 +79,17 @@ fun BarberScreen(
     val services by getBarberDataViewModel.services.collectAsState()
     val reviewList by getBarberDataViewModel.barberReviewList.collectAsState()
     val context = LocalContext.current
+    var isLiked by remember {
+        mutableStateOf(
+            false
+        )
+    }
+    LaunchedEffect(isLiked) {
+CoroutineScope(Dispatchers.IO).launch {
+    isLiked = likedBarberViewModel.isBarberLiked(bookingModel.barber.uid)
+}
+    }
+
     LaunchedEffect(key1 = true) {
         getBarberDataViewModel.onEvent(MainEvent.getServices(bookingModel.barber.uid))
         getBarberDataViewModel.getReviewList(bookingModel.barber.uid)
@@ -122,9 +142,14 @@ fun BarberScreen(
 
                     TransparentTopAppBar(
                         onBackClick = { navController.popBackStack() },
-                        onLikeClick = { /*TODO*/ },
-                        onShareClick = { /*TODO*/ },
-                        isFavorite = false,
+                        onLikeClick = {    isLiked = if (isLiked) {
+                            likedBarberViewModel.unlikeBarber(bookingModel.barber.uid)
+                            false
+                        } else {
+                            likedBarberViewModel.likeBarber(bookingModel.barber.uid)
+                            true
+                        } },
+                        isFavorite = isLiked,
                         modifier = Modifier
                             .padding(16.dp)
                             .align(Alignment.TopStart)
@@ -158,15 +183,20 @@ fun BarberScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 BookingScreenShopPreviewCard(
-                                    bookingModel = bookingModel
-                                ) {
-                                    bookingModel.services = services
-                                    navController.currentBackStackEntry?.savedStateHandle?.set(
-                                        key = "bookingModel",
-                                        value = bookingModel
-                                    )
-                                    navController.navigate(Screens.GenderSelection.route)
-                                }
+                                    bookingModel = bookingModel,
+                                    onOpenClick = { bookingModel.services = services
+                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                            key = "bookingModel",
+                                            value = bookingModel
+                                        )
+                                        navController.navigate(Screens.GenderSelection.route)},
+                                    onDirectionClick = {
+                                        val strUri = "https://maps.google.com/maps?q=loc:"+bookingModel.barber.lat+"," + bookingModel.barber.long+" (barber Location)"
+                                        val intent = Intent(android.content.Intent.ACTION_VIEW, Uri.parse(strUri))
+                                        intent.setPackage("com.google.android.apps.maps")
+                                        context.startActivity(intent)
+                                    }
+                                )
                                 // Second card
                                 Card(
                                     modifier = Modifier.fillMaxSize()

@@ -5,14 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.practicecoding.sallonapp.R
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,17 +16,20 @@ import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.BackButtonTopAppBar
 import com.practicecoding.sallonapp.appui.components.Categories
 import com.practicecoding.sallonapp.appui.components.DoubleCard
-import com.practicecoding.sallonapp.appui.components.TransparentTopAppBar
 
 data class Category(val image: Int, val name: String)
 
 val categories = listOf(
-    Category(image = R.drawable.shaving, name = "Shaves"),
-    Category(image = R.drawable.haircut, name = "Hair Cut"),
-    Category(image = R.drawable.down, name = "Nail Cut"),
-    Category(image = R.drawable.haircolor, name = "Hair Color"),
-    Category(image = R.drawable.makeup, name = "Makeup"),
-    Category(image = R.drawable.nails, name = "Nail Cut")
+    Category(image = R.drawable.shave_blue, name = "Shaving"),
+    Category(image = R.drawable.hair_cut_blue, name = "Hair Cut"),
+    Category(image = R.drawable.manicure_blue, name = "Manicure"),
+    Category(image = R.drawable.hair_color, name = "Hair Color"),
+    Category(image = R.drawable.make_up_blue, name = "Make Up"),
+    Category(image = R.drawable.facial_blue, name = "Facial"),
+    Category(image = R.drawable.hair_styling, name = "Hair Style") ,
+    Category(image = R.drawable.hair_wash_blue, name = "Hair Wash"),
+    Category(image = R.drawable.nail_polish_blue, name = "Nail Polish"),
+    Category(image = R.drawable.condtioning_blue, name = "Conditioning"),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

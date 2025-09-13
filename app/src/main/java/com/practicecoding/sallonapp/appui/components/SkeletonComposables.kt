@@ -62,11 +62,6 @@ fun DoubleCard(
     bottomAppBar: @Composable () -> Unit = {},
     midCardAble: Boolean = true
 ) {
-    val scrollState = rememberScrollState()
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val context = LocalContext.current
-
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -80,8 +75,8 @@ fun DoubleCard(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 10.dp),
-            shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
-            backgroundColor = if (midCardAble) Color(sallonColor.toArgb()) else Color.White
+            shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp),
+            backgroundColor = if (midCardAble) sallonColor else purple_200
         ) {
             Column(
                 modifier = Modifier
@@ -94,10 +89,8 @@ fun DoubleCard(
                 Card(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = if(midCardAble) 10.dp else 0.dp)
-//                        .verticalScroll(scrollState)
-                    ,
-                    shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
+                        .padding(top = if(midCardAble) 10.dp else 0.dp),
+                    shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp),
                     backgroundColor = colorResource(id = R.color.white)
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {

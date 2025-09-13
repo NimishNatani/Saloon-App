@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -117,8 +118,6 @@ fun TimeSelection(
     }
 
     val slots = generateTimeSlots(date, startTime, endTime, 30L, bookedTimes, notAvailableTimes)
-    var showDialog by remember { mutableStateOf(false) }
-    var dialogMessage by remember { mutableStateOf("") }
 
     val requiredSlots = ceil(time / 30.0).toInt()
 
@@ -144,7 +143,7 @@ fun TimeSelection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Time",
+                    text = "Select $requiredSlots Slot",
                     color = Color.Black,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -188,63 +187,70 @@ fun TimeSelection(
                     }
                 }
             }
-            slots.chunked(4).forEach { row ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    row.forEach { slot ->
-                        TimeSlotBox(
-                            slot = slot,
-                            timeFormatter = timeFormatter,
-                            isSelected = getBarberDataViewModel.selectedSlots.contains(slot),
-                            onClick = {
-                                when (slot.status) {
-                                    SlotStatus.AVAILABLE -> {
-                                        if (getBarberDataViewModel.selectedSlots.contains(slot)) {
-                                            getBarberDataViewModel.selectedSlots.remove(slot)
-                                        } else if (getBarberDataViewModel.selectedSlots.size > 0 && getBarberDataViewModel.selectedSlots[0].date != date.toString()) {
+            if (slotTime.isOpen) {
+                slots.chunked(4).forEach { row ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        row.forEach { slot ->
+                            TimeSlotBox(
+                                slot = slot,
+                                timeFormatter = timeFormatter,
+                                isSelected = getBarberDataViewModel.selectedSlots.contains(slot),
+                                onClick = {
+                                    when (slot.status) {
+                                        SlotStatus.AVAILABLE -> {
+                                            if (getBarberDataViewModel.selectedSlots.contains(slot)) {
+                                                getBarberDataViewModel.selectedSlots.remove(slot)
+                                            } else if (getBarberDataViewModel.selectedSlots.size > 0 && getBarberDataViewModel.selectedSlots[0].date != date.toString()) {
+                                                getBarberDataViewModel.showDialog.value = true
+                                                getBarberDataViewModel.dialogMessage.value =
+                                                    listOf(
+                                                        "Slots Selection",
+                                                        "You can select Slot for only one day"
+                                                    )
+                                            } else {
+                                                getBarberDataViewModel.selectedSlots.add(slot)
+                                            }
+                                        }
+
+                                        SlotStatus.BOOKED, SlotStatus.NOT_AVAILABLE -> {
                                             getBarberDataViewModel.showDialog.value = true
                                             getBarberDataViewModel.dialogMessage.value =
                                                 listOf(
                                                     "Slots Selection",
-                                                    "You can select Slot for only one day"
+                                                    if (slot.status == SlotStatus.BOOKED) {
+                                                        "This slot is already booked."
+                                                    } else {
+                                                        "This slot is not available."
+                                                    }
                                                 )
-                                        } else {
-                                            getBarberDataViewModel.selectedSlots.add(slot)
                                         }
                                     }
-
-                                    SlotStatus.BOOKED, SlotStatus.NOT_AVAILABLE -> {
-                                        getBarberDataViewModel.showDialog.value = true
-                                        getBarberDataViewModel.dialogMessage.value =
-                                            listOf(
-                                                "Slots Selection",
-                                                if (slot.status == SlotStatus.BOOKED) {
-                                                    "This slot is already booked."
-                                                } else {
-                                                    "This slot is not available."
-                                                }
-                                            )
-                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
+            }else{
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally),
+                    colors = CardDefaults.cardColors(containerColor = purple_200)
+                ) {
+                    Text(
+                        text = "Not Accepting booking on this day",
+                        color = sallonColor,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp, vertical = 20.dp)
+                            .align(Alignment.CenterHorizontally),
+                    )
+                }
             }
-
-
-
-            Text(
-                text = "Estimated total time you need according to your selection is approx $time mins",
-                color = sallonColor, // Update to match `sallonColor` if defined
-                fontWeight = FontWeight.SemiBold,
-                textDecoration = TextDecoration.Underline,
-                fontSize = 12.sp
-            )
         }
         GeneralButton(
             text = "Continue",

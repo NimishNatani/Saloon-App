@@ -1,5 +1,6 @@
 package com.practicecoding.sallonapp.appui.components
 
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
@@ -17,47 +18,39 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.rounded.StarHalf
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarHalf
 import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -78,6 +71,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -91,11 +85,9 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.practicecoding.sallonapp.R
 import com.practicecoding.sallonapp.appui.Screens
-import com.practicecoding.sallonapp.ui.theme.Purple40
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.delay
-
 
 
 @Composable
@@ -124,7 +116,7 @@ fun CommonDialog(title: String = "Loading") {
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = title,
-                    color = Purple40,
+                    color = sallonColor,
                     fontSize = 16.sp // Adjust font size for better fit
                 )
             }
@@ -133,12 +125,13 @@ fun CommonDialog(title: String = "Loading") {
 }
 
 @Composable
-fun SuccessfulDialog(navController: NavController) {
+fun SuccessfulDialog(navController: NavController,whatsappNumber:String,message:String) {
     Dialog(
         onDismissRequest = { },
         properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
     ) {
         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.success))
+        val context = LocalContext.current
         var isPlaying by remember { mutableStateOf(true) }
         val progress by animateLottieCompositionAsState(
             composition = composition,
@@ -150,7 +143,7 @@ fun SuccessfulDialog(navController: NavController) {
         Surface(
             modifier = Modifier
                 .clip(RoundedCornerShape(15.dp))
-                .size(300.dp, 300.dp)
+                .size(300.dp, 330.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -160,52 +153,73 @@ fun SuccessfulDialog(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Slot Booked Successfully!", color = sallonColor, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top=8.dp))
                 LottieAnimation(
                     composition = composition,
                     progress = { progress },
                     modifier = Modifier
-                        .size(width = 300.dp, height = 130.dp)
-                        ,
+                        .size(width = 300.dp, height = 130.dp),
                     alignment = Alignment.Center
                 )
-                Row(horizontalArrangement = Arrangement.SpaceAround) {
-                    Button(
-                        onClick = { navController.navigate(Screens.MainScreen.route){
+                Text(
+                    text = "Slot Booked Successfully!",
+                    color = sallonColor,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+                Spacer(modifier = Modifier.height(14.dp))
+                Text(
+                    text = "Your slot details are sent to your barber. Please wait or revisit the app to check if the barber has accepted your booking.",
+                    color = Color.Red,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Button(
+                    onClick = {
+                        navController.navigate(Screens.MainScreen.route) {
                             popUpTo(navController.graph.startDestinationId) {
                                 inclusive = true
                             }
                             launchSingleTop = true
-                        } },
-                        modifier = Modifier
-                            .background(Color.White)
-                            .border(1.dp, sallonColor, RoundedCornerShape(8.dp))
-
-                            ,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
-                    ) {
-                        Text(text = "Home Screen", color = sallonColor, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                    }
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Button(
-                        onClick = { navController.navigate(Screens.MainScreen.route) {
                         }
-                                 },
-                        modifier = Modifier
-                            .border(1.dp, sallonColor, RoundedCornerShape(8.dp))
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                sallonColor
+                    },
+                    modifier = Modifier
+                        .background(Color.White)
+                        .border(1.dp, sallonColor, RoundedCornerShape(8.dp)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                ) {
+                    Text(
+                        text = "Home Screen",
+                        color = sallonColor,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(text = "Send Whatsapp message to barber", modifier = Modifier.clickable {
+                    context.startActivity(
+                        // on below line we are opening the intent.
+                        Intent(
+                            // on below line we are calling
+                            // uri to parse the data
+                            Intent.ACTION_VIEW,
+                            Uri.parse(
+                                // on below line we are passing uri,
+                                // message and whats app phone number.
+                                java.lang.String.format(
+                                    "https://api.whatsapp.com/send?phone=%s&text=%s",
+                                    whatsappNumber,
+                                    message
+                                )
                             )
-                            ,
-                        colors = ButtonDefaults.buttonColors(containerColor = sallonColor),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(text = "View Details", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                    }
-                     }
-                Spacer(modifier = Modifier.height(14.dp))
-                Text(text = "Your slot details are sent to your barber. Please wait or revisit the app to check if the barber has accepted your booking.",color = Color.Red, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, lineHeight = 16.sp)
+                        )
+                    )
+                }, textDecoration = TextDecoration.Underline,color = Color.Blue)
+                Spacer(modifier = Modifier.height(10.dp))
 
             }
         }
@@ -214,10 +228,10 @@ fun SuccessfulDialog(navController: NavController) {
 
 @Composable
 fun SuccessfulDialog() {
-    val showDialog= remember { mutableStateOf(true) }
+    val showDialog = remember { mutableStateOf(true) }
 
     Dialog(
-        onDismissRequest = {showDialog.value=false },
+        onDismissRequest = { showDialog.value = false },
         properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true)
     ) {
         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.success))
@@ -242,26 +256,34 @@ fun SuccessfulDialog() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Slots update Successfully!", color = sallonColor, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top=8.dp))
+                Text(
+                    text = "Slots update Successfully!",
+                    color = sallonColor,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
                 LottieAnimation(
                     composition = composition,
                     progress = { progress },
                     modifier = Modifier
-                        .size(width = 300.dp, height = 130.dp)
-                    ,
+                        .size(width = 300.dp, height = 130.dp),
                     alignment = Alignment.Center
                 )
 
                 Button(
-                    onClick = {showDialog.value=false},
+                    onClick = { showDialog.value = false },
                     modifier = Modifier
                         .background(Color.White)
-                        .border(1.dp, sallonColor, RoundedCornerShape(8.dp))
-
-                    ,
+                        .border(1.dp, sallonColor, RoundedCornerShape(8.dp)),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White)
                 ) {
-                    Text(text = "OK", color = sallonColor, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                    Text(
+                        text = "OK",
+                        color = sallonColor,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp
+                    )
                 }
 
             }
@@ -307,10 +329,12 @@ fun BackButtonTopAppBar(
     title: String
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().background(purple_200),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(purple_200),
         horizontalArrangement = Arrangement.Start,
 
-    ) {
+        ) {
         Surface(
             shape = RoundedCornerShape(50),
             modifier = Modifier
@@ -338,9 +362,10 @@ fun BackButtonTopAppBar(
         }
         androidx.compose.material.Text(
             text = title,
-            modifier = Modifier.fillMaxWidth().align(Alignment.CenterVertically)
-                .padding(end=70.dp)
-            ,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.CenterVertically)
+                .padding(end = 70.dp),
             textAlign = TextAlign.Center,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
@@ -381,73 +406,86 @@ fun LoadingAnimation(
     circleSize: Dp = 25.dp,
     circleColor: Color = sallonColor,
     spaceBetween: Dp = 10.dp,
-    travelDistance: Dp = 20.dp
+    travelDistance: Dp = 20.dp,
+    text:String = "Loading"
 ) {
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.White, shape = RoundedCornerShape(16.dp)),
-        color = Color.White,
-        tonalElevation = 20.dp,
-        shape = RoundedCornerShape(16.dp)
+    Dialog(
+        onDismissRequest = { },
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
     ) {
-
-        Column(
-            modifier = Modifier,
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+        Surface(
+            modifier = Modifier
+                .wrapContentSize()
+                .background(color = Color.White, shape = RoundedCornerShape(16.dp)),
+            color = Color.White,
+            tonalElevation = 20.dp,
+            shape = RoundedCornerShape(16.dp)
         ) {
 
-
-            val circles = listOf(
-                remember { Animatable(initialValue = 0f) },
-                remember { Animatable(initialValue = 0f) },
-                remember { Animatable(initialValue = 0f) }
-            )
-
-            circles.forEachIndexed { index, animatable ->
-
-                LaunchedEffect(key1 = animatable) {
-                    delay(index * 100L)
-                    animatable.animateTo(
-                        targetValue = 1f,
-                        animationSpec = infiniteRepeatable(
-                            animation = keyframes {
-                                durationMillis = 1200
-                                0.0f at 0 using LinearOutSlowInEasing
-                                1.0f at 300 using LinearOutSlowInEasing
-                                0.0f at 600 using LinearOutSlowInEasing
-                                0.0f at 1200 using LinearOutSlowInEasing
-                            },
-                            repeatMode = RepeatMode.Restart
-                        )
-                    )
-                }
-            }
-
-            val circleValues = circles.map { it.value }
-            val distance = with(LocalDensity.current) { travelDistance.toPx() }
-
-            Row(
-                modifier = modifier,
-                horizontalArrangement = Arrangement.spacedBy(spaceBetween)
+            Column(
+                modifier = Modifier.padding(vertical = 40.dp, horizontal = 45.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                circleValues.forEach { value ->
-                    Box(
-                        modifier = Modifier
-                            .size(circleSize)
-                            .graphicsLayer {
-                                translationY = -value * distance
-                            }
-                            .background(
-                                color = circleColor,
-                                shape = CircleShape
-                            )
-                    )
-                }
-            }
-        }
 
+
+                val circles = listOf(
+                    remember { Animatable(initialValue = 0f) },
+                    remember { Animatable(initialValue = 0f) },
+                    remember { Animatable(initialValue = 0f) }
+                )
+
+                circles.forEachIndexed { index, animatable ->
+
+                    LaunchedEffect(key1 = animatable) {
+                        delay(index * 100L)
+                        animatable.animateTo(
+                            targetValue = 1f,
+                            animationSpec = infiniteRepeatable(
+                                animation = keyframes {
+                                    durationMillis = 1200
+                                    0.0f at 0 using LinearOutSlowInEasing
+                                    1.0f at 300 using LinearOutSlowInEasing
+                                    0.0f at 600 using LinearOutSlowInEasing
+                                    0.0f at 1200 using LinearOutSlowInEasing
+                                },
+                                repeatMode = RepeatMode.Restart
+                            )
+                        )
+                    }
+                }
+
+                val circleValues = circles.map { it.value }
+                val distance = with(LocalDensity.current) { travelDistance.toPx() }
+
+                Row(
+                    modifier = modifier,
+                    horizontalArrangement = Arrangement.spacedBy(spaceBetween)
+                ) {
+                    circleValues.forEach { value ->
+                        Box(
+                            modifier = Modifier
+                                .size(circleSize)
+                                .graphicsLayer {
+                                    translationY = -value * distance
+                                }
+                                .background(
+                                    color = circleColor,
+                                    shape = CircleShape
+                                )
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = text,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Black
+                )
+            }
+
+        }
     }
 }
 
@@ -665,7 +703,7 @@ fun Categories(image: Int, categories: String, onClick: () -> Unit) {
             contentDescription = "Categories", // We don't need content description for images used as buttons
             modifier = Modifier
                 .size(48.dp)
-                .clickable {onClick() }
+                .clickable { onClick() }
         )
         Text(
             text = categories,
@@ -766,6 +804,7 @@ fun LaunchPhotoPicker(singlePhotoPickerLauncher: ManagedActivityResultLauncher<P
     )
 
 }
+
 @Composable
 fun RatingBar(
     modifier: Modifier = Modifier,
@@ -786,7 +825,7 @@ fun RatingBar(
                 } else {
                     if (isHalfStar) {
                         isHalfStar = false
-                        Icons.Rounded.StarHalf
+                        Icons.AutoMirrored.Rounded.StarHalf
                     } else {
                         Icons.Rounded.StarOutline
                     }
@@ -806,7 +845,7 @@ fun RatingBar(
 @Composable
 fun Preview() {
     val context = LocalContext.current
-   // CommonDialog()
+    // CommonDialog()
     CircularProgressWithAppLogo()
 }
 

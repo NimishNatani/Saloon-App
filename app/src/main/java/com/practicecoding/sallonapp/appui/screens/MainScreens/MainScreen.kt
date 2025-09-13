@@ -43,7 +43,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.practicecoding.sallonapp.R
@@ -107,21 +106,9 @@ fun MainScreen1(
             locationDetails = locationObject.locationDetails
         }
         if (locationDetails.city != null) {
-//            Toast.makeText(context,locationDetails.city,Toast.LENGTH_LONG).show()
-//            viewModelBarber.onEvent(
-//                MainEvent.getBarberNearby(
-//                    locationDetails.city!!,
-//                    6
-//                )
-//            )
-//            viewModelBarber.onEvent(
-//                MainEvent.getBarberPopular(
-//                    locationDetails.city!!,
-//                    6
-//                )
-//            )
             viewModelBarber.getAllCityBarber(locationDetails.city!!)
         }
+
     }
 
     Scaffold(
@@ -141,7 +128,7 @@ fun MainScreen1(
                     TopScreen(
                         navHostController,
                         context,
-                        viewModelBarber
+                        viewModelBarber, locationDetails.state
                     )
                 }
 
@@ -189,22 +176,26 @@ fun TopScreen(
     navController: NavController,
     context: Context,
     viewModelBarber: GetBarberDataViewModel,
+    state: String?
 
-    ) {
-    val barberNearby by viewModelBarber.barberNearby.collectAsState()
-    val barberList by viewModelBarber.barberList.collectAsState()
+) {
+
     DoubleCard(
         midCarBody = {
             CustomSearchBar(placeholderText = "Search Barber", onSearchClick = {
                 // Navigate to search screen
-                if (barberNearby.isNotEmpty()) {
+                if (state != null) {
                     navController.currentBackStackEntry?.savedStateHandle?.set(
-                        key = "barberList",
-                        value = barberList
+                        key = "state",
+                        value = state
                     )
                     navController.navigate(Screens.SearchScreen.route)
                 } else {
-                    Toast.makeText(context, "Wait for Loading Salon for you", Toast.LENGTH_LONG)
+                    Toast.makeText(
+                        context,
+                        "We can not locate your current location",
+                        Toast.LENGTH_LONG
+                    )
                         .show()
                 }
             })
@@ -220,9 +211,9 @@ fun TopScreen(
         },
         topAppBar = {
             ProfileWithNotification(
-                onProfileClick = { /*TODO*/ },
-                onNotificationClick = { /*TODO*/ },
-            )
+                onProfileClick = {
+                    viewModelBarber.navigationItem.value = NavigationItem.Profile
+                })
         },
     )
 }
@@ -242,6 +233,7 @@ fun MainScreen(
     val context = LocalContext.current
 
     val offerCard by viewModelBarber.offerCard.collectAsState()
+    val barberList by viewModelBarber.barberList.collectAsState()
     val barberNearby by
     viewModelBarber.barberNearby.collectAsState()
     val barberPopular by
@@ -280,118 +272,6 @@ fun MainScreen(
                     .fillMaxSize()
                     .verticalScroll(scroll)
             ) {
-                Row(
-                    modifier = Modifier
-                        .horizontalScroll(scrollStateRowOffer)
-                        .padding(end = 18.dp)
-                ) {
-                    if (offerCard.isNotEmpty()) {
-                        OfferCard(
-                            detailText = "hello",
-                            percentOff = 30,
-                            iconImageId = R.drawable.salon_app_logo,
-                            onExploreClick = {},
-                            cardColor = sallonColor
-                        )
-                        OfferCard(
-                            detailText = "hello",
-                            percentOff = 30,
-                            iconImageId = R.drawable.salon_app_logo,
-                            onExploreClick = {},
-                            cardColor = sallonColor
-                        )
-                        OfferCard(
-                            detailText = "hello",
-                            percentOff = 30,
-                            iconImageId = R.drawable.salon_app_logo,
-                            onExploreClick = {},
-                            cardColor = sallonColor
-                        )
-                        OfferCard(
-                            detailText = "hello",
-                            percentOff = 30,
-                            iconImageId = R.drawable.salon_app_logo,
-                            onExploreClick = {},
-                            cardColor = sallonColor
-                        )
-                    }else{
-//                        Card(
-//                            modifier = Modifier
-//                                .align(Alignment.CenterVertically),
-//                            colors = CardDefaults.cardColors(containerColor = purple_200)
-//                        ) {
-//                            Text(
-//                                text = "No Offer yet!",
-//                                color = sallonColor,
-//                                modifier = Modifier
-//                                    .fillMaxSize()
-//                                    .padding(horizontal = 16.dp, vertical = 20.dp)
-//                                    .align(Alignment.CenterHorizontally),
-//                            )
-//                        }
-                    }
-
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Categories",
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(
-                            top = 12.dp,
-                            bottom = 8.dp,
-                            start = 8.dp,
-                            end = 8.dp
-                        )
-
-                    )
-                    TextButton(onClick = {
-                        navController.navigate(Screens.AllCategory.route)
-                    }) {
-                        Text(text = "View All", color = Color.Gray)
-                    }
-
-                }
-                Row(modifier = Modifier.horizontalScroll(scrollStateRowCategories)) {
-                    Categories(image = R.drawable.haircut, categories = "Hair Cut") {
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "service",
-                            value = "Hair Cut"
-                        )
-                        navController.navigate(Screens.CatBarberList.route)
-                    }
-                    Categories(image = R.drawable.shaving, categories = "Bleach") {
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "service",
-                            value = "Bleach"
-                        )
-                        navController.navigate(Screens.CatBarberList.route)
-                    }
-                    Categories(image = R.drawable.makeup, categories = "Clean Up") {
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "service",
-                            value = "Clean Up"
-                        )
-                        navController.navigate(Screens.CatBarberList.route)
-                    }
-                    Categories(image = R.drawable.haircolor, categories = "Hair Color") {
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "service",
-                            value = "Hair Color"
-                        )
-                        navController.navigate(Screens.CatBarberList.route)
-                    }
-                    Categories(image = R.drawable.nails, categories = "Nail Cut") {
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            key = "service",
-                            value = "Nail Cut"
-                        )
-                        navController.navigate(Screens.CatBarberList.route)
-                    }
-                }
                 if (barberNearby.isEmpty()) {
                     Card(
                         modifier = Modifier
@@ -399,7 +279,7 @@ fun MainScreen(
                         colors = CardDefaults.cardColors(containerColor = purple_200)
                     ) {
                         Text(
-                            text = "Sorry, we are unable to fetch your city barber",
+                            text = "Sorry, we are unable to fetch your city barber.Please turn on your location and try again",
                             color = sallonColor,
                             modifier = Modifier
                                 .fillMaxSize()
@@ -408,6 +288,113 @@ fun MainScreen(
                         )
                     }
                 } else {
+                    Row(
+                        modifier = Modifier
+                            .horizontalScroll(scrollStateRowOffer)
+                            .padding(end = 18.dp)
+                    ) {
+                        if (offerCard.isNotEmpty()) {
+                            OfferCard(
+                                detailText = "hello",
+                                percentOff = 30,
+                                iconImageId = R.drawable.salon_app_logo,
+                                onExploreClick = {},
+                                cardColor = sallonColor
+                            )
+                            OfferCard(
+                                detailText = "hello",
+                                percentOff = 30,
+                                iconImageId = R.drawable.salon_app_logo,
+                                onExploreClick = {},
+                                cardColor = sallonColor
+                            )
+                            OfferCard(
+                                detailText = "hello",
+                                percentOff = 30,
+                                iconImageId = R.drawable.salon_app_logo,
+                                onExploreClick = {},
+                                cardColor = sallonColor
+                            )
+                            OfferCard(
+                                detailText = "hello",
+                                percentOff = 30,
+                                iconImageId = R.drawable.salon_app_logo,
+                                onExploreClick = {},
+                                cardColor = sallonColor
+                            )
+                        } else {
+                        }
+
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Categories",
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(
+                                top = 12.dp,
+                                bottom = 8.dp,
+                                start = 8.dp,
+                                end = 8.dp
+                            )
+
+                        )
+                        TextButton(onClick = {
+                            navController.navigate(Screens.AllCategory.route)
+                        }) {
+                            Text(text = "View All", color = Color.Gray)
+                        }
+
+                    }
+                    Row(modifier = Modifier.horizontalScroll(scrollStateRowCategories)) {
+                        Categories(image = R.drawable.hair_cut_blue, categories = "Hair Cut") {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                key = "service",
+                                value = "Hair Cut"
+                            )
+                            navController.navigate(Screens.CatBarberList.route)
+                        }
+                        Categories(image = R.drawable.shave_blue, categories = "Shaving") {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                key = "service",
+                                value = "Shaving"
+                            )
+                            navController.navigate(Screens.CatBarberList.route)
+                        }
+                        Categories(image = R.drawable.make_up_blue, categories = "Make Up") {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                key = "service",
+                                value = "Make Up"
+                            )
+                            navController.navigate(Screens.CatBarberList.route)
+                        }
+                        Categories(image = R.drawable.hair_color, categories = "Hair Color") {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                key = "service",
+                                value = "Hair Color"
+                            )
+                            navController.navigate(Screens.CatBarberList.route)
+                        }
+                        Categories(image = R.drawable.hair_wash_blue, categories = "Hair Wash") {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                key = "service",
+                                value = "Hair Wash"
+                            )
+                            navController.navigate(Screens.CatBarberList.route)
+                        }
+                        Categories(image = R.drawable.manicure_blue, categories = "Manicure") {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                key = "service",
+                                value = "Manicure"
+                            )
+                            navController.navigate(Screens.CatBarberList.route)
+                        }
+
+                    }
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -430,8 +417,8 @@ fun MainScreen(
                                 value = "NearBy"
                             )
                             navController.currentBackStackEntry?.savedStateHandle?.set(
-                                key = "location",
-                                value = locationObject.locationDetails.city.toString()
+                                key = "barber",
+                                value = barberList
                             )
                             navController.navigate(Screens.ViewAllScreen.route)
                         }) {
@@ -439,22 +426,6 @@ fun MainScreen(
                         }
 
                     }
-//                Row(modifier = Modifier.horizontalScroll(scrollStateNearbySalon)) {
-//                    if (barberNearby.isEmpty()) {
-//                        Card(
-//                            modifier = Modifier
-//                                .align(Alignment.CenterHorizontally),
-//                            colors = CardDefaults.cardColors(containerColor = purple_200)
-//                        ) {
-//                            Text(
-//                                text = "Sorry, we are unable to fetch your city barber",
-//                                color = sallonColor,
-//                                modifier = Modifier
-//                                    .fillMaxSize().padding(horizontal = 16.dp, vertical = 20.dp)
-//                                    .align(Alignment.CenterHorizontally),
-//                            )
-//                        }
-//                    } else {
                     Row(modifier = Modifier.horizontalScroll(scrollStateNearbySalon)) {
                         for (barber in barberNearby) {
                             var isLiked by remember {
@@ -528,8 +499,8 @@ fun MainScreen(
 
                             )
                             navController.currentBackStackEntry?.savedStateHandle?.set(
-                                key = "location",
-                                value = locationObject.locationDetails.city.toString()
+                                key = "barber",
+                                value = barberList
                             )
                             navController.navigate(Screens.ViewAllScreen.route)
                         }) {
@@ -537,21 +508,6 @@ fun MainScreen(
                         }
 
                     }
-//                if (barberPopular.isEmpty()) {
-//                    Card(
-//                        modifier = Modifier
-//                            .align(Alignment.CenterHorizontally),
-//                        colors = CardDefaults.cardColors(containerColor = purple_200)
-//                    ) {
-//                        Text(
-//                            text = "Sorry, we are unable to fetch your city barber",
-//                            color = sallonColor,
-//                            modifier = Modifier
-//                                .fillMaxSize().padding(horizontal = 16.dp, vertical = 20.dp)
-//                                .align(Alignment.CenterHorizontally),
-//                        )
-//                    }
-//                } else {
                     for (barber in barberPopular) {
                         var isLiked by remember {
                             mutableStateOf(

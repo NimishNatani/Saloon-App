@@ -90,16 +90,15 @@ class OrderViewModel @Inject constructor(
         val today = LocalDate.now().toString()
         viewModelScope.launch {
             repo.getOrder().collect { orders ->
-                _orderList.update { it.apply { clear() } }
-                _orderList.emit(orders.toMutableList())
+                _orderList.update { it.apply {
+                    clear()
+                    addAll(orders.distinctBy { order->order.orderId }.toMutableList()) } }
                 _pendingOrderList.update { it.toMutableList().apply { clear() } }
                 _acceptedOrderList.update { it.toMutableList().apply { clear() } }
                 _completedOrderList.update { it.toMutableList().apply { clear() } }
                 _cancelledOrderList.update { it.toMutableList().apply { clear() } }
                 _userReviewList.update { it.toMutableList().apply { clear() } }
                 orderList.value.forEach { order ->
-                    Log.d("OrderViewModel", "getOrders: ${order.orderStatus}")
-
                     when (order.orderStatus) {
                         OrderStatus.PENDING -> {
                             if (order.date >= today) {
@@ -156,7 +155,6 @@ class OrderViewModel @Inject constructor(
                             }
                         }
                     }
-                    Log.d("size",_pendingOrderList.value.size.toString()+_cancelledOrderList.value.size.toString()+_acceptedOrderList.value.size.toString()+_completedOrderList.value.size.toString())
                 }
             }
 

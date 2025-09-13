@@ -89,7 +89,7 @@ fun ChatScreen(
                     tint = sallonColor,
                     modifier = Modifier
                         .clickable {
-                            val u = Uri.parse("tel:$user.phoneNumber")
+                            val u = Uri.parse("tel:${user.phoneNumber}")
 
                             // Create the intent and set the data for the
                             // intent as the phone number.

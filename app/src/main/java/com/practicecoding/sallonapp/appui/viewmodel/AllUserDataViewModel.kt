@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.practicecoding.sallonapp.data.FireStoreDbRepository
 import com.practicecoding.sallonapp.data.model.UserModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -14,8 +16,8 @@ import javax.inject.Inject
 class AllUserDataViewModel @Inject constructor(
     private val repo: FireStoreDbRepository
 ): ViewModel(){
-    private var _user = mutableStateOf(UserModel())
-    var user : State<UserModel> = _user
+    private var _user = MutableStateFlow(UserModel())
+    var user  = _user.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -25,7 +27,7 @@ class AllUserDataViewModel @Inject constructor(
 
     private suspend fun getCurrentUser() {
         viewModelScope.launch {
-            _user.value = repo.getUser()!!
+            _user.emit(repo.getUser()!!)
         }
     }
 }

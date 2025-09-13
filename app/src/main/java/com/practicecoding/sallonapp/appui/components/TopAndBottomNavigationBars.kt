@@ -145,7 +145,6 @@ fun CircleWithMessageCount(
 fun TransparentTopAppBar(
     onBackClick: () -> Unit,
     onLikeClick: () -> Unit,
-    onShareClick: () -> Unit,
     isFavorite: Boolean,
     usingInProfile: Boolean = false,
     modifier: Modifier = Modifier,
@@ -194,31 +193,14 @@ fun TransparentTopAppBar(
                             Icon(
                                 imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
                                 contentDescription = "Like",
-                                tint = Color(sallonColor.toArgb()),
+                                tint = Color.Red,
                                 modifier = Modifier
                                     .size(30.dp)
                                     .padding(4.dp)
                             )
                         }
                     }
-                    IconButton(
-                        onClick = onShareClick,
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = Color.White
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = "Share",
-                                tint = Color.Black,
-                                modifier = Modifier
-                                    .size(30.dp)
-                                    .padding(4.dp)
-                            )
-                        }
-                    }
+
                 }
             }
         }

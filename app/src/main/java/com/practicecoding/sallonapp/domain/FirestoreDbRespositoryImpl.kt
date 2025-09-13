@@ -3,11 +3,9 @@ package com.practicecoding.sallonapp.domain
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import androidx.compose.runtime.collectAsState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObject
@@ -31,21 +29,13 @@ import com.practicecoding.sallonapp.data.model.UserModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flatMapMerge
-import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
@@ -55,6 +45,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.inject.Inject
 import javax.inject.Named
 import kotlin.coroutines.resume
@@ -106,51 +97,32 @@ class FirestoreDbRespositoryImpl @Inject constructor(
     ): Flow<Resource<String>> = callbackFlow {
         trySend(Resource.Loading)
         CoroutineScope(Dispatchers.IO).launch {
-            val randomInt = (0..10000).random()
             if (imageUri != null) {
                 val storageRef =
-                    storage.reference.child("profile_image/${auth.currentUser?.uid}$randomInt.jpg")
-                try {
-                    storageRef.putFile(imageUri).await()
-                    val downloadImage = storageRef.downloadUrl.await()
-                    userModel.imageUri = downloadImage.toString()
-                } catch (e: Exception) {
-                    trySend(Resource.Failure(e))
-                    close()
-                    return@launch
-                }
-            } else {
-                userModel.imageUri =
-                    "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636"
+                    storage.reference.child("profile_image/${auth.currentUser?.uid}.jpg")
+                storageRef.delete()
+
+                storageRef.putFile(imageUri).addOnCompleteListener { task ->
+                    storageRef.downloadUrl.addOnCompleteListener { imageUri ->
+                        val downloadImage = imageUri.result
+                        userModel.imageUri = downloadImage.toString()
+                    }
+                }.await()
+
             }
-            val updates = mutableMapOf<String, Any?>()
-
-            userModel.name?.takeIf { it.isNotEmpty() }?.let { updates["name"] = it }
-            userModel.phoneNumber?.takeIf { it.isNotEmpty() }?.let { updates["phoneNumber"] = it }
-            userModel.dateOfBirth?.takeIf { it.isNotEmpty() }?.let { updates["dateOfBirth"] = it }
-            userModel.gender?.takeIf { it.isNotEmpty() }?.let { updates["gender"] = it }
-            userModel.userId?.takeIf { it.isNotEmpty() }?.let { updates["userUid"] = it }
-            userModel.imageUri?.takeIf { it.isNotEmpty() }?.let { updates["imageUri"] = it }
-
-            usersDb.document(auth.currentUser?.uid.toString())
-                .update(updates)
-                .addOnSuccessListener {
-                    trySend(Resource.Success("Successfully Updated User Information"))
-                }.addOnFailureListener { e ->
-                    trySend(Resource.Failure(e))
-                }
+            delay(1000)
+            userModel.userId = auth.currentUser?.uid.toString()
+            usersDb.document(auth.currentUser!!.uid).set(userModel).addOnSuccessListener {
+                trySend(Resource.Success("Successfully update"))
+            }.addOnFailureListener {
+                trySend(Resource.Failure(it))
+            }
         }
         awaitClose { close() }
     }
 
     override suspend fun getUser(): UserModel {
-        var userModel = UserModel(
-            "User",
-            "+91 1111111111",
-            "01/01/2000",
-            "Gender",
-            "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636"
-        )
+        var userModel = UserModel()
 
         suspendCancellableCoroutine<Unit> { continuation ->
             usersDb.document(auth.currentUser!!.uid).get().addOnSuccessListener { documentSnapSot ->
@@ -191,7 +163,50 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                                     city = document.getString("city") ?: "",
                                     lat = document.getDouble("lat")!!.toDouble(),
                                     long = document.getDouble("long")!!.toDouble(),
-                                    noOfReviews = document.getString("noOfReviews"),
+                                    noOfReviews = document.getString("noOfReviews").toString(),
+                                    open = document.getBoolean("open")!!,
+                                    aboutUs = document.getString("aboutUs").toString(),
+                                    saloonType = document.getString("saloonType").toString()
+                                )
+                            }.toMutableList()
+
+                            trySend(listOfBarber.toMutableList()).isSuccess
+                        }
+                    }
+                }
+            awaitClose {
+                listenerRegistration.remove()
+            }
+        }.flowOn(Dispatchers.IO)
+
+    override suspend fun getAllStateBarber(state: String): Flow<MutableList<BarberModel>> =
+        callbackFlow {
+
+            val listenerRegistration = barberDb.whereEqualTo("state", state)
+                .addSnapshotListener { querySnapshot, e ->
+                    if (e != null) {
+                        close(e)
+                        return@addSnapshotListener
+                    }
+                    if (querySnapshot != null) {
+                        launch {
+
+                            val listOfBarber = querySnapshot.documents.map { document ->
+                                BarberModel(
+                                    name = document.getString("name") ?: "",
+                                    rating = document.getDouble("rating") ?: 0.0,
+                                    shopName = document.getString("shopName") ?: "",
+                                    imageUri = document.getString("imageUri")
+                                        ?: "https://firebasestorage.googleapis.com/v0/b/sallon-app-6139e.appspot.com/o/salon_app_logo.png?alt=media&token=0909deb8-b9a8-415a-b4b6-292aa2729636",
+                                    shopStreetAddress = document.getString("shopStreetAddress")
+                                        ?: "",
+                                    phoneNumber = document.getString("phoneNumber") ?: "",
+                                    uid = document.getString("uid").toString(),
+                                    state = document.getString("state").toString(),
+                                    city = document.getString("city") ?: "",
+                                    lat = document.getDouble("lat")!!.toDouble(),
+                                    long = document.getDouble("long")!!.toDouble(),
+                                    noOfReviews = document.getString("noOfReviews").toString(),
                                     open = document.getBoolean("open")!!,
                                     aboutUs = document.getString("aboutUs").toString(),
                                     saloonType = document.getString("saloonType").toString()
@@ -376,7 +391,8 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     endTime = document.getString("endTime").toString(),
                     booked = document.get("booked") as? List<String> ?: emptyList(),
                     notAvailable = document.get("notAvailable") as? List<String> ?: emptyList(),
-                    date = document.getString("date").toString()
+                    date = document.getString("date").toString(),
+                    isOpen = document.getBoolean("open") ?: true
                 )
             }
             slots
@@ -404,7 +420,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
             "genderCounter" to bookingModel.genderCounter,
             "selectedDate" to bookingModel.selectedDate.format(formatter),
             "selectedSlots" to bookingModel.selectedSlots,
-            "dateandtime" to formattedDate,
+            "dateandtime" to formattedDate+auth.currentUser?.uid,
             "status" to "pending",
             "paymentMethod" to "Cash",
             "review" to ReviewModel(userDp = userDp, userName = userName)
@@ -422,7 +438,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                 .await()
             Firebase.firestore.collection("Booking")
                 .document(bookingModel.barber.uid + auth.currentUser?.uid)
-                .collection("Order").document(formattedDate).set(bookingData).await()
+                .collection("Order").document(formattedDate+auth.currentUser?.uid).set(bookingData).await()
         } catch (e: Exception) {
             Log.d("slotBooking", "Error setting booking: ${e.message}")
         }
@@ -464,7 +480,7 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                             val barberDocument = barberDb.document(
                                 documentSnapshot.getString("barberuid").toString()
                             ).get().await()
-                            val name = barberDocument.getString("name").toString()
+                            val name = barberDocument.getString("shopName").toString()
                             val image = barberDocument.getString("imageUri").toString()
                             val phoneNumber = barberDocument.getString("phoneNumber").toString()
                             val message = documentSnapshot.get("lastmessage") as Map<*, *>
@@ -541,155 +557,9 @@ class FirestoreDbRespositoryImpl @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
 
-//    override suspend fun getOrder(): Flow<List<OrderModel>> = callbackFlow {
-//
-//        // Calculate the date 8 days ago
-//        val calendar = Calendar.getInstance().apply {
-//            add(Calendar.DAY_OF_YEAR, -8) // Subtract 8 days from today
-//            set(Calendar.HOUR_OF_DAY, 0)
-//            set(Calendar.MINUTE, 0)
-//            set(Calendar.SECOND, 0)
-//            set(Calendar.MILLISECOND, 0)
-//        }
-//        val eightDaysAgo = calendar.time
-//
-//        // Date format that matches the Firestore 'time' field format
-//        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-//
-//
-//        val listenerRegistrations = Firebase.firestore.collection("Booking")
-//            .whereEqualTo("useruid", auth.currentUser?.uid.toString())
-//            .addSnapshotListener { bookingsSnapshot, e ->
-//                if (e != null) {
-//                    close(e)
-//                    return@addSnapshotListener
-//                }
-//                // Step 2: Set listeners on each order subcollection of the matching bookings
-//                if (bookingsSnapshot != null)
-//                    for (booking in bookingsSnapshot.documents) {
-//                        val listenerRegistration = booking.reference.collection("Order")
-//                            .addSnapshotListener { ordersSnapshot, error ->
-//                                if (error != null) {
-//                                    close(error) // If there is an error, close the flow with the error
-//                                } else if (ordersSnapshot != null) {
-//                                    CoroutineScope(Dispatchers.IO).launch {
-//                                        // Collect orders data from the snapshot and process them in parallel
-//                                        val jobs = ordersSnapshot.documents.map { order ->
-//                                            async {
-//                                                val timeString =
-//                                                    order.get("selectedDate").toString()
-//
-//                                                val orderDate = timeString.let {
-//                                                    dateFormat.parse(it)
-//                                                }
-//
-//                                                if (orderDate != null && orderDate.after(
-//                                                        eightDaysAgo
-//                                                    )
-//                                                ) {
-//                                                    // Convert Firestore document to BookedModel
-//                                                    val bookedModel =
-//                                                        order.toObject(BookedModel::class.java)
-//                                                    // Fetch barber details asynchronously
-//                                                    val barberDocument = bookedModel?.let {
-//                                                        barberDb.document(it.barberuid).get()
-//                                                            .await()
-//                                                    }
-//
-//                                                    val name =
-//                                                        barberDocument?.getString("name").toString()
-//                                                    val shopName =
-//                                                        barberDocument?.getString("shopName")
-//                                                            .toString()
-//                                                    val image =
-//                                                        barberDocument?.getString("imageUri")
-//                                                            .toString()
-//                                                    val phoneNo =
-//                                                        barberDocument?.getString("phoneNumber")
-//                                                            .toString()
-//                                                    val listOfService =
-//                                                        bookedModel?.listOfService ?: listOf()
-//                                                    val timeSlots =
-//                                                        bookedModel?.selectedSlots ?: listOf()
-//                                                    val review = bookedModel?.review as ReviewModel
-//
-//                                                    val orderStatus = when (bookedModel.status) {
-//                                                        "completed" -> OrderStatus.COMPLETED
-//                                                        "accepted" -> OrderStatus.ACCEPTED
-//                                                        "cancelled" -> OrderStatus.CANCELLED
-//                                                        else -> OrderStatus.PENDING
-//                                                    }
-//
-//                                                    // Create OrderModel and add it to the list
-//                                                    val orderModel =
-//                                                        OrderModel(
-//                                                            imageUrl = image,
-//                                                            listOfService = listOfService,
-//                                                            timeSlot = timeSlots,
-//                                                            phoneNumber = phoneNo,
-//                                                            barberName = name,
-//                                                            barberShopName = shopName,
-//                                                            paymentMethod = "Cash",
-//                                                            orderStatus = orderStatus,
-//                                                            orderId = bookedModel.dateandtime,
-//                                                            date = bookedModel.selectedDate,
-//                                                            barberuid = bookedModel.barberuid,
-//                                                            useruid = bookedModel.useruid,
-//                                                            review = review,
-//                                                            genderCounter = bookedModel.genderCounter
-//                                                        )
-//
-//
-//                                                    orderModel
-//                                                } else {
-//
-//                                                    if (order.getString("status") == "cancelled" || order.getString(
-//                                                            "status"
-//                                                        ) == "pending" || order.getString("status") == "accepted"
-//                                                    ) {
-//                                                        order.reference.delete()
-//                                                    }
-//                                                    null
-//                                                }
-//                                            }
-//                                        }
-//
-//                                        // Wait for all the jobs to complete
-//                                        val results = jobs.awaitAll().filterNotNull()
-//
-//                                        // Sort the orders by time in descending order
-//                                        val sortedOrders = results.sortedByDescending {
-//                                            it.orderId
-//                                        }
-//
-//                                        // Emit the sorted list of orders
-//                                        trySend(sortedOrders).isSuccess
-//                                    }
-//                                }
-//                            }
-//                        awaitClose { listenerRegistration.remove() }
-//                    }
-//            }
-//            .addOnFailureListener { exception ->
-//                close(exception) // Close the flow with the error
-//            }
-//
-//        // Await close of the flow
-//        awaitClose {
-//            listenerRegistrations.forEach { it.remove() } // Clean up listeners when the flow is closed
-//        }
-//    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun getOrder(): Flow<List<OrderModel>> = callbackFlow {
-        val calendar = Calendar.getInstance().apply {
-            add(Calendar.DAY_OF_YEAR, -8) // Subtract 8 days from today
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        val eightDaysAgo = calendar.time
+        val eightDaysAgo = calender(8).time
+        val fourteenDaysAgo = calender(14).time
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val _result = mutableListOf<OrderModel>()
 
@@ -701,50 +571,65 @@ class FirestoreDbRespositoryImpl @Inject constructor(
                     close(e) // Close flow on error
                     return@addSnapshotListener
                 }
-                _result.clear()
-
                 if (bookingsSnapshot != null && !bookingsSnapshot.isEmpty) {
                     bookingsSnapshot.documents.forEach { bookingDoc ->
                         bookingDoc.reference.collection("Order")
                             .addSnapshotListener { orderSnapshot, error ->
+                                Log.d("secondhere", "second")
                                 if (error != null) {
                                     close(error) // Close flow on error
                                     return@addSnapshotListener
                                 }
-_result.clear()
                                 if (orderSnapshot != null && !orderSnapshot.isEmpty) {
                                     CoroutineScope(Dispatchers.IO).launch {
                                         val jobs = orderSnapshot.documents.map { orderDoc ->
                                             async {
-                                                val timeString = orderDoc.get("selectedDate").toString()
-                                                val orderDate = timeString.let { dateFormat.parse(it) }
+                                                val timeString =
+                                                    orderDoc.get("selectedDate").toString()
+                                                val orderDate =
+                                                    timeString.let { dateFormat.parse(it) }
 
-                                                if (orderDate != null && (orderDate.after(eightDaysAgo)||orderDoc.getString("status")=="completed")) {
+                                                if (orderDate != null && (orderDate.after(
+                                                        eightDaysAgo
+                                                    ) || (orderDoc.getString("status") == "completed" && orderDate.after(
+                                                        fourteenDaysAgo
+                                                    )))
+                                                )  {
                                                     val bookedModel =
                                                         orderDoc.toObject(BookedModel::class.java)
                                                     val barberDocument = bookedModel?.let {
-                                                        barberDb.document(it.barberuid).get().await()
+                                                        barberDb.document(it.barberuid).get()
+                                                            .await()
                                                     }
 
                                                     val name = barberDocument?.getString("name")
                                                         .toString()
-                                                    val shopName = barberDocument?.getString("shopName")
-                                                        .toString()
-                                                    val image = barberDocument?.getString("imageUri")
-                                                        .toString()
-                                                    val phoneNo = barberDocument?.getString("phoneNumber")
-                                                        .toString()
-                                                    val listOfService = bookedModel?.listOfService ?: listOf()
-                                                    val timeSlots = bookedModel?.selectedSlots ?: listOf()
+                                                    val shopName =
+                                                        barberDocument?.getString("shopName")
+                                                            .toString()
+                                                    val image =
+                                                        barberDocument?.getString("imageUri")
+                                                            .toString()
+                                                    val phoneNo =
+                                                        barberDocument?.getString("phoneNumber")
+                                                            .toString()
+                                                    val listOfService =
+                                                        bookedModel?.listOfService ?: listOf()
+                                                    val timeSlots =
+                                                        bookedModel?.selectedSlots ?: listOf()
                                                     val review = bookedModel?.review as ReviewModel
 
-                                                    val orderStatus = when (bookedModel?.status) {
+                                                    val orderStatus = when (bookedModel.status) {
                                                         "completed" -> OrderStatus.COMPLETED
                                                         "accepted" -> OrderStatus.ACCEPTED
                                                         "cancelled" -> OrderStatus.CANCELLED
                                                         else -> OrderStatus.PENDING
                                                     }
-
+                                                    val order =
+                                                        _result.find { it.orderId == bookedModel.dateandtime }
+                                                    if (order!=null) {
+                                                        _result.remove(order)
+                                                    }
                                                     // Create OrderModel and return it
                                                     OrderModel(
                                                         imageUrl = image,
@@ -755,18 +640,15 @@ _result.clear()
                                                         barberShopName = shopName,
                                                         paymentMethod = "Cash",
                                                         orderStatus = orderStatus,
-                                                        orderId = bookedModel?.dateandtime ?: "",
-                                                        date = bookedModel?.selectedDate ?: "",
-                                                        barberuid = bookedModel?.barberuid ?: "",
-                                                        useruid = bookedModel?.useruid ?: "",
+                                                        orderId = bookedModel.dateandtime,
+                                                        date = bookedModel.selectedDate,
+                                                        barberuid = bookedModel.barberuid,
+                                                        useruid = bookedModel.useruid,
                                                         review = review,
                                                         genderCounter = bookedModel.genderCounter
                                                     )
                                                 } else {
-                                                    val status = orderDoc.getString("status")
-                                                    if (status == "cancelled" || status == "pending" || status == "accepted") {
-                                                        orderDoc.reference.delete()
-                                                    }
+                                                    orderDoc.reference.delete()
                                                     null
                                                 }
                                             }
@@ -785,8 +667,6 @@ _result.clear()
 
         awaitClose { listenerRegistration.remove() }
     }
-
-
 
 
     override suspend fun updateOrderStatus(order: OrderModel, status: String)
@@ -818,22 +698,29 @@ _result.clear()
                     .collection("Order").document(order.orderId)
                     .update("review", review)
                     .addOnSuccessListener {
+
+                        barberDb.document(order.barberuid).get().addOnSuccessListener {
+                                val rating = it.get("rating").toString().toDouble()
+                                val noOfReview =
+                                    it.get("noOfReviews").toString().toInt()
+
+                                val updatedNoOfReview = noOfReview + 1
+                                val updatedRating =
+                                    ((rating * noOfReview) + review.rating) / updatedNoOfReview
+                                barberDb.document(order.barberuid)
+                                    .update("noOfReviews", updatedNoOfReview.toString())
+
+
+                                barberDb.document(order.barberuid)
+                                    .update("rating", updatedRating)
+                            }
+
                         trySend(Resource.Success("Review added successfully")).isSuccess
                     }
                     .addOnFailureListener {
                         trySend(Resource.Failure(it)).isSuccess
                     }
-                val barberSnapshot = barberDb.document(order.barberuid).get().await()
-                var rating = barberSnapshot.get("rating").toString().toDouble()
-                var noOfReview = barberSnapshot.get("noOfReviews").toString().toInt()
 
-//                rating = ((rating*noOfReview)+review.rating)/(++noOfReview)
-                // Update barber's number of reviews and rating
-                barberDb.document(order.barberuid).update("noOfReviews", (++noOfReview).toString())
-                    .await()
-                barberDb.document(order.barberuid)
-                    .update("rating", ((rating * (noOfReview - 1)) + review.rating) / (noOfReview))
-                    .await()
 
             } catch (e: Exception) {
                 trySend(Resource.Failure(e)).isSuccess
@@ -842,74 +729,76 @@ _result.clear()
             }
         }
 
-    override suspend fun getReview(barberuid: String): Flow<Resource<MutableList<ReviewModel>>> =
+    override suspend fun getReview(barberuid: String): Flow<List<ReviewModel>> =
         callbackFlow {
             val db = FirebaseFirestore.getInstance()
-            val listenerRegistrations = mutableListOf<ListenerRegistration>()
+            val _result = mutableListOf<ReviewModel>()
 
             // Step 1: Query Bookings where userUid matches
-            db.collection("Booking")
+            val listenerRegistration = db.collection("Booking")
                 .whereEqualTo("barberuid", barberuid)
-                .get()
-                .addOnSuccessListener { bookingsSnapshot ->
+                .addSnapshotListener { bookingsSnapshot, e ->
+                    if (e != null) {
+                        close(e) // Close flow on error
+                        return@addSnapshotListener
+                    }
                     // Step 2: Set listeners on each order subcollection of the matching bookings
-                    for (booking in bookingsSnapshot.documents) {
-                        val listenerRegistration = booking.reference.collection("Order")
-                            .addSnapshotListener { ordersSnapshot, error ->
-                                if (error != null) {
-                                    close(error) // If there is an error, close the flow with the error
-                                } else if (ordersSnapshot != null) {
-                                    CoroutineScope(Dispatchers.IO).launch {
-                                        // Collect orders data from the snapshot and process them in parallel
-                                        val jobs = ordersSnapshot.documents.map { order ->
-                                            async {
-                                                // Convert Firestore document to BookedModel
-                                                val bookedModel =
-                                                    order.toObject(BookedModel::class.java)
-                                                if (bookedModel != null && bookedModel.review.rating.toString()
-                                                        .isNotEmpty() && bookedModel.review.reviewTime.isNotEmpty()
-                                                ) {
-                                                    val reviewModel =
-                                                        ReviewModel(
+                    if (bookingsSnapshot != null && !bookingsSnapshot.isEmpty) {
+                        bookingsSnapshot.documents.forEach { bookingDoc ->
+                            bookingDoc.reference.collection("Order")
+                                .addSnapshotListener { ordersSnapshot, error ->
+                                    if (error != null) {
+                                        close(error) // If there is an error, close the flow with the error
+                                    } else if (ordersSnapshot != null) {
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            // Collect orders data from the snapshot and process them in parallel
+                                            val jobs = ordersSnapshot.documents.map { order ->
+                                                async {
+                                                    // Convert Firestore document to BookedModel
+                                                    val bookedModel =
+                                                        order.toObject(BookedModel::class.java)
+                                                    if (bookedModel != null && bookedModel.review.rating.toString()
+                                                            .isNotEmpty() && bookedModel.review.reviewTime.isNotEmpty()
+                                                    ) {
+                                                       val newReview =  ReviewModel(
                                                             rating = bookedModel.review.rating,
                                                             reviewTime = bookedModel.review.reviewTime,
                                                             reviewText = bookedModel.review.reviewText,
                                                             userDp = bookedModel.review.userDp,
                                                             userName = bookedModel.review.userName
                                                         )
-                                                    reviewModel
-                                                } else {
-                                                    null
+                                                        val existingReview = _result.find{it==newReview}
+
+                                                        // Add or update the order based on orderId and orderStatus
+                                                        if (existingReview != null) {
+                                                            _result.remove(existingReview)
+                                                        }
+                                                        newReview
+                                                    } else {
+                                                        null
+                                                    }
                                                 }
+
                                             }
-
+                                            val results = jobs.awaitAll().filterNotNull()
+                                            _result.addAll(results)
+                                            trySend(_result.sortedByDescending { it.rating }).isSuccess
                                         }
-
-                                        // Wait for all the jobs to complete
-                                        val results = jobs.awaitAll().filterNotNull()
-
-                                        // Sort the orders by time in descending order
-                                        val sortedOrders = results.sortedByDescending {
-                                            it.reviewTime
-                                        }
-
-                                        // Emit the sorted list of orders
-                                        trySend(Resource.Success(sortedOrders.toMutableList())).isSuccess
                                     }
                                 }
-                            }
-
-                        // Store the listener to remove later
-                        listenerRegistrations.add(listenerRegistration)
+                        }
                     }
                 }
-                .addOnFailureListener { exception ->
-                    close(exception) // Close the flow with the error
-                }
-
-            // Await close of the flow
-            awaitClose {
-                listenerRegistrations.forEach { it.remove() } // Clean up listeners when the flow is closed
-            }
+            awaitClose { listenerRegistration.remove() }
         }
+
+    fun calender(days: Int): Calendar {
+        return Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, -days) // Subtract 8 days from today
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+    }
 }

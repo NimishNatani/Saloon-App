@@ -2,6 +2,7 @@ package com.practicecoding.sallonapp.appui.viewmodel
 
 import android.location.Location
 import android.util.Log
+import androidx.annotation.StringRes
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +55,9 @@ class GetBarberDataViewModel @Inject constructor(
 
     private val _barberList = MutableStateFlow(emptyList<BarberModel>().toMutableList())
     val barberList: StateFlow<MutableList<BarberModel>> = _barberList.asStateFlow()
+
+    private val _barberListByState = MutableStateFlow(emptyList<BarberModel>().toMutableList())
+    val barberListByState : StateFlow<MutableList<BarberModel>> = _barberListByState.asStateFlow()
 
     private val _barberListByService = MutableStateFlow(emptyList<BarberModel>().toMutableList())
     val barberListByService: StateFlow<MutableList<BarberModel>> = _barberListByService.asStateFlow()
@@ -163,6 +167,24 @@ class GetBarberDataViewModel @Inject constructor(
                 .toMutableList())
         }
     }
+    suspend fun getBarberListByState(state:String){
+        viewModelScope.launch(Dispatchers.Default) {
+            repo.getAllStateBarber(state).collect {
+                _barberListByState.emit(it)
+                _barberListByState.value.map { barber ->
+                    barber.apply {
+                        val locationDetails = locationObject.locationDetails
+                        distance = getLocation(
+                            lat1 = locationDetails.latitude!!.toDouble(),
+                            long1 = locationDetails.longitude!!.toDouble(),
+                            lat2 = barber.lat,
+                            long2 = barber.long
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     private suspend fun getBarber(uid: String?): BarberModel? = repo.getBarber(uid)
 
@@ -190,19 +212,10 @@ class GetBarberDataViewModel @Inject constructor(
 
     suspend fun getReviewList(barberuid: String) {
         repo.getReview(barberuid).collect {
-            _barberReviewList.emit(emptyList<ReviewModel>().toMutableList())
-            when (it) {
-                is Resource.Success -> {
-                    _barberReviewList.emit(it.result)
-                    Log.d("ReviewModel", "getReviewList: ${it.result}")
-                }
 
-                is Resource.Failure -> {
-                    Log.d("OrderViewModel", "getReviewList: Error${it.exception}")
-                }
-
-                else -> {}
-            }
+                    _barberReviewList.emit(it.toMutableList())
+                    _barberReviewList.value.distinct()
+                    Log.d("ReviewModel", "getReviewList: $it")
         }
     }
 

@@ -60,6 +60,7 @@ import androidx.navigation.NavController
 import com.practicecoding.sallonapp.appui.Screens
 import com.practicecoding.sallonapp.appui.components.CommonDialog
 import com.practicecoding.sallonapp.appui.components.GeneralButton
+import com.practicecoding.sallonapp.appui.components.LoadingAnimation
 import com.practicecoding.sallonapp.appui.utils.showMsg
 import com.practicecoding.sallonapp.appui.viewmodel.AuthViewModel
 import com.practicecoding.sallonapp.data.Resource
@@ -119,7 +120,7 @@ fun PhoneNumberScreen(
         }
     }
     if (isDialog)
-        CommonDialog("Fetching Data")
+        LoadingAnimation(text="Fetching Data...")
 
     Column(
         modifier = Modifier.fillMaxSize(),

@@ -33,6 +33,8 @@ interface FireStoreDbRepository {
 
     suspend fun getAllCityBarber(city: String):Flow<MutableList<BarberModel>>
 
+    suspend fun getAllStateBarber(state:String):Flow<MutableList<BarberModel>>
+
     suspend fun getBarberByService(service: String): MutableList<BarberModel>
 
     suspend fun getBarber(uid: String?): BarberModel?
@@ -50,5 +52,5 @@ interface FireStoreDbRepository {
     suspend fun getOrder(): Flow<List<OrderModel>>
     suspend fun updateOrderStatus(order: OrderModel, status: String): Flow<Resource<String>>
     suspend fun addReview(order: OrderModel, review: ReviewModel): Flow<Resource<String>>
-    suspend fun getReview(barberUid: String): Flow<Resource<MutableList<ReviewModel>>>
+    suspend fun getReview(barberUid: String): Flow<List<ReviewModel>>
 }

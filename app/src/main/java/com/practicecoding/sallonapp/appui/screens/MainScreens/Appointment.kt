@@ -1,5 +1,10 @@
 package com.practicecoding.sallonapp.appui.screens.MainScreens
 
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
+import android.telephony.SmsManager
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
@@ -35,6 +40,8 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,14 +51,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
 import com.practicecoding.sallonapp.appui.components.ExpandableCard
 import com.practicecoding.sallonapp.appui.components.GeneralButton
 import com.practicecoding.sallonapp.appui.components.ServiceNameAndPriceCard
@@ -60,8 +68,10 @@ import com.practicecoding.sallonapp.appui.viewmodel.GetBarberDataViewModel
 import com.practicecoding.sallonapp.appui.viewmodel.MainEvent
 import com.practicecoding.sallonapp.appui.viewmodel.MessageEvent
 import com.practicecoding.sallonapp.appui.viewmodel.MessageViewModel
+import com.practicecoding.sallonapp.appui.viewmodel.PaymentViewModel
 import com.practicecoding.sallonapp.data.model.BookingModel
 import com.practicecoding.sallonapp.data.model.LastMessage
+import com.practicecoding.sallonapp.data.module.PaymentState
 import com.practicecoding.sallonapp.ui.theme.purple_200
 import com.practicecoding.sallonapp.ui.theme.sallonColor
 import kotlinx.coroutines.Dispatchers
@@ -74,13 +84,14 @@ import java.util.Locale
 fun DetailScreen(
     bookingModel: BookingModel,
     navController: NavController,
+    paymentViewModel: PaymentViewModel = hiltViewModel(),
     messageViewModel: MessageViewModel = hiltViewModel(),
     getBarberDataViewModel: GetBarberDataViewModel = hiltViewModel(),
 ) {
     BackHandler {
         navController.popBackStack()
     }
-
+    val context = LocalContext.current
     var sheetState by remember {
         mutableStateOf(false)
     }
@@ -90,15 +101,88 @@ fun DetailScreen(
     val totalTime = bookingModel.listOfService.sumOf { it.time.toInt() * it.count }
     val totalPrice = bookingModel.listOfService.sumOf { it.price.toInt() * it.count }
     val scroll = rememberScrollState()
+    val paymentState by paymentViewModel.paymentState.collectAsState()
+
+    val smsMessage =
+        "Hello, I book a slot from your salon.\n Please accept my request.\n Thank you!"
 
     var isdialog by remember {
         mutableStateOf(false)
     }
+    var selectedPayment by remember { mutableStateOf(false) }
     if (isdialog) {
-        SuccessfulDialog(navController = navController)
+        SuccessfulDialog(navController = navController, whatsappNumber = "+91"+bookingModel.barber.phoneNumber.toString(), message = smsMessage)
+    }
+
+    LaunchedEffect(paymentState) {
+        when (paymentState) {
+            is PaymentState.Success -> {
+                selectedPayment = true
+                Toast.makeText(context, "Payment Successful!", Toast.LENGTH_SHORT).show()
+            }
+            is PaymentState.Error -> {
+                val msg = (paymentState as PaymentState.Error).message
+                Toast.makeText(context, "Error: $msg", Toast.LENGTH_SHORT).show()
+            }
+            else -> {}
+        }
+    }
+    if(selectedPayment){
+        LaunchedEffect(Unit) {
+        scope.launch(Dispatchers.IO) {
+            getBarberDataViewModel.onEvent(
+                MainEvent.setBooking(
+                    bookingModel
+                )
+            )
+        }
+            val currentDate = Date()
+            val dateFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
+            val formattedDate = dateFormat.format(currentDate)
+            val message = LastMessage(
+                status = false,
+                message = "Hello Sir/Madam How may i Help you",
+                time = formattedDate,
+                seenbybarber = true,
+                seenbyuser = false
+            )
+            messageViewModel.onEvent(
+                MessageEvent.AddChat(
+                    message,
+                    bookingModel.barber.uid
+                )
+            )
+        }
+        try {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                val smsManager = SmsManager.getDefault()
+
+                smsManager.sendTextMessage(
+                    bookingModel.barber.phoneNumber,
+                    null,
+                    smsMessage,
+                    null,
+                    null
+                )
+            }else{
+                Toast.makeText(context, "Sending sms to salon declined. Permission not granted!!", Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(context, "Message sent error", Toast.LENGTH_LONG).show()
+
+        }
+
+        isdialog = true
     }
     ModalBottomSheetLayout(
-        sheetState = if (!sheetState) ModalBottomSheetState(ModalBottomSheetValue.Hidden, density = LocalDensity.current) else ModalBottomSheetState(
+        sheetState = if (!sheetState) ModalBottomSheetState(
+            ModalBottomSheetValue.Hidden,
+            density = LocalDensity.current
+        ) else ModalBottomSheetState(
             ModalBottomSheetValue.Expanded, density = LocalDensity.current
         ),
         sheetContent = {
@@ -107,26 +191,11 @@ fun DetailScreen(
                 onPaymentMethodSelect = { selectedPaymentMethod = it },
                 onClose = { sheetState = false }, navController = navController,
                 onCashClick = {
-                    scope.launch(Dispatchers.IO) {
-                        getBarberDataViewModel.onEvent(
-                            MainEvent.setBooking(
-                                bookingModel
-                            )
-                        )
-                        val currentDate = Date()
-                        val dateFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
-                        val formattedDate = dateFormat.format(currentDate)
-                        val message = LastMessage(
-                            status = false,
-                            message = "Hello Sir/Madam How may i Help you",
-                            time = formattedDate,
-                            seenbybarber = true,
-                            seenbyuser = false
-                        )
-                        messageViewModel.onEvent(MessageEvent.AddChat(message, bookingModel.barber.uid))
-                    }
-                    isdialog = true
-                }, onOnlineClick = {})
+                    selectedPayment = true
+                }, onOnlineClick = {
+                    paymentViewModel.startPayment(context as Activity,totalPrice,bookingModel.barber.shopName.toString(),bookingModel.barber.phoneNumber.toString())
+
+                })
         },
         sheetShape = RoundedCornerShape(topEnd = 15.dp, topStart = 15.dp),
         sheetGesturesEnabled = true,
@@ -229,12 +298,12 @@ fun DetailScreen(
                     ) {
                         bookingModel.listOfService.forEach { service ->
 
-                                ServiceNameAndPriceCard(
-                                    serviceName = service.serviceName,
-                                    serviceTime = service.time,
-                                    servicePrice = service.price,
-                                    count = service.count
-                                )
+                            ServiceNameAndPriceCard(
+                                serviceName = service.serviceName,
+                                serviceTime = service.time,
+                                servicePrice = service.price,
+                                count = service.count
+                            )
 
                         }
                     }
@@ -409,7 +478,7 @@ fun PaymentMethodBottomSheet(
                             modifier = Modifier.padding(15.dp)
                         )
                         GeneralButton(
-                            text = if (selectedPaymentMethod == "Pay Cash") "Confirm Cash Payment" else "Proceed to Pay Online",
+                            text = if (selectedPaymentMethod == "Pay Cash") "Confirm Cash Payment" else "Pay Online",
                             width = 200
                         ) {
                             if (selectedPaymentMethod == "Pay Cash") {
@@ -444,3 +513,4 @@ fun PaymentOption(text: String, isSelected: Boolean, onSelect: () -> Unit) {
         Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color.Black)
     }
 }
+

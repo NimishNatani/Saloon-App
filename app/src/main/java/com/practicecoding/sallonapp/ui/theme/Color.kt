@@ -16,3 +16,5 @@ val light_grey = Color(0xFFF5F5F5)
 val purple_200 = Color(0xFFe9ecef)
     //0xFFECE4F6)
 val purple_400 = Color(0xFFF3F1F5)
+
+val green = Color(0xFF5FA015)
