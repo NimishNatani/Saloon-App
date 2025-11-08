@@ -1,7 +1,3 @@
-✅ README for Salon Booking App
-
-(User App + Barber App — Kotlin + Jetpack Compose + Firebase + Razorpay)
-
 🌟 Salon Booking App
 
 A complete salon service ecosystem built with Kotlin, Jetpack Compose, and Firebase, consisting of two separate Android applications:
